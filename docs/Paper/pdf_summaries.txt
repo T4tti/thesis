@@ -1,0 +1,375 @@
+--- FILE: e:\thesis\docs\Paper\A_Novel_End-to-End_Corporate_Credit_Rating_Model_Based_on_Self-Attention_Mechanism.pdf ---
+Received September 17, 2020, accepted November 2, 2020, date of publication November 6, 2020,
+date of current version November 19, 2020.
+Digital Object Identifier 10.1 109/ACCESS.2020.3036469
+A Novel End-to-End Corporate Credit Rating
+Model Based on Self-Attention Mechanism
+BINBIN CHEN
+1 AND SHENGJIE LONG
+2
+1Graduate School, Xian International Studies University, Xi’an 710128, China
+2School of Trafﬁc and Transportation Engineering, Central South University, Changsha 410075, China
+Corresponding author: Binbin Chen (chris-chan23@outlook.com)
+This work was supported in part by the National Natural Science Foundation of China under Grant 71371181 and Grant 71672193, and in
+part by the Research Foundation of Xi’an International Studies University under Grant BSZA2019003.
+ABSTRACT In traditional ﬁnancial analysis discriminant analyses with statistic methods are considered
+as primary and widely applied corporate credit rating bases in which human impact plays an essential role.
+Machine learning approaches enormously assist credit rating in reducing human interference and improving
+rating efﬁciency. However, existing methods did not efﬁciently leverage the time series features of ﬁnancial
+data that is beneﬁcial for the classiﬁcation tasks. We propose a novel end-to-end architecture, the SMAGRU,
+based on self multi-head attention with gated recurrent neural networks, which is capable of evaluating a
+corporate credit rating by capturing the time series features assigned the weights of market benchmarks.
+Experiments compared with statistic and machine learning baseline models on different datasets show that
+our model contains superiority in multi-class credit rating classiﬁcation. The result of ablation experiments
+suggests that time series features are crucial in classiﬁcation performance, and self multi-head attention can
+signiﬁcantly enhance these features and thereby improve the accuracy and convergence speed. We show that
+the SMAGRU generalizes well, even on sparse data during K-fold cross validation experiments.
+INDEX TERMS Corporate credit rating, multi-class classiﬁcation, self multi-head attention, GRU, time
+series.
+I. INTRODUCTION
+A corporate credit rating is an opinion regarding the assess-
+ment of a company’s ability to meet its debt obligations
+according to an independent credit rating agency, such as
+Moody’s, Standard & Poor’s (S&P’s), and Fitch Ratings.
+Corporate credit ratings are crucial not only since they are
+general requirements of public bond iss
+...
+lic of China ﬁnancial industry
+standard: Speciﬁcation for credit rating in the credit market and interbank
+bond market, Part 2: Speciﬁcation for credit rating business,’’ Chin. Law
+Government, vol. 43, no. 3, pp. 67–85, 2010.
+[94] D. P . Kingma and J. Ba, ‘‘Adam: A method for stochastic
+optimization,’’ 2014, arXiv:1412.6980. [Online]. Available:
+http://arxiv.org/abs/1412.6980
+[95] J. Xiong, K. Zhang, and H. Zhang, ‘‘A vibrating mechanism to prevent
+neural networks from overﬁtting,’’ in Proc. 15th Int. Wireless Commun.
+Mobile Comput. Conf. (IWCMC), Jun. 2019, pp. 174–1737.
+BINBIN CHEN received the B.E. degree from
+Xi’an International Studies University, China,
+in 2007, and the M.S. degree from Southwest Uni-
+versity, China, in 2016. He is currently pursuing
+the Ph.D. degree in applied linguistics with Xi’an
+International Studies University, Xi’an, China.
+He is also a Lecturer with the Zunyi Normal Col-
+lege, China. His current research interests include
+deep learning and natural language processing.
+SHENGJIE LONG received the B.E. degree from
+the College of Management and Economics,
+Tianjin University, China, in 2011, and the M.S.
+degree from the School of Engineering Science,
+University of Chinese Academy of Sciences,
+China, in 2015. He is currently pursuing the Ph.D.
+degree with the School of Trafﬁc and Transporta-
+tion Engineering, Central South University, China.
+His research interests include logistics system
+optimization and supply chain management.
+VOLUME 8, 2020 203889
+
+--- FILE: e:\thesis\docs\Paper\magnus_morthens_msc_thesis.pdf ---
+Credit Rating Prediction using Multi-modal Temporal
+Neural Networks
+by
+Magnús Freyr Morthens
+Thesis of 60 ECTS credits submitted to the School of Technology,
+Department of Computer Science
+at Reykjavík University in partial fulfillment
+of the requirements for the degree of
+Master of Science (M.Sc.) in Artificial Intelligence and
+Language Technologies
+June 2024
+Examining Committee:
+María Óskarsdóttir, Supervisor
+Associate Professor, Reykjavík University, Iceland
+Cristián Bravo, Co-supervisor
+Associate Professor, Western University, Canada
+Stephan Schiffel, Examiner
+Assistant Professor, Reykjavík University, Iceland
+Stefán Ólafsson, Examiner
+Assistant Professor, Reykjavík University, Iceland
+Copyright
+Magnús Freyr Morthens
+June 2024
+ii
+--- LAST PAGES ---
+59
+Feature Description
+oibdpy Operating income before depreciation, yearly.
+opepsy Operating earnings per share, yearly.
+piy Pretax income, yearly.
+prstkcy Purchase of common and preferred stock, yearly.
+rdipay Research and development expenses, after tax, yearly.
+rdipy Research and development expenses, yearly.
+revty Revenue, total, yearly.
+saley Sales, yearly.
+sivy Sale of investments, yearly.
+spiy Special items, yearly.
+sppivy Sale of PP&E and investments, loss data code, yearly.
+sstky Sale of common and preferred stock, yearly.
+stkcoy Stock compensation expense, yearly.
+txbcofy Excess tax benefit of stock options, cash flow financing, yearly.
+txbcoy Excess tax benefit of stock options, cash flow operating, yearly.
+txdcy Income taxes, deferred, yearly.
+txpdy Income taxes, paid, yearly.
+txty Income taxes, total, yearly.
+txwy Excise taxes, yearly.
+xidocy Extraordinary items and discontinued operations, statement of cash
+flows, yearly.
+xidoy Extraordinary items and discontinued operations, yearly.
+xopry Operating expenses, total, yearly.
+cshtrq Common shares traded, quarterly.
+dvpspq Dividends per share, quarterly.
+dvpsxq Dividends per share, ex-date, quarterly.
+mkvaltq Market value of the company, total, quarterly.
+prccq Price per common share, close, quarterly.
+prchq Price per common share, high, quarterly.
+prclq Price per common share, low, quarterly.
+adjex Cumulative adjustment factor by ex-date.
+spcsrc S&P quality ranking.
+60
+
+--- FILE: e:\thesis\docs\Paper\NeurIPS-2019-time-series-generative-adversarial-networks-Paper.pdf ---
+Time-series Generative Adversarial Networks
+Jinsung Y oon∗
+University of California, Los Angeles, USA
+jsyoon0823@g.ucla.edu
+Daniel Jarrett∗
+University of Cambridge, UK
+daniel.jarrett@maths.cam.ac.uk
+Mihaela van der Schaar
+University of Cambridge, UK
+University of California, Los Angeles, USA
+Alan Turing Institute, UK
+mv472@cam.ac.uk, mihaela@ee.ucla.edu
+Abstract
+A good generative model for time-series data should preserve temporal dynamics,
+in the sense that new sequences respect the original relationships between variables
+across time. Existing methods that bring generative adversarial networks (GANs)
+into the sequential setting do not adequately attend to the temporal correlations
+unique to time-series data. At the same time, supervised models for sequence
+prediction—which allow ﬁner control over network dynamics—are inherently
+deterministic. We propose a novel framework for generating realistic time-series
+data that combines the ﬂexibility of the unsupervised paradigm with the control
+afforded by supervised training. Through a learned embedding space jointly
+optimized with both supervised and adversarial objectives, we encourage the
+network to adhere to the dynamics of the training data during sampling. Empirically,
+we evaluate the ability of our method to generate realistic samples using a variety of
+real and synthetic time-series datasets. Qualitatively and quantitatively, we ﬁnd that
+the proposed framework consistently and signiﬁcantly outperforms state-of-the-art
+benchmarks with respect to measures of similarity and predictive ability.
+1 Introduction
+What is a good generative model for time-series data? The temporal setting poses a unique challenge
+to generative modeling. A model is not only tasked with capturing the distributions of features
+within each time point, it should also capture the potentially complex dynamics of those variables
+across time. Speciﬁcally, in modeling multivariate sequential datax1:T = (x1,..., xT ), we wish to
+accurately capture the conditional distributionp(xt|x1:t−1) of temporal transitions as well.
+On the one hand, a great deal of work has focused on improving the temporal dynamics of au-
+toregressive models for sequence prediction. These primarily tackle the problem of compounding
+errors during multi-step sampling, introducing various training-time modiﬁcations to more accurately
+reﬂect testing-time conditions [ 1, 2, 3]. Autoregressive models explicitly factor the distribution of
+sequences into a product of conditiona
+...
+oesen Lindbo Larsen, Søren Kaae Sønderby, Hugo Larochelle, and Ole Winther. Autoencoding
+beyond pixels using a learned similarity metric. arXiv preprint arXiv:1512.09300, 2015.
+[28] Vincent Dumoulin, Ishmael Belghazi, Ben Poole, Olivier Mastropietro, Alex Lamb, Martin Arjovsky, and
+Aaron Courville. Adversarially learned inference. arXiv preprint arXiv:1606.00704, 2016.
+[29] Alireza Makhzani, Jonathon Shlens, Navdeep Jaitly, Ian Goodfellow, and Brendan Frey. Adversarial
+autoencoders. arXiv preprint arXiv:1511.05644, 2015.
+[30] Yoon Kim, Kelly Zhang, Alexander M Rush, Yann LeCun, et al. Adversarially regularized autoencoders.
+arXiv preprint arXiv:1706.04223, 2017.
+[31] Aäron Van Den Oord, Sander Dieleman, Heiga Zen, Karen Simonyan, Oriol Vinyals, Alex Graves, Nal
+Kalchbrenner, Andrew W Senior, and Koray Kavukcuoglu. Wavenet: A generative model for raw audio.
+SSW, 125, 2016.
+[32] Dzmitry Bahdanau, Kyunghyun Cho, and Yoshua Bengio. Neural machine translation by jointly learning
+to align and translate. arXiv preprint arXiv:1409.0473, 2014.
+[33] Alex Graves. Generating sequences with recurrent neural networks. arXiv preprint arXiv:1308.0850, 2013.
+[34] Ilya Sutskever, James Martens, and Geoffrey E Hinton. Generating text with recurrent neural networks. In
+Proceedings of the 28th International Conference on Machine Learning (ICML-11), pages 1017–1024,
+2011.
+[35] Chris Donahue, Julian McAuley, and Miller Puckette. Adversarial audio synthesis. arXiv preprint
+arXiv:1802.04208, 2018.
+11
+
+--- FILE: e:\thesis\docs\Paper\Paper6.pdf ---
+Article Not peer-reviewed version
+Machine Learning for Credit Risk
+Prediction: A Systematic Literature
+Review
+Jomark Pablo Noriega * , Luis Antonio Rivera * , Jose Alfredo Herrera *
+Posted Date: 11 August 2023
+doi: 10.20944/preprints202308.0947 .v1
+Keywords: loan; credit risk; prediction; machine learning; systematic literature review
+Preprints.org is a free multidiscipline platform providing preprint service that
+is dedicated to making early versions of research outputs permanently
+available and citable. Preprints posted at Preprints.org appear in Web of
+Science, Crossref, Google Scholar , Scilit, Europe PMC.
+Copyright: This is an open access article distributed under the Creative Commons
+Attribution License which permits unrestricted use, distribution, and reproduction in any
+medium, provided the original work is properly cited.
+Systematic Review
+Machine Learning for Credit Risk Prediction: A
+Systematic Literature Review
+Jomark Noriega 1,3,*,†
+, Luis Rivera 1,4,2,*,† and José Herrera 1,2,3,*,†
+1 Universidad Nacional Mayor de San Marcos
+2 Universidad Pablo de Olavide
+3 Financiera QAPAQ
+4 Universidade Estadual do Norte Fluminense Darcy Ribeiro
+* Correspondence: jomark.noriega@unmsm.edu.pe or jnoriega@qapaq.pe (J.N.); rivera@uenf.br (L.R.);
+jherreraqu@unmsm.edu.pe (J.H.); Tel.: +51 987-521-006
+† These authors contributed equally to this work.
+Abstract:
+In this systematic review of the literature on using Machine Learning (ML) for credit risk
+prediction, we raise the need for ﬁnancial institutions to use AI and ML to assess credit risk, analyzing
+large volumes of information. We posed research questions about algorithms, metrics, results, data
+sets, variables, and related limitations in predicting credit risk. We searched renowned databases to
+answer them and identiﬁed 52 relevant studies with the credit industry microﬁnance. Challenges and
+approaches in credit risk prediction using ML models we identiﬁed, difﬁculties with the implemented
+models such as the black box model, the need for explanatory artiﬁcial intelligence, the importance
+of selecting relevant features, addressing multicollinearity , and the problem of the imbalance in
+the input data. By answering the questions, we identiﬁed that the Boosted Category is the most
+researched family of ML models; the most commonly used metrics for evaluation are Area Under
+Curve (AUC), Accuracy (ACC), Recall, precision measure F1 (F1), and Precision; Research mainly
+uses public data sets to compare models, and pr
+...
+ard default prediction in the imbalanced datasets. IEEE Access 2020, 8, 201173–201198.
+64. Song, Y .; Peng, Y . A MCDM-based evaluation approach for imbalanced classiﬁcation methods in ﬁnancial
+risk prediction. IEEE Access 2019, 7, 84897–84906.
+65. Li, Z.; Zhang, J.; Yao, X.; Kou, G. How to identify early defaults in online lending: a cost-sensitive multi-layer
+learning framework. Knowledge-Based Systems 2021, 221, 106963.
+66. Chro´ scicki, D.; Chlebus, M. The Advantage of Case-Tailored Information Metrics for the Development of
+Predictive Models, Calculated Proﬁt in Credit Scoring. Entropy 2022, 24, 1218.
+67. Biswas, N.; Mondal, A.S.; Kusumastuti, A.; Saha, S.; Mondal, K.C. Automated credit assessment framework
+using ETL process and machine learning. Innovations in Systems and Software Engineering 2022, pp. 1–14.
+68. Machado, M.R.; Karray , S. Assessing credit risk of commercial customers using hybrid machine learning
+algorithms. Expert Systems with Applications 2022, 200, 116889.
+Disclaimer/Publisher’s Note: The statements, opinions and data contained in all publications are solely those
+of the individual author(s) and contributor(s) and not of MDPI and/or the editor(s). MDPI and/or the editor(s)
+disclaim responsibility for any injury to people or property resulting from any ideas, methods, instructions or
+products referred to in the content.
+Preprints (www.preprints.org)  |  NOT PEER-REVIEWED  |  Posted: 11 August 2023                   doi:10.20944/preprints202308.0947.v1
+
+--- FILE: e:\thesis\docs\Paper\Paper7.pdf ---
+Corporate Credit Ratings Based on Hierarchical
+Heterogeneous Graph Neural Networks
+Bo-Jing Feng*          Xi Cheng*          Hao-Nan Xu          Wen-Fang Xue
+Center for Research on Intelligent Perception and Computing, National Laboratory of Pattern Recognition,
+Institute of Automation, Chinese Academy of Sciences, Beijing 100190, China
+Abstract:     In  order  to  help  investors  understand  the  credit  status  of  target  corporations  and  reduce  investment  risks,  the  corporate
+credit rating model has become an important evaluation tool in the financial market. These models are based on statistical learning, ma-
+chine learning and deep learning especially graph neural networks (GNNs). However, we found that only few models take the hierarchy,
+heterogeneity  or  unlabeled  data  into  account  in  the  actual  corporate  credit  rating  process.  Therefore,  we  propose  a  novel  framework
+named hierarchical heterogeneous graph neural networks (HHGNN), which can fully model the hierarchy of corporate features and the
+heterogeneity of relationships between corporations. In addition, we design an adversarial learning block to make full use of the rich un-
+labeled samples in the financial data. Extensive experiments conducted on the public-listed corporate rating dataset prove that HHGNN
+achieves SOTA compared to the baseline methods.
+Keywords:   Corporate credit rating, hierarchical relation, heterogeneous graph neural networks, adversarial learning.
+Citation:   B.  J.  Feng,  X.  Cheng,  H.  N.  Xu,  W.  F.  Xue.  Corporate  credit  ratings  based  on  hierarchical  heterogeneous  graph  neural
+networks. Machine Intelligence Research, vol.21, no.2, pp.257–271, 2024. http://doi.org/10.1007/s11633-023-1425-9
+1   Introduction
+The  financial  risks  of  investing  are  relatively  high  if
+trading partners fail to deliver on their promises. Choos-
+ing an excellent corporation to invest in is the core issue
+of  investment  from  the  perspective  of  decision  makers.
+How shall they evaluate the quality of corporations more
+accurately  and  efficiently  before  investment?  Since  the
+21st century, many financial institutions have been using
+credit rating tools to estimate the likelihood[1] that poten-
+tial trading partners will default on their debts[2]. Stand-
+ard  &  Poor′s,  Moody′s  and  Fitch  are  internationally
+renowned  and  authoritative  credit  rating  agencies  that
+monopolize  the  rating  market  in  developed  countries,
+while  they  la
+...
+ous graph neural
+networks. Machine Inteligence Research, vol.21, no.2, pp.257-271, 2024. https://doi.org/10.1007/s11633-023-1425-9
+Articles may interest you
+Exploring the brain-like properties of deep neural networks: a neural encoding perspective. Machine Intelligence Research, vol.19,
+no.5, pp.439-455, 2022.
+DOI: 10.1007/s11633-022-1348-x
+Denoised internal models: a brain-inspired autoencoder against adversarial attacks. Machine Intelligence Research, vol.19, no.5,
+pp.456-471, 2022.
+DOI: 10.1007/s11633-022-1375-7
+A novel attention-based global and local information fusion neural network for group recommendation. Machine Intelligence
+Research, vol.19, no.4, pp.331-346, 2022.
+DOI: 10.1007/s11633-022-1336-1
+Satellite integration into 5g: deep reinforcement learning for network selection. Machine Intelligence Research, vol.19, no.2, pp.127-
+137, 2022.
+DOI: 10.1007/s11633-022-1326-3
+Towards interpretable defense against adversarial attacks via causal inference. Machine Intelligence Research, vol.19, no.3, pp.209-
+226, 2022.
+DOI: 10.1007/s11633-022-1330-7
+Continuous-time distributed heavy-ball algorithm for distributed convex optimization over undirected and directed graphs.
+Machine Intelligence Research, vol.19, no.1, pp.75-88, 2022.
+DOI: 10.1007/s11633-022-1319-2
+A framework for distributed semi-supervised learning using single-layer feedforward networks. Machine Intelligence Research,
+vol.19, no.1, pp.63-74, 2022.
+DOI: 10.1007/s11633-022-1315-6
+WeChat: MIR Twitter: MIR_Journal
+
+--- FILE: e:\thesis\docs\Paper\T-LSTM.pdf ---
+Enhancing Accuracy and Interpretability in Corporate Credit Rating
+Classiﬁcation with the Transformer-LSTM Model.
+Kensei Mondena,, Suguru Y amanaka1,
+aGraduate School of Science and Engineering, Aoyama Gakuin University, 5-10-1 Fuchinobe Chuo-ku,
+Sagamihara-shi, 252-5258, Kanagawa, Japan
+Abstract
+Several machine learning methods have been applied to corporate credit rating classiﬁcation, aimed at assessing a
+corporation’s ability to repay debts based on it. Previous research has demonstrated that neural network models exhibit
+high accuracy in classiﬁcation tasks, particularly when bolstered by time-series features. However, the challenge
+with neural networks lies in their interpretability due to their nonlinear and intricate calculation processes. In light
+of this, we introduce a novel approach known a Transformer-long short-term memory (T-LSTM). Our goal is to
+strike a balance between classiﬁer interpretability and the utilization of time-series features. Subsequently, we apply
+the T-LSTM model to tackle the corporate credit rating classiﬁcation problem. The outcomes of our comparative
+experiments illustrate the superiority of T-LSTM in capturing time-series features when contrasted with conventional
+machine learning methods. Moreover, we analyze T-LSTM parameters to elucidate the point at which the acquired
+information proves beneﬁcial for classiﬁcation. Moreover, through an analysis of T-LSTM parameters, we reveal how
+it eﬀectively leverages speciﬁc temporal attributes contingent upon the corporate credit rating being predicted. Thus,
+we present compelling evidence that T-LSTM enhances both the accuracy and interpretability of corporate credit
+rating classiﬁcations.
+Keywords:
+Attention mechanism, Corporate credit rating classiﬁcation, LSTM, Recurrent neural networks, Transformer
+1. Introduction
+Corporate credit rating classiﬁcation, aimed at as-
+sessing a company’s repayment capability using ﬁnan-
+cial statements, has embraced mathematical models to
+streamline the evaluation process. In recent years, ma-
+chine learning-based mathematical models have gained
+prominence in credit rating classiﬁcation [1–4]. Pre-
+vious research has demonstrated that neural networks
+yield impressive accuracy in classiﬁcation tasks [5–7],
+and has employed the neural network model for a bench
+mark classiﬁer [1–4]. However, these models are often
+challenging to interpret due to their nonlinear and in-
+tricate calculation processes. This interpretability issue
+holds signiﬁcant i
+...
+conference on computer
+vision and pattern recognition, (2016) 770-778 ɽ
+[24] D.P .Kingma, J.Ba, Adam:A Method for Stochastic Optimiza-
+tion, arXiv preprint arXiv:1412.6980, (2014).
+[25] L.Bottou, C.Cortes, J.S.Denker, H.Drucker, I.Guyon,
+L.D.Jackel, Y .LeCun, U.A.Muller, E.Sackinger, P .Simard,
+V .V apnik, Comparison of classiﬁer methods: a case study in
+handwritten digit recognition, Proceedings of the 12th IAPR
+International Conference on Pattern Recognition, 3(1994)
+77-82.
+[26] J.Milgram, M.Cheriet, R.Sabourin, “One Against One” or “One
+Against All”: Which One is Better for Handwriting Recognition
+with SVMs?, In tenth international workshop on Frontiers in
+handwriting recognition, (2006).
+[27] B.Scholkopf, C.J.Burges, A.J.Smola, Advances in Kernel Meth-
+ods: Support V ector Learning, MIT Press, Cambridge, (1998).
+[28] G.Ke, Q.Meng, T.Finley, T.Wang, W.Chen, W.Ma, Q.Y e,
+T.Y .Liu, LightGBM: A Highly Eﬃcient Gradient Boosting De-
+cision Tree, Advances in neural information processing systems,
+30 (2017) 3146-3154.
+[29] Y .Sun, M.S.Kamel, A.K.Wong, Y .Wang, Cost-sensitive boost-
+ing for classiﬁcation of imbalanced data, Pattern Recognition,
+40 (2007) 3358-3378.
+[30] D.Tran, H.Mac, V .Tong, H.A.Tran, L.G.Nguyen, A LSTM
+based framework for handling multiclass imbalance in DGA
+botnet detection, Neurocomputing, 275 (2018) 2401-2413.
+10
+This preprint research paper has not been peer reviewed. Electronic copy available at: https://ssrn.com/abstract=4765632
+Preprint not peer reviewed
+

@@ -1,0 +1,2 @@
+mode,target,rows,classes,min_class_count,accuracy,balanced_accuracy,f1_macro,f1_weighted,notch_exact,notch_off_1,notch_off_ge_2
+multiclass,rating_detail,8680.0,20.0,23.0,0.08410138248847926,0.05119047619047619,0.009623601527939245,0.014673376581946666,0.08434430964760255,0.21317157712305027,0.7024841132293472

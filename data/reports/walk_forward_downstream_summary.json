@@ -1,0 +1,19 @@
+{
+  "n_folds": 3,
+  "mean_metrics": {
+    "val_accuracy": 0.3353010801462079,
+    "val_balanced_accuracy": 0.33210259055985025,
+    "val_macro_f1": 0.27946789859101645,
+    "test_accuracy": 0.2395128041095825,
+    "test_balanced_accuracy": 0.22936878694542903,
+    "test_macro_f1": 0.19206192233550948
+  },
+  "std_metrics": {
+    "val_accuracy": 0.07173002748387401,
+    "val_balanced_accuracy": 0.052185609069898546,
+    "val_macro_f1": 0.06563715645677828,
+    "test_accuracy": 0.040914783835081986,
+    "test_balanced_accuracy": 0.0451886730275188,
+    "test_macro_f1": 0.036161846952384544
+  }
+}

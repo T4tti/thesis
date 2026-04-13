@@ -1,0 +1,427 @@
+﻿=== CELL 2 (446 chars) ===
+import platform
+import sys
+from pathlib import Path
+
+IN_KAGGLE = Path('/kaggle').exists()
+WORKING_DIR = Path('/kaggle/working') if IN_KAGGLE else Path('.')
+ARTIFACT_DIR = WORKING_DIR / 'credit_rating_artifacts'
+ARTIFACT_DIR.mkdir(parents=True, exist_ok=True)
+
+print('Python:', platform.python_version())
+print('Running on Kaggle:', IN_KAGGLE)
+print('Working directory:', WORKING_DIR.resolve())
+print('Artifact directory:', ARTIFACT_DIR.resolve())
+
+=== CELL 3 (2090 chars) ===
+# ============================================================
+# Install PyTorch Geometric + SHAP (Kaggle Compatible)
+# ============================================================
+
+import sys, subprocess, torch, os
+
+IN_KAGGLE = 'KAGGLE_KERNEL_RUN_TYPE' in os.environ or Path('/kaggle').exists()
+
+print(f"Environment: {'Kaggle' if IN_KAGGLE else 'Local'}")
+print(f"PyTorch: {torch.__version__}")
+print(f"CUDA available: {torch.cuda.is_available()}")
+if torch.cuda.is_available():
+    print(f"CUDA version: {torch.version.cuda}")
+
+torch_version = torch.__version__.split('+')[0]
+torch_suffix = torch.__version__.split('+')[1] if '+' in torch.__version__ else 'cpu'
+wheel_url = f"https://data.pyg.org/whl/torch-{torch_version}+{torch_suffix}.html"
+
+print(f"Installing PyTorch Geometric for torch {torch_version}+{torch_suffix}...")
+try:
+    if IN_KAGGLE:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'torch-geometric', '-f', wheel_url, '-q'])
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'torch-scatter', 'torch-sparse', '-f', wheel_url, '-q'])
+    else:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'torch-geometric', 'torch-scatter', 'torch-sparse', '-q'])
+    print("PyTorch Geometric installed successfully")
+except Exception as e:
+    print(f"Installation failed: {e}")
+    try:
+        subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'torch-geometric', '-q'])
+        print("PyTorch Geometric installed (minimal)")
+    except Exception as e2:
+        print(f"Fallback also failed: {e2}")
+
+# Install SHAP
+try:
+    subprocess.check_call([sys.executable, '-m', 'pip', 'install', 'shap', '-q'])
+    print("SHAP installed successfully")
+except Exception as e:
+    print(f"SHAP installation failed: {e}")
+
+# Verify
+import torch_geometric
+from torch_geometric.data import Data, Batch
+from torch_geometric.nn import GATConv, global_mean_pool, global_max_pool
+print(f"PyTorch Geometric: {torch_geometric.__versio
+
+=== CELL 5 (1125 chars) ===
+import random, math, warnings
+warnings.filterwarnings('ignore')
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+from scipy.stats import rankdata
+
+from sklearn.metrics import (
+    accuracy_score, f1_score, roc_auc_score,
+    confusion_matrix, classification_report, cohen_kappa_score
+)
+from sklearn.model_selection import GroupShuffleSplit
+from sklearn.preprocessing import LabelEncoder, label_binarize, RobustScaler
+from sklearn.metrics.pairwise import cosine_similarity as sklearn_cosine_similarity
+
+import torch
+import torch.nn as nn
+import torch.nn.functional as F
+from torch.utils.data import Dataset, DataLoader
+
+from torch_geometric.data import Data, Batch
+from torch_geometric.loader import DataLoader as PyGDataLoader
+from torch_geometric.nn import GATConv, global_mean_pool, global_max_pool
+
+import shap
+import networkx as nx
+
+SEED = 42
+random.seed(SEED)
+np.random.seed(SEED)
+torch.manual_seed(SEED)
+if torch.cuda.is_available():
+    torch.cuda.manual_seed_all(SEED)
+
+device = torch.device('cuda' if torch.cuda.is_available() else 'cpu')
+print('Using device:', device)
+
+
+=== CELL 6 (896 chars) ===
+TRAIN_PATH = '/kaggle/input/datasets/tailength/corporate-credit-rating/train_augmented_timegan.csv'
+VAL_PATH = '/kaggle/input/datasets/tailength/corporate-credit-rating/val.csv'
+TEST_PATH = '/kaggle/input/datasets/tailength/corporate-credit-rating/test.csv'
+
+# Try Kaggle paths first, fallback to local paths if not found
+import os
+df_train = pd.read_csv(TRAIN_PATH if os.path.exists(TRAIN_PATH) else 'train_augmented_timegan.csv')
+df_val = pd.read_csv(VAL_PATH if os.path.exists(VAL_PATH) else 'val.csv')
+df_test = pd.read_csv(TEST_PATH if os.path.exists(TEST_PATH) else 'test.csv')
+
+df_train['split'] = 'train'
+df_val['split'] = 'val'
+df_test['split'] = 'test'
+
+df = pd.concat([df_train, df_val, df_test], ignore_index=True)
+
+print('Train shape:', df_train.shape)
+print('Val shape:', df_val.shape)
+print('Test shape:', df_test.shape)
+print('Total Shape:', df.shape)
+display(df.head())
+df.info()
+
+=== CELL 7 (1052 chars) ===
+fig, axes = plt.subplots(1, 3, figsize=(22, 5))
+
+target_counts = df['rating_detail'].value_counts().sort_values(ascending=False)
+axes[0].bar(target_counts.index.astype(str), target_counts.values, color='#1b9e77')
+axes[0].set_title('Top 20 Target Classes (rating_detail)')
+axes[0].set_xlabel('rating_detail'); axes[0].set_ylabel('Count')
+axes[0].tick_params(axis='x', rotation=75)
+
+missing_pct = (df.isna().mean() * 100).sort_values(ascending=False)
+top_missing = missing_pct.head(15)
+axes[1].barh(top_missing.index[::-1], top_missing.values[::-1], color='#7570b3')
+axes[1].set_title('Top 15 Missing Value (%)'); axes[1].set_xlabel('% Missing')
+
+num_cols_all = df.select_dtypes(include=[np.number]).columns.tolist()
+num_cols_corr = [c for c in num_cols_all if c not in ['binary_rating']][:10]
+corr = df[num_cols_corr].corr()
+sns.heatmap(corr, cmap='coolwarm', center=0, ax=axes[2])
+axes[2].set_title('Correlation Heatmap')
+
+plt.tight_layout()
+plt.savefig(ARTIFACT_DIR / 'eda_plots.png', dpi=150, bbox_inches='tight')
+plt.show()
+print('EDA plots saved.')
+
+=== CELL 9 (877 chars) ===
+FINANCIAL_FEATURES = [
+    'current_ratio', 'debt_equity_ratio',
+    'gross_profit_margin', 'operating_profit_margin',
+    'ebit_margin', 'pretax_profit_margin',
+    'net_profit_margin', 'asset_turnover',
+    'roe', 'roa',
+    'operating_cashflow_ps', 'free_cashflow_ps'
+]
+
+le = LabelEncoder()
+df['rating_numeric'] = le.fit_transform(df['rating_detail'])
+n_classes = len(le.classes_)
+rating_mapping = dict(zip(range(n_classes), le.classes_))
+
+print('Rating classes:', le.classes_)
+print('Number of classes:', n_classes)
+
+df['rating_date'] = pd.to_datetime(df['rating_date'])
+
+for col in FINANCIAL_FEATURES:
+    if df[col].isna().any():
+        df[col] = df[col].fillna(df[col].median())
+
+for col in FINANCIAL_FEATURES:
+    lower = df[col].quantile(0.01)
+    upper = df[col].quantile(0.99)
+    df[col] = df[col].clip(lower, upper)
+
+print(f'Data after preprocessing: {df.shape}')
+
+=== CELL 11 (3542 chars) ===
+# ============================================================
+# Fuzzy Graph Construction V2 (HHGNN Core — 4D Node Features)
+# ============================================================
+
+def fuzzy_membership_sigmoid(similarity, alpha=10.0, beta=0.5):
+    """
+    Sigmoid fuzzy membership: cosine similarity -> edge weight in [0,1].
+    """
+    return 1.0 / (1.0 + np.exp(-alpha * (similarity - beta)))
+
+
+def build_fuzzy_feature_graph_v2(features_vector, z_scores_vector,
+                                   feature_names, alpha=10.0, beta=0.3):
+    """
+    Build Fuzzy Feature Graph (Level 1 – Intra-corporate) with 4D nodes.
+
+    Node features per financial feature node:
+      [raw_value, position_enc, z_score, rank_normalized]
+
+    Edges: fuzzy cosine-similarity weights (computed on 2D subspace)
+    """
+    d = len(features_vector)
+
+    # Rank-normalised within this company profile
+    ranks = rankdata(features_vector) / d  # (d,) in (0, 1]
+
+    # 4D node features
+    node_x = np.column_stack([
+        features_vector,                          # raw financial value
+        np.arange(d, dtype=np.float64) / d,      # positional encoding
+        np.clip(z_scores_vector, -3.0, 3.0),     # z-score (clipped)
+        ranks,                                    # rank within company
+    ]).astype(np.float32)                          # shape (d, 4)
+
+    # Edge computation: cosine similarity on [value, pos_enc] only
+    feat_for_sim = node_x[:, :2]
+    cos_sim      = sklearn_cosine_similarity(feat_for_sim)  # (d, d)
+    fuzzy_w      = fuzzy_membership_sigmoid(cos_sim, alpha=alpha, beta=beta)
+    np.fill_diagonal(fuzzy_w, 0.0)
+
+    # Build sparse edges (threshold raised to 0.05 for sparser graph)
+    threshold = 0.05
+    src_list, dst_list, weight_list = [], [], []
+    for i in range(d):
+        for j in range(d):
+            if i != j and fuzzy_w[i, j] > threshold:
+                src_list.append(i)
+                dst_list.append(j)
+python : Traceback (most recent call last):
+At line:1 char:1
++ python -c "
++ ~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback (most recent call last)::String) [], RemoteException
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<string>", line 13, in <module>
+    print(src[:2000])
+    ~~~~~^^^^^^^^^^^^
+                weight_list.append(fuzzy_w[i, j])
+
+=== CELL 13 (3829 chars) ===
+# ============================================================
+# Visualize HHGNN Fuzzy Graph Structure
+# ============================================================
+
+fig, axes = plt.subplots(1, 2, figsize=(20, 8))
+
+# --- Plot 1: Fuzzy Feature Graph (single company) ---
+sample_company = df[FINANCIAL_FEATURES].iloc[0].values
+ei_feat, ew_feat = build_fuzzy_feature_graph(sample_company, FINANCIAL_FEATURES)
+
+G_feat = nx.Graph()
+for i, name in enumerate(FINANCIAL_FEATURES):
+    G_feat.add_node(i, label=name)
+
+# Add edges (skip self-loops for visualization)
+edges_feat = ei_feat.numpy().T
+weights_feat = ew_feat.numpy()
+for (s, t), w in zip(edges_feat, weights_feat):
+    if s != t and w > 0.1:
+        G_feat.add_edge(s, t, weight=w)
+
+pos_feat = nx.circular_layout(G_feat)
+edge_weights_viz = [G_feat[u][v]['weight'] for u, v in G_feat.edges()]
+max_w = max(edge_weights_viz) if edge_weights_viz else 1.0
+edge_widths = [3.0 * w / max_w for w in edge_weights_viz]
+edge_alphas = [0.3 + 0.7 * w / max_w for w in edge_weights_viz]
+
+ax1 = axes[0]
+nx.draw_networkx_nodes(G_feat, pos_feat, node_color='#4FC3F7', node_size=700, ax=ax1)
+nx.draw_networkx_labels(G_feat, pos_feat, labels={i: FINANCIAL_FEATURES[i][:8] for i in range(len(FINANCIAL_FEATURES))},
+                        font_size=7, font_weight='bold', ax=ax1)
+for idx, (u, v) in enumerate(G_feat.edges()):
+    nx.draw_networkx_edges(G_feat, pos_feat, edgelist=[(u, v)],
+                           width=edge_widths[idx], alpha=edge_alphas[idx],
+                           edge_color='#1565C0', ax=ax1)
+ax1.set_title('Fuzzy Feature Graph (Intra-corporate)\nEdge thickness = Fuzzy Membership Weight',
+              fontsize=13, fontweight='bold')
+ax1.axis('off')
+
+# --- Plot 2: Fuzzy Corporate Graph (sample companies) ---
+sample_n = min(60, len(df))
+sample_df = df.head(sample_n)
+sample_feats = sample_df[FINANCIAL_FEATURES].values
+sample_sectors = sample_df['sector'].tolist()
+
+scaler_temp = RobustScaler()
+sample_feats_scaled = scaler_temp.fit_tr
+
+=== CELL 15 (1123 chars) ===
+# ============================================================
+# Data Preparation V2: Static Representation + Z-Scores
+# ============================================================
+
+X_all = df[FINANCIAL_FEATURES].values.astype(np.float32)  # (N, 12)
+y_all = df['rating_numeric'].values                         # (N,)
+
+# Train / Val / Test indices
+train_idx = df.index[df['split'] == 'train'].tolist()
+val_idx   = df.index[df['split'] == 'val'].tolist()
+test_idx  = df.index[df['split'] == 'test'].tolist()
+
+# Compute z-scores from training distribution ONLY (no data leakage)
+train_means = X_all[train_idx].mean(axis=0)       # (12,)
+train_stds  = X_all[train_idx].std(axis=0) + 1e-8  # (12,)
+Z_all = ((X_all - train_means) / train_stds).astype(np.float32)  # (N, 12)
+Z_all = np.clip(Z_all, -3.0, 3.0)
+
+sectors_all = df['sector'].values  # (N,)
+
+print(f'Total: {len(X_all)} | Train: {len(train_idx)} | Val: {len(val_idx)} | Test: {len(test_idx)}')
+print(f'Feature dim: {X_all.shape[1]} | Node feature dim: 4 [value, pos, z_score, rank]')
+print(f'Z-scores clipped to [-3, 3], computed from training set only (no leakage)')
+
+
+=== CELL 17 (1585 chars) ===
+# ============================================================
+# Build HHGNN Data Objects V2 (4D Node Features)
+# ============================================================
+
+def build_feature_graph_data_v2(features_vec, z_scores_vec, label):
+    """Build a single PyG Data object for one company (v2: 4D nodes)."""
+    edge_index, edge_weight, node_x = build_fuzzy_feature_graph_v2(
+        features_vec, z_scores_vec, FINANCIAL_FEATURES
+    )
+    edge_attr = edge_weight.unsqueeze(1)  # (E, 1)
+    return Data(
+        x         = node_x,
+        edge_index= edge_index,
+        edge_attr = edge_attr,
+        y         = torch.LongTensor([label])
+    )
+
+
+BATCH_SIZE = 64
+print('Building PyG Dataset V2 (4D node features)…')
+
+train_data_list = [
+  File "C:\Users\taile\miniconda3\Lib\encodings\cp1258.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,encoding_table)[0]
+           ~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode character '\u2192' in position 375: character maps to <undefined>
+    build_feature_graph_data_v2(X_all[i], Z_all[i], y_all[i])
+    for i in train_idx
+]
+val_data_list = [
+    build_feature_graph_data_v2(X_all[i], Z_all[i], y_all[i])
+    for i in val_idx
+]
+test_data_list = [
+    build_feature_graph_data_v2(X_all[i], Z_all[i], y_all[i])
+    for i in test_idx
+]
+
+train_loader = PyGDataLoader(train_data_list, batch_size=BATCH_SIZE, shuffle=True,  num_workers=0)
+val_loader   = PyGDataLoader(val_data_list,   batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
+test_loader  = PyGDataLoader(test_data_list,  batch_size=BATCH_SIZE, shuffle=False, num_workers=0)
+
+print(f'Train batches: {len(train_loader)} | Val: {len(val_loader)} | Test: {len(test_loader)}')
+sample = train_data_list[0]
+print(f'Sample graph: x={sample.x.shape}, edge_index={sample.edge_index.shape}, edge_attr={sample.edge_attr.shape}')
+
+
+=== CELL 19 (6675 chars) ===
+# ============================================================
+# CORN Loss + Hybrid (CORN + FuzzyFocal)
+# ============================================================
+
+class CORNLoss(nn.Module):
+    """
+    CORN: Conditional Ordinal Regression Network Loss.
+
+    For K classes uses K-1 binary classifiers where classifier k
+    predicts P(y > k | y >= k, x) — conditional probability.
+    This ensures rating predictions respect the ordinal structure
+    (D < CCC < B < BB < BBB < A < AA < AAA).
+
+    Reference: Shi et al. "Deep Neural Networks for Rank Consistent
+    Ordinal Regression based on Conditional Probabilities" (2022)
+    """
+
+    def __init__(self, num_classes: int):
+        super().__init__()
+        self.num_classes = num_classes
+        self.K = num_classes - 1
+
+    def forward(self, logits: torch.Tensor, targets: torch.Tensor) -> torch.Tensor:
+        """
+        Args:
+            logits:  (B, K-1) binary logits from CORN head
+            targets: (B,) ordinal labels in {0, …, K-1}
+        Returns:
+            Scalar loss (mean across K-1 conditional classifiers)
+        """
+        total_loss = torch.tensor(0.0, device=logits.device, requires_grad=False)
+        n_active   = 0
+
+        for k in range(self.K):
+            # Only samples with y >= k are used for classifier k
+            mask = targets >= k
+            if mask.sum() == 0:
+                continue
+            binary_label = (targets[mask] > k).float()
+            loss_k = F.binary_cross_entropy_with_logits(
+                logits[mask, k], binary_label, reduction='mean'
+            )
+            total_loss = total_loss + loss_k
+            n_active  += 1
+
+        return total_loss / max(n_active, 1)
+
+
+class FuzzyFocalLoss(nn.Module):
+    """Focal Loss weighted by fuzzy membership (unchanged from V1)."""
+
+    def __init__(self, gamma=1.5, class_weight=None, reduction='mean'):
+        super().__init__()
+        self.gamma        = gamma
+        self.class_weight = class_weight
+        self.redu
+
+=== CELL 21 (4719 chars) ===

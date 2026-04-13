@@ -1,0 +1,14 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "Set-Content": true,
+        "ForEach-Object": true,
+        "Import-Csv": true,
+        "Group-Object": true,
+        "Export-Csv": true,
+        "0..21": true,
+        "e:/thesis/.venv/Scripts/python.exe": true,
+        "ConvertFrom-Json": true,
+        "&": true,
+        "print(''.join(c.get('source',[])[:220])": true
+    }
+}

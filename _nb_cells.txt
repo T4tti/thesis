@@ -1,0 +1,51 @@
+﻿python : Traceback (most recent call last):
+At line:1 char:39
++ e:\thesis\.venv\Scripts\Activate.ps1; python -c "
++                                       ~~~~~~~~~~~
+    + CategoryInfo          : NotSpecified: (Traceback 
+    (most recent call last)::String) [], RemoteExcept  
+  ion
+    + FullyQualifiedErrorId : NativeCommandError
+ 
+  File "<string>", line 10, in <module>
+    print(src[:200])
+    ~~~~~^^^^^^^^^^^
+  File "C:\Users\taile\AppData\Local\Programs\Python\Py
+thon313\Lib\encodings\cp1258.py", line 19, in encode
+    return codecs.charmap_encode(input,self.errors,enco
+ding_table)[0]
+           
+~~~~~~~~~~~~~~~~~~~~~^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+UnicodeEncodeError: 'charmap' codec can't encode 
+character '\u1ebd' in position 6: character maps to 
+<undefined>
+=== Cell 3 (first 200 chars) ===
+import platform
+import sys
+from pathlib import Path
+
+IN_KAGGLE = Path('/kaggle').exists()
+WORKING_DIR = Path('/kaggle/working') if IN_KAGGLE else Path('.')
+ARTIFACT_DIR = WORKING_DIR / 'credit_rating_
+
+=== Cell 4 (first 200 chars) ===
+import random
+import math
+import warnings
+warnings.filterwarnings('ignore')
+
+import numpy as np
+import pandas as pd
+import matplotlib.pyplot as plt
+import seaborn as sns
+
+from sklearn.metrics import (
+
+=== Cell 6 (first 200 chars) ===
+def resolve_split_path(default_path, local_fallbacks=None):
+    """Resolve Kaggle split path first, then local fallbacks."""
+    candidates = [Path(default_path)]
+    if local_fallbacks:
+        candi
+
+=== Cell 7 (first 200 chars) ===

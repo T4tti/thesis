@@ -1,0 +1,117 @@
+{
+  "numeric_features": [
+    "current_ratio",
+    "debt_equity_ratio",
+    "gross_profit_margin",
+    "operating_profit_margin",
+    "ebit_margin",
+    "pretax_profit_margin",
+    "net_profit_margin",
+    "asset_turnover",
+    "roe",
+    "roa",
+    "operating_cashflow_ps",
+    "free_cashflow_ps"
+  ],
+  "categorical_features": [
+    "rating_agency",
+    "sector",
+    "source"
+  ],
+  "transformations": {
+    "log_transform": {
+      "current_ratio": {
+        "transform_type": "log1p",
+        "pre_skewness": 2.630915231893817,
+        "post_skewness": 1.1004159828225732
+      },
+      "debt_equity_ratio": {
+        "transform_type": "signed_log1p",
+        "pre_skewness": 2.587380784404801,
+        "post_skewness": -1.0943779466780843
+      },
+      "gross_profit_margin": {
+        "transform_type": "none",
+        "pre_skewness": 0.48547027657522585,
+        "post_skewness": 0.48547027657522585
+      },
+      "operating_profit_margin": {
+        "transform_type": "signed_log1p",
+        "pre_skewness": -1.219211078116579,
+        "post_skewness": -1.1097128106944065
+      },
+      "ebit_margin": {
+        "transform_type": "signed_log1p",
+        "pre_skewness": -1.2158961013136338,
+        "post_skewness": -1.1073086388102646
+      },
+      "pretax_profit_margin": {
+        "transform_type": "signed_log1p",
+        "pre_skewness": -1.3661127236381252,
+        "post_skewness": -1.1629487065902364
+      },
+      "net_profit_margin": {
+        "transform_type": "signed_log1p",
+        "pre_skewness": -2.2078782837958157,
+        "post_skewness": -1.681392958770429
+      },
+      "asset_turnover": {
+        "transform_type": "log1p",
+        "pre_skewness": 1.989512342394488,
+        "post_skewness": 1.0455079923932704
+      },
+      "roe": {
+        "transform_type": "none",
+        "pre_skewness": -0.32765833403940897,
+        "post_skewness": -0.32765833403940897
+      },
+      "roa": {
+        "transform_type": "signed_log1p",
+        "pre_skewness": -1.2594527197355465,
+        "post_skewness": -1.2403663658677664
+      },
+      "operating_cashflow_ps": {
+        "transform_type": "signed_log1p",
+        "pre_skewness": 2.319882129650729,
+        "post_skewness": 0.08701391338849213
+      },
+      "free_cashflow_ps": {
+        "transform_type": "none",
+        "pre_skewness": 0.7816530509492469,
+        "post_skewness": 0.7816530509492469
+      }
+    },
+    "categorical_encoding": {
+      "rating_agency": {
+        "DBRS": 0,
+        "Egan-Jones Ratings Company": 1,
+        "Fitch Ratings": 2,
+        "HR Ratings de Mexico S.A. de C.V.": 3,
+        "Japan Credit Rating Agency,Ltd.": 4,
+        "Moody's Investors Service": 5,
+        "Standard & Poor's Ratings Services": 6,
+        "__MISSING__": 7
+      },
+      "sector": {
+        "Basic Industries": 0,
+        "Capital Goods": 1,
+        "Consumer Durables": 2,
+        "Consumer Non-Durables": 3,
+        "Consumer Services": 4,
+        "Energy": 5,
+        "Finance": 6,
+        "Health Care": 7,
+        "Miscellaneous": 8,
+        "Public Utilities": 9,
+        "Technology": 10,
+        "Transportation": 11,
+        "__MISSING__": 12
+      },
+      "source": {
+        "__MISSING__": 0,
+        "corporate_rating": 1,
+        "credit_rating_financial": 2
+      }
+    }
+  }
+}

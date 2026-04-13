@@ -1,0 +1,493 @@
+﻿=== CELL 25 ===
+# ============================================================
+# Training Loop V2 â€” CORN + FuzzyFocal Hybrid
+# ============================================================
+
+FAST_DEV_RUN = False
+MAX_EPOCHS   = 120 if not FAST_DEV_RUN else 5
+PATIENCE     = 25
+LR           = 3e-4
+WEIGHT_DECAY = 1e-4
+
+BEST_MODEL_PATH = ARTIFACT_DIR / 'hhgnn_fuzzy_v2_best_model.pt'
+BEST_META_PATH  = ARTIFACT_DIR / 'hhgnn_fuzzy_v2_best_meta.pt'
+
+optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+# CosineAnnealingWarmRestarts: better convergence than OneCycleLR
+scheduler = torch.optim.lr_scheduler.CosineAnnealingWarmRestarts(
+    optimizer, T_0=20, T_mult=2, eta_min=1e-6
+)
+
+fuzzy_w_tensor = torch.FloatTensor(fuzzy_weights_train).to(device)
+
+
+def compute_cls_metrics_v2(y_true, logits_corn, logits_ce, n_cls):
+    """Compute classification + ordinal metrics."""
+    preds    = corn_predict(logits_corn).cpu().numpy()
+    y_t      = y_true.cpu().numpy()
+    probs    = corn_to_probs(logits_corn, n_cls).detach().cpu().numpy()
+
+    acc      = accuracy_score(y_t, preds)
+    f1_macro = f1_score(y_t, preds, average='macro',    zero_division=0)
+    f1_w     = f1_score(y_t, preds, average='weighted', zero_division=0)
+    mae      = float(np.mean(np.abs(preds.astype(float) - y_t.astype(float))))
+    adj_acc  = adjacent_accuracy(y_t, preds)
+
+    try:
+        qwk = cohen_kappa_score(y_t, preds, weights='quadratic')
+    except Exception:
+        qwk = 0.0
+
+    try:
+        y_bin = label_binarize(y_t, classes=list(range(n_cls)))
+        auc   = roc_auc_score(y_bin, probs, average='weighted', multi_class='ovr')
+    except Exception:
+        auc = 0.5
+
+    return acc, f1_macro, f1_w, auc, mae, qwk, adj_acc
+
+
+history = {
+    'train_loss': [], 'val_loss': [],
+    'train_acc': [], 'val_acc': [],
+    'train_f1': [], 'val_f1': [],
+    'train_f1_weighted': [], 'val_f1_weighted': [],
+    'train_auc': [], 'val_auc': [],
+    'train_mae': [], 'val_mae': [],
+    'train_qwk': [], 'val_qwk': [],
+    'train_adj_acc': [], 'val_adj_acc': [],
+    'lr': [],
+}
+
+best_val_qwk  = -np.inf   # primary metric: QWK (ordinal-aware)
+best_val_f1w  = -np.inf
+best_epoch    = -1
+patience_ctr  = 0
+best_state    = None
+
+print(f"Training HHGNN-Fuzzy V2 for {MAX_EPOCHS} epochs (patience={PATIENCE})")
+print(f"LR={LR} | WD={WEIGHT_DECAY} | CORN_Î±={CORN_ALPHA}")
+print(f"Scheduler: CosineAnnealingWarmRestarts(T0=20, T_mult=2)")
+print(f"Primary stopping metric: QWK (Quadratic Weighted Kappa)")
+print("-" * 85)
+
+fw_cursor = 0
+for epoch in range(MAX_EPOCHS):
+    model.train()
+    ep_loss, all_yt, all_lcorn, all_lce = [], [], [], []
+    fw_cursor = 0
+
+    for batch in train_loader:
+        batch = batch.to(device)
+        bs    = batch.y.shape[0]
+
+        optimizer.zero_grad()
+        lc, lce = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+
+        fw_batch   = fuzzy_w_tensor[fw_cursor: fw_cursor + bs]
+        fw_cursor += bs
+
+        loss = criterion(lc, lce, batch.y, fuzzy_weights=fw_batch)
+        loss.backward()
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 5.0)
+        optimizer.step()
+
+        ep_loss.append(loss.item())
+        all_yt.append(batch.y.detach())
+        all_lcorn.append(lc.detach())
+        all_lce.append(lce.detach())
+
+    # Step scheduler once per epoch
+    scheduler.step(epoch + fw_cursor / len(train_data_list))
+
+    train_loss = np.mean(ep_loss)
+    all_yt   = torch.cat(all_yt)
+    all_lc   = torch.cat(all_lcorn)
+    all_lce2 = torch.cat(all_lce)
+    tr_acc, tr_f1, tr_f1w, tr_auc, tr_mae, tr_qwk, tr_adj = compute_cls_metrics_v2(
+        all_yt, all_lc, all_lce2, n_classes
+    )
+
+    # Validation
+    model.eval()
+    vl_losses, vl_yt, vl_lcorn, vl_lce = [], [], [], []
+    with torch.no_grad():
+        for batch in val_loader:
+            batch = batch.to(device)
+            lc, lce = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+            loss = criterion(lc, lce, batch.y)
+            vl_losses.append(loss.item())
+            vl_yt.append(batch.y)
+            vl_lcorn.append(lc)
+            vl_lce.append(lce)
+
+    val_loss = np.mean(vl_losses)
+    vl_yt    = torch.cat(vl_yt)
+    vl_lc    = torch.cat(vl_lcorn)
+    vl_lce2  = torch.cat(vl_lce)
+    vl_acc, vl_f1, vl_f1w, vl_auc, vl_mae, vl_qwk, vl_adj = compute_cls_metrics_v2(
+        vl_yt, vl_lc, vl_lce2, n_classes
+    )
+
+    cur_lr = optimizer.param_groups[0]['lr']
+
+    # Log
+    history['train_loss'].append(train_loss);        history['val_loss'].append(val_loss)
+    history['train_acc'].append(tr_acc);             history['val_acc'].append(vl_acc)
+    history['train_f1'].append(tr_f1);               history['val_f1'].append(vl_f1)
+    history['train_f1_weighted'].append(tr_f1w);     history['val_f1_weighted'].append(vl_f1w)
+    history['train_auc'].append(tr_auc);             history['val_auc'].append(vl_auc)
+    history['train_mae'].append(tr_mae);             history['val_mae'].append(vl_mae)
+    history['train_qwk'].append(tr_qwk);             history['val_qwk'].append(vl_qwk)
+    history['train_adj_acc'].append(tr_adj);         history['val_adj_acc'].append(vl_adj)
+    history['lr'].append(cur_lr)
+
+    # Early stopping on QWK
+    improved = vl_qwk > best_val_qwk + 1e-4
+    if improved:
+        best_val_qwk = vl_qwk
+        best_val_f1w = vl_f1w
+        best_epoch   = epoch + 1
+        patience_ctr = 0
+        best_state   = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+        torch.save(best_state, BEST_MODEL_PATH)
+        torch.save({
+            'best_epoch':              best_epoch,
+            'best_val_qwk':            float(best_val_qwk),
+            'best_val_f1w':            float(best_val_f1w),
+            'n_classes':               n_classes,
+            'financial_features':      FINANCIAL_FEATURES,
+            'label_encoder_classes':   list(le.classes_),
+        }, BEST_META_PATH)
+    else:
+        patience_ctr += 1
+
+    marker = ' âœ“ BEST' if improved else ''
+    print(
+        f"Ep {epoch+1:3d}/{MAX_EPOCHS} | "
+        f"TrL:{train_loss:.4f} VlL:{val_loss:.4f} | "
+        f"TrAcc:{tr_acc:.3f} VlAcc:{vl_acc:.3f} | "
+        f"TrF1w:{tr_f1w:.3f} VlF1w:{vl_f1w:.3f} | "
+        f"VlQWK:{vl_qwk:.3f} VlAdj:{vl_adj:.3f} | "
+        f"LR:{cur_lr:.6f}{marker}"
+    )
+
+    if patience_ctr >= PATIENCE:
+        print(f"Early stopping at epoch {epoch + 1}")
+        break
+
+if best_state is not None:
+    model.load_state_dict(best_state)
+    model.to(device)
+
+print(f"\nDone!  Best val QWK: {best_val_qwk:.4f} | F1w: {best_val_f1w:.4f}  @ epoch {best_epoch}")
+
+
+=== CELL 27 ===
+# ============================================================
+# Test Set Evaluation V2 â€” Ordinal Metrics Included
+# ============================================================
+
+model.eval()
+test_preds  = []
+test_trues  = []
+test_lc_all = []
+test_lceil  = []
+
+with torch.no_grad():
+    for batch in test_loader:
+        batch = batch.to(device)
+        lc, lce = model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+        preds   = corn_predict(lc).cpu().numpy()
+        test_preds.extend(preds.tolist())
+        test_trues.extend(batch.y.cpu().numpy().tolist())
+        test_lc_all.append(lc.cpu())
+        test_lceil.append(lce.cpu())
+
+test_lc_all = torch.cat(test_lc_all)
+test_lceil  = torch.cat(test_lceil)
+
+y_true = np.array(test_trues)
+y_pred = np.array(test_preds)
+
+# â”€â”€ Standard metrics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+acc        = accuracy_score(y_true, y_pred)
+f1_macro   = f1_score(y_true, y_pred, average='macro',    zero_division=0)
+f1_weighted = f1_score(y_true, y_pred, average='weighted', zero_division=0)
+mae_raw    = float(np.mean(np.abs(y_pred.astype(float) - y_true.astype(float))))
+adj_acc    = adjacent_accuracy(y_true, y_pred)
+
+# â”€â”€ Ordinal metrics â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€â”€
+try:
+    qwk = cohen_kappa_score(y_true, y_pred, weights='quadratic')
+except Exception:
+    qwk = float('nan')
+
+try:
+    probs_corn  = corn_to_probs(test_lc_all, n_classes).numpy()
+    y_true_bin  = label_binarize(y_true, classes=list(range(n_classes)))
+    auc_ovr     = roc_auc_score(y_true_bin, probs_corn, average='weighted', multi_class='ovr')
+except Exception:
+    auc_ovr = float('nan')
+
+print("=" * 60)
+print("  TEST EVALUATION â€” HHGNN-Fuzzy V2 + CORN Loss")
+print("=" * 60)
+print(f"  Accuracy:           {acc:.4f}")
+print(f"  F1-macro:           {f1_macro:.4f}")
+print(f"  F1-weighted:        {f1_weighted:.4f}")
+print(f"  AUC-ROC (OvR):      {auc_ovr:.4f}" if not np.isnan(auc_ovr) else "  AUC-ROC: N/A")
+print(f"  MAE (ordinal):      {mae_raw:.4f}")
+print(f"  QWK:                {qwk:.4f}" if not np.isnan(qwk) else "  QWK: N/A")
+print(f"  Adjacent Accuracy:  {adj_acc:.4f}  (% within Â±1 rank)")
+print("=" * 60)
+
+print('\nClassification Report:')
+report_labels = sorted(set(y_true) | set(y_pred))
+print(classification_report(
+    y_true, y_pred,
+    labels=report_labels,
+    target_names=[str(rating_mapping.get(i, str(i))) for i in report_labels],
+    zero_division=0
+))
+
+metrics_dict = {
+    'accuracy':           acc,
+    'f1_macro':           f1_macro,
+    'f1_weighted':        f1_weighted,
+    'auc_roc_ovr':        float(auc_ovr) if not np.isnan(auc_ovr) else None,
+    'mae_ordinal':        mae_raw,
+    'qwk':                float(qwk)     if not np.isnan(qwk)     else None,
+    'adjacent_accuracy':  adj_acc,
+    'n_samples':          int(len(y_true)),
+    'n_classes':          int(n_classes),
+    'model_version':      'HHGNNFuzzyV2+CORN',
+}
+pd.DataFrame([metrics_dict]).to_csv(
+    ARTIFACT_DIR / 'hhgnn_fuzzy_v2_metrics.csv', index=False
+)
+print('Extended metrics saved to hhgnn_fuzzy_v2_metrics.csv')
+
+
+=== CELL 29 ===
+# ============================================================
+# Visualization: Training Curves V2 (8 panels)
+# ============================================================
+
+epochs_x = list(range(1, len(history['train_loss']) + 1))
+
+fig, axes = plt.subplots(2, 4, figsize=(24, 9))
+fig.suptitle('HHGNN-Fuzzy V2 + CORN â€” Training History', fontsize=14, fontweight='bold')
+
+panels = [
+    ('Loss',                    'train_loss',     'val_loss'),
+    ('Accuracy',                'train_acc',      'val_acc'),
+    ('F1-Weighted',             'train_f1_weighted', 'val_f1_weighted'),
+    ('QWK (ordinal)',           'train_qwk',      'val_qwk'),
+    ('AUC-ROC',                 'train_auc',      'val_auc'),
+    ('MAE (ordinal)',           'train_mae',      'val_mae'),
+    ('Adjacent Accuracy (Â±1)', 'train_adj_acc',  'val_adj_acc'),
+    ('Learning Rate',           'lr',             None),
+]
+
+for ax, (title, tr_key, vl_key) in zip(axes.flat, panels):
+    ax.plot(epochs_x, history[tr_key], color='#2196F3', label='Train')
+    if vl_key:
+        ax.plot(epochs_x, history[vl_key], color='#F44336', label='Val')
+    ax.axvline(best_epoch, color='#4CAF50', linestyle='--', alpha=0.8, label=f'Best@{best_epoch}')
+    ax.set_title(title); ax.set_xlabel('Epoch')
+    ax.legend(fontsize=8); ax.grid(alpha=0.3)
+
+plt.tight_layout()
+plt.savefig(ARTIFACT_DIR / 'hhgnn_fuzzy_v2_curves.png', dpi=150, bbox_inches='tight')
+plt.show()
+print('Training curves saved â†’ hhgnn_fuzzy_v2_curves.png')
+
+
+=== CELL 31 ===
+# ============================================================
+# Confusion Matrix + Error Distribution
+# ============================================================
+
+fig, axes = plt.subplots(1, 3, figsize=(24, 6))
+
+all_labels = sorted(set(y_true) | set(y_pred))
+label_names = [rating_mapping.get(i, str(i)) for i in all_labels]
+cm = confusion_matrix(y_true, y_pred, labels=all_labels)
+
+if len(all_labels) <= 25:
+    sns.heatmap(cm, annot=True, fmt='d', cmap='Blues',
+                xticklabels=label_names, yticklabels=label_names, ax=axes[0])
+else:
+    sns.heatmap(cm, cmap='Blues', ax=axes[0])
+axes[0].set_title('Confusion Matrix'); axes[0].set_xlabel('Predicted'); axes[0].set_ylabel('True')
+axes[0].tick_params(axis='x', rotation=90)
+
+true_counts = pd.Series(y_true).value_counts().sort_index()
+pred_counts = pd.Series(y_pred).value_counts().sort_index()
+all_idx = sorted(set(true_counts.index) | set(pred_counts.index))
+x_pos = np.arange(len(all_idx))
+width = 0.35
+axes[1].bar(x_pos - width/2, [true_counts.get(i, 0) for i in all_idx], width, label='True', alpha=0.8, color='#2196F3')
+axes[1].bar(x_pos + width/2, [pred_counts.get(i, 0) for i in all_idx], width, label='Predicted', alpha=0.8, color='#FF9800')
+axes[1].set_title('True vs Predicted'); axes[1].legend()
+if len(all_idx) <= 25:
+    axes[1].set_xticks(x_pos)
+    axes[1].set_xticklabels([rating_mapping.get(i, str(i)) for i in all_idx], rotation=90, fontsize=7)
+
+errors = y_pred - y_true
+axes[2].hist(errors, bins=max(10, len(set(errors))), color='#4CAF50', edgecolor='black', alpha=0.8)
+axes[2].set_title('Prediction Error Distribution')
+axes[2].axvline(x=0, color='red', linestyle='--', linewidth=2, label='Zero Error'); axes[2].legend()
+
+plt.tight_layout()
+plt.savefig(ARTIFACT_DIR / 'hhgnn_results.png', dpi=150, bbox_inches='tight')
+plt.show()
+print('Result plots saved.')
+
+=== CELL 33 ===
+# ============================================================
+# SHAP Explainability (xAI) - optimized runtime
+# ============================================================
+
+# Performance modes:
+# - fast: for iterative debugging (recommended)
+# - full: for final report
+SHAP_MODE = 'full'  # {'fast', 'full'}
+SHAP_TARGET = 'predicted_class'  # {'predicted_class', 'all_classes'}
+SHAP_RANDOM_STATE = SEED
+
+if SHAP_MODE == 'fast':
+    SHAP_BACKGROUND_SIZE = 40
+    SHAP_MAX_SAMPLES = 24
+    SHAP_NSAMPLES = 60
+else:
+    SHAP_BACKGROUND_SIZE = 100
+    SHAP_MAX_SAMPLES = 200
+    SHAP_NSAMPLES = 100
+
+# Wrapper: convert tabular input -> HHGNN prediction probabilities
+class HHGNNWrapper:
+    """Wraps HHGNN model to accept tabular numpy input for SHAP."""
+    def __init__(self, model, device, feature_names):
+        self.model = model
+        self.device = device
+        self.feature_names = feature_names
+        self.model.eval()
+        self._cached_pos = None
+
+    def _to_pyg_batch(self, X_tabular):
+        X_tabular = np.asarray(X_tabular, dtype=np.float32)
+        if X_tabular.ndim == 1:
+            X_tabular = X_tabular.reshape(1, -1)
+
+        d = X_tabular.shape[1]
+        if self._cached_pos is None or len(self._cached_pos) != d:
+            self._cached_pos = np.arange(d, dtype=np.float64) / max(d - 1, 1)
+
+        data_list = []
+        for i in range(len(X_tabular)):
+            features = X_tabular[i]
+            node_x = torch.tensor(
+                np.column_stack([features, self._cached_pos]),
+                dtype=torch.float32,
+            )
+            ei, ew = build_fuzzy_feature_graph(features, self.feature_names)
+            data = Data(x=node_x, edge_index=ei, edge_attr=ew.unsqueeze(1))
+            data_list.append(data)
+
+        return Batch.from_data_list(data_list).to(self.device)
+
+    def predict(self, X_tabular):
+        """
+        X_tabular: np.array (N, d) - scaled features
+        Returns: np.array (N, n_classes) - class probabilities
+        """
+        batch = self._to_pyg_batch(X_tabular)
+        with torch.inference_mode():
+            logits = self.model(batch.x, batch.edge_index, batch.edge_attr, batch.batch)
+            probs = F.softmax(logits, dim=1).cpu().numpy()
+        return probs
+
+    def predict_class_prob(self, X_tabular, class_idx):
+        probs = self.predict(X_tabular)
+        return probs[:, class_idx]
+
+
+wrapper = HHGNNWrapper(model, device, FINANCIAL_FEATURES)
+
+# Use KernelExplainer (model-agnostic, works with any wrapper)
+X_test_tab = X_all[test_idx]
+rng = np.random.default_rng(SHAP_RANDOM_STATE)
+
+if len(train_idx) == 0 or len(X_test_tab) == 0:
+    raise ValueError('SHAP requires non-empty train/test data.')
+
+background_size = int(min(SHAP_BACKGROUND_SIZE, len(train_idx)))
+explain_size = int(min(SHAP_MAX_SAMPLES, len(X_test_tab)))
+
+bg_pick = rng.choice(len(train_idx), size=background_size, replace=False)
+ex_pick = rng.choice(len(X_test_tab), size=explain_size, replace=False)
+
+background = X_all[train_idx][bg_pick]
+X_shap = X_test_tab[ex_pick]
+
+print(f"SHAP mode: {SHAP_MODE}")
+print(f"SHAP target: {SHAP_TARGET}")
+print(f"Running SHAP KernelExplainer on {len(X_shap)} test samples...")
+print(f"Background: {background.shape[0]} samples")
+print(f"nsamples: {SHAP_NSAMPLES}")
+
+if SHAP_TARGET == 'predicted_class':
+    test_probs = wrapper.predict(X_shap)
+    pred_classes = test_probs.argmax(axis=1)
+    target_class = int(np.bincount(pred_classes, minlength=n_classes).argmax())
+    print(f"Explaining class index: {target_class}")
+
+    explainer = shap.KernelExplainer(
+        lambda x: wrapper.predict_class_prob(x, target_class),
+        background,
+    )
+    shap_values = explainer.shap_values(X_shap, nsamples=SHAP_NSAMPLES)
+    shap_2d = np.asarray(shap_values)
+    shap_for_bar = shap_2d
+else:
+    explainer = shap.KernelExplainer(wrapper.predict, background)
+    shap_values = explainer.shap_values(X_shap, nsamples=SHAP_NSAMPLES)
+
+    # Handle multi-class SHAP values safely
+    if isinstance(shap_values, list):
+        shap_2d = np.mean(np.abs(np.array(shap_values)), axis=0)
+    elif isinstance(shap_values, np.ndarray) and len(shap_values.shape) == 3:
+        if shap_values.shape[-1] == n_classes:
+            shap_2d = np.mean(np.abs(shap_values), axis=-1)
+        else:
+            shap_2d = np.mean(np.abs(shap_values), axis=1)
+    else:
+        shap_2d = np.asarray(shap_values)
+
+    shap_for_bar = shap_values
+
+plt.figure(figsize=(12, 8))
+shap.summary_plot(
+    shap_for_bar,
+    X_shap,
+    feature_names=FINANCIAL_FEATURES,
+    show=False,
+    plot_type='bar',
+)
+plt.title('SHAP Feature Importance (HHGNN-Fuzzy Credit Rating)', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.savefig(ARTIFACT_DIR / 'shap_summary.png', dpi=200, bbox_inches='tight')
+plt.show()
+
+# Detailed beeswarm plot
+plt.figure(figsize=(12, 8))
+shap.summary_plot(shap_2d, X_shap, feature_names=FINANCIAL_FEATURES, show=False)
+plt.title('SHAP Summary (Beeswarm) - HHGNN-Fuzzy', fontsize=14, fontweight='bold')
+plt.tight_layout()
+plt.savefig(ARTIFACT_DIR / 'shap_beeswarm.png', dpi=200, bbox_inches='tight')
+plt.show()
+
+print(f"SHAP plots saved to {ARTIFACT_DIR}")
+

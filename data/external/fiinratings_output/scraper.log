@@ -1,0 +1,328 @@
+2026-02-25 11:23:08,548 [INFO] ============================================================
+2026-02-25 11:23:08,548 [INFO] FiinRatings Scraper khởi động
+2026-02-25 11:23:08,548 [INFO] Thời gian: 2026-02-25 11:23:08
+2026-02-25 11:23:08,548 [INFO] ============================================================
+2026-02-25 11:23:08,549 [INFO] 
+[BƯỚC 1] Thu thập danh sách xếp hạng...
+2026-02-25 11:23:08,550 [INFO] Trang 1/15...
+2026-02-25 11:23:14,148 [INFO]   -> 10 bản ghi | Tổng: 10
+2026-02-25 11:23:15,656 [INFO] Trang 2/15...
+2026-02-25 11:23:21,150 [INFO]   -> 10 bản ghi | Tổng: 20
+2026-02-25 11:23:22,652 [INFO] Trang 3/15...
+2026-02-25 11:23:26,263 [INFO]   -> 10 bản ghi | Tổng: 30
+2026-02-25 11:23:27,771 [INFO] Trang 4/15...
+2026-02-25 11:23:31,897 [INFO]   -> 10 bản ghi | Tổng: 40
+2026-02-25 11:23:33,399 [INFO] Trang 5/15...
+2026-02-25 11:23:37,554 [INFO]   -> 10 bản ghi | Tổng: 50
+2026-02-25 11:23:39,058 [INFO] Trang 6/15...
+2026-02-25 11:23:42,689 [INFO]   -> 10 bản ghi | Tổng: 60
+2026-02-25 11:23:44,201 [INFO] Trang 7/15...
+2026-02-25 11:23:47,117 [INFO]   -> 10 bản ghi | Tổng: 70
+2026-02-25 11:23:48,618 [INFO] Trang 8/15...
+2026-02-25 11:23:49,982 [INFO]   -> 10 bản ghi | Tổng: 80
+2026-02-25 11:23:51,484 [INFO] Trang 9/15...
+2026-02-25 11:23:52,917 [INFO]   -> 10 bản ghi | Tổng: 90
+2026-02-25 11:23:54,422 [INFO] Trang 10/15...
+2026-02-25 11:23:55,428 [INFO]   -> 10 bản ghi | Tổng: 100
+2026-02-25 11:23:56,930 [INFO] Trang 11/15...
+2026-02-25 11:23:57,916 [INFO]   -> 10 bản ghi | Tổng: 110
+2026-02-25 11:23:59,419 [INFO] Trang 12/15...
+2026-02-25 11:24:00,568 [INFO]   -> 10 bản ghi | Tổng: 120
+2026-02-25 11:24:02,069 [INFO] Trang 13/15...
+2026-02-25 11:24:03,708 [INFO]   -> 10 bản ghi | Tổng: 130
+2026-02-25 11:24:05,209 [INFO] Trang 14/15...
+2026-02-25 11:24:06,342 [INFO]   -> 10 bản ghi | Tổng: 140
+2026-02-25 11:24:07,843 [INFO] Trang 15/15...
+2026-02-25 11:24:09,854 [INFO]   -> 5 bản ghi | Tổng: 145
+2026-02-25 11:24:09,855 [INFO] 
+[BƯỚC 2] Lưu 145 bản ghi -> fiinratings_output\credit_ratings.csv
+2026-02-25 11:24:09,866 [INFO]   -> Đã lưu CSV
+2026-02-25 11:24:09,867 [INFO] 
+  Tổng bản ghi: 145
+2026-02-25 11:24:09,869 [INFO]   [Ngành] {'Doanh nghiệp phi tài chính': 83, 'Dịch vụ tài chính': 62}
+2026-02-25 11:24:09,870 [INFO]   [Mức xếp hạng] {'A': 21, 'A-': 19, 'BB+': 19, 'BBB-': 18, 'BB': 11, 'AAA': 10, 'B': 10, 'BB-': 9, 'BBB': 8, 'BBB+': 7, 'AA-': 5, 'AA+': 3, 'B-': 3, 'CCC': 1, 'A+': 1}
+2026-02-25 11:24:09,871 [INFO]   [Triển vọng] {'Ổn định': 113, '': 14, 'Thuận lợi': 8, 'Không thuận lợi': 7, 'Tích cực': 2, 'Theo dõi ngắn hạn XHTN: Không thuận lợi': 1}
+2026-02-25 11:24:09,871 [INFO] 
+[BƯỚC 3] Tải PDF vào fiinratings_output\pdfs...
+2026-02-25 11:24:09,872 [INFO] [1/145] VI: VN_FiinRatings_DSC_PA_Issuer_Initial_01_2026.pdf
+2026-02-25 11:24:10,620 [INFO]     OK (708 KB): VN_FiinRatings_DSC_PA_Issuer_Initial_01_2026.pdf
+2026-02-25 11:24:11,421 [INFO] [2/145] VI: VI_FiinRatings_HSN_Issuer_Rating_Release_Jan2026_signed.pdf
+2026-02-25 11:24:11,549 [INFO]     OK (682 KB): VI_FiinRatings_HSN_Issuer_Rating_Release_Jan2026_signed.pdf
+2026-02-25 11:24:12,350 [INFO] [3/145] VI: VI_FiinRatings_VCP_Bond_Rating_Report_Jan2026_signed.pdf
+2026-02-25 11:24:12,495 [INFO]     OK (865 KB): VI_FiinRatings_VCP_Bond_Rating_Report_Jan2026_signed.pdf
+2026-02-25 11:24:13,297 [INFO] [4/145] VI: VI_FiinRatings_VHM_Bond_Rating_Release_Jan2026_signed.pdf
+2026-02-25 11:24:13,375 [INFO]     OK (550 KB): VI_FiinRatings_VHM_Bond_Rating_Release_Jan2026_signed.pdf
+2026-02-25 11:24:14,178 [INFO] [5/145] VI: [VN]_FiinRatings_TCBS_Surv01_Issuer_2025.12.31_Final_scan_(1).pdf
+2026-02-25 11:24:14,388 [INFO]     OK (793 KB): [VN]_FiinRatings_TCBS_Surv01_Issuer_2025.12.31_Final_scan_(1).pdf
+2026-02-25 11:24:15,190 [INFO] [6/145] VI: DIC_Scan_1.pdf
+2026-02-25 11:24:15,332 [INFO]     OK (826 KB): DIC_Scan_1.pdf
+2026-02-25 11:24:16,133 [INFO] [7/145] VI: [VN]_FiinRatings_Aikya_Initial_Issuer_Credit_Rating_PA.pdf
+2026-02-25 11:24:16,214 [INFO]     OK (620 KB): [VN]_FiinRatings_Aikya_Initial_Issuer_Credit_Rating_PA.pdf
+2026-02-25 11:24:17,015 [INFO] [8/145] VI: [VN]FiinRatings_Bao_cao_cap_nhat_XHTN_DLPQ_122025.pdf
+2026-02-25 11:24:17,068 [INFO]     OK (331 KB): [VN]FiinRatings_Bao_cao_cap_nhat_XHTN_DLPQ_122025.pdf
+2026-02-25 11:24:17,869 [INFO] [10/145] VI: VI_FiinRatings_VCP_Issuer_Rating_Release_Dec2025_signed_1.pdf
+2026-02-25 11:24:17,951 [INFO]     OK (730 KB): VI_FiinRatings_VCP_Issuer_Rating_Release_Dec2025_signed_1.pdf
+2026-02-25 11:24:18,753 [INFO] [11/145] VI: [VI]_FiinRatings_Surveillance_ICR_CTD_Dec2025_1.pdf
+2026-02-25 11:24:18,809 [INFO]     OK (421 KB): [VI]_FiinRatings_Surveillance_ICR_CTD_Dec2025_1.pdf
+2026-02-25 11:24:19,610 [INFO] [12/145] VI: VN_FiinRatingsxVCB_PA_Issuer_Initial_2025.12.11_Final_scan.pdf
+2026-02-25 11:24:19,680 [INFO]     OK (664 KB): VN_FiinRatingsxVCB_PA_Issuer_Initial_2025.12.11_Final_scan.pdf
+2026-02-25 11:24:20,482 [INFO] [13/145] VI: VN_FiinRatingsxVCB_PA_Bond_VCB12501_Initial_2025.12.11_Final_scan.pdf
+2026-02-25 11:24:20,548 [INFO]     OK (599 KB): VN_FiinRatingsxVCB_PA_Bond_VCB12501_Initial_2025.12.11_Final_scan.pdf
+2026-02-25 11:24:21,349 [INFO] [14/145] VI: VN_FiinRatings_NSI_PA_Issuer_Initial_122025_scan_(1).pdf
+2026-02-25 11:24:21,429 [INFO]     OK (798 KB): VN_FiinRatings_NSI_PA_Issuer_Initial_122025_scan_(1).pdf
+2026-02-25 11:24:22,230 [INFO] [15/145] VI: VN_FiinRatings_TNRE_ShortReport_Dec2025.pdf
+2026-02-25 11:24:22,296 [INFO]     OK (564 KB): VN_FiinRatings_TNRE_ShortReport_Dec2025.pdf
+2026-02-25 11:24:23,097 [INFO] [16/145] VI: VI_FiinRatings_VHM_Rating-Release_Initial_Dec2025.pdf
+2026-02-25 11:24:23,168 [INFO]     OK (703 KB): VI_FiinRatings_VHM_Rating-Release_Initial_Dec2025.pdf
+2026-02-25 11:24:23,970 [INFO] [17/145] VI: VI_FiinRatings_BPG_Bond_Rating_Report_Dec2025_(2).pdf
+2026-02-25 11:24:24,101 [INFO]     OK (1025 KB): VI_FiinRatings_BPG_Bond_Rating_Report_Dec2025_(2).pdf
+2026-02-25 11:24:24,902 [INFO] [18/145] VI: VI_FiinRatings_HBXM_Update-Bond-Rating_122025_signed_1.pdf
+2026-02-25 11:24:24,965 [INFO]     OK (580 KB): VI_FiinRatings_HBXM_Update-Bond-Rating_122025_signed_1.pdf
+2026-02-25 11:24:25,767 [INFO] [19/145] VI: VI_FiinRatings_BPG_ICR_Dec2025_signed.pdf
+2026-02-25 11:24:25,889 [INFO]     OK (1271 KB): VI_FiinRatings_BPG_ICR_Dec2025_signed.pdf
+2026-02-25 11:24:26,690 [INFO] [21/145] VI: VN_FiinRatings_ACBS_PA_Issuer_Initial_23102025_sent_to_client_FINAL.pdf
+2026-02-25 11:24:26,783 [INFO]     OK (851 KB): VN_FiinRatings_ACBS_PA_Issuer_Initial_23102025_sent_to_client_FINAL.pdf
+2026-02-25 11:24:27,584 [INFO] [22/145] VI: [VN]FiinRatings_Bao_cao_cap_nhat_XHTN_VMH_112025.pdf
+2026-02-25 11:24:27,648 [INFO]     OK (334 KB): [VN]FiinRatings_Bao_cao_cap_nhat_XHTN_VMH_112025.pdf
+2026-02-25 11:24:28,449 [INFO] [23/145] VI: [VI]FiinRatings_Issue-Rating_TN_102025_Final.pdf
+2026-02-25 11:24:28,511 [INFO]     OK (501 KB): [VI]FiinRatings_Issue-Rating_TN_102025_Final.pdf
+2026-02-25 11:24:29,313 [INFO] [24/145] VI: VN_FiinRatings_VCI_PA_Issuer_Initial__29.10.2025.pdf
+2026-02-25 11:24:29,391 [INFO]     OK (696 KB): VN_FiinRatings_VCI_PA_Issuer_Initial__29.10.2025.pdf
+2026-02-25 11:24:30,193 [INFO] [25/145] VI: [VI]_FiinRatings_Surveillance_ICR_NLG_102025_sealed.pdf
+2026-02-25 11:24:30,273 [INFO]     OK (688 KB): [VI]_FiinRatings_Surveillance_ICR_NLG_102025_sealed.pdf
+2026-02-25 11:24:31,074 [INFO] [26/145] VI: VN_FiinRatings_HCVN__Surveillance_Rating_Note_202510__Final.pdf
+2026-02-25 11:24:31,123 [INFO]     OK (298 KB): VN_FiinRatings_HCVN__Surveillance_Rating_Note_202510__Final.pdf
+2026-02-25 11:24:31,924 [INFO] [28/145] VI: [VI]_FiinRatings_F88__Surveillance_Rating_Note_20251010_Round_3.pdf
+2026-02-25 11:24:31,981 [INFO]     OK (487 KB): [VI]_FiinRatings_F88__Surveillance_Rating_Note_20251010_Round_3.pdf
+2026-02-25 11:24:32,782 [INFO] [29/145] VI: [VI]FiinRatings_XMHN_Surveillance-Bond-Rating-Release_102025.pdf
+2026-02-25 11:24:32,824 [INFO]     OK (186 KB): [VI]FiinRatings_XMHN_Surveillance-Bond-Rating-Release_102025.pdf
+2026-02-25 11:24:33,625 [INFO] [30/145] VI: 4894_001.pdf.pdf
+2026-02-25 11:24:33,699 [INFO]     OK (672 KB): 4894_001.pdf.pdf
+2026-02-25 11:24:34,500 [INFO] [31/145] VI: [VI]FiinRatings_XMHN_Surveillance-Bond-Rating-Release_102025.pdf
+2026-02-25 11:24:34,500 [INFO]     Đã có: [VI]FiinRatings_XMHN_Surveillance-Bond-Rating-Release_102025.pdf
+2026-02-25 11:24:35,301 [INFO] [32/145] VI: [VN]_FiinRatings_BAB_Surveillance_2025_10_01_scanned.pdf
+2026-02-25 11:24:35,411 [INFO]     OK (817 KB): [VN]_FiinRatings_BAB_Surveillance_2025_10_01_scanned.pdf
+2026-02-25 11:24:36,212 [INFO] [33/145] VI: VN-FiinRatings_HDBank_Surveillance_202509_Final.pdf
+2026-02-25 11:24:36,281 [INFO]     OK (570 KB): VN-FiinRatings_HDBank_Surveillance_202509_Final.pdf
+2026-02-25 11:24:37,083 [INFO] [34/145] VI: VinGroup_Credit_Rating_Report_1.pdf
+2026-02-25 11:24:37,160 [INFO]     OK (671 KB): VinGroup_Credit_Rating_Report_1.pdf
+2026-02-25 11:24:37,961 [INFO] [35/145] VI: [VN]_FiinRatings_Cong_bo_XHTN_NAB_20250916.pdf
+2026-02-25 11:24:38,007 [INFO]     OK (264 KB): [VN]_FiinRatings_Cong_bo_XHTN_NAB_20250916.pdf
+2026-02-25 11:24:38,808 [INFO] [36/145] VI: [VN]_FiinRatings_ACB_Public_Announcement_09092025.pdf
+2026-02-25 11:24:38,901 [INFO]     OK (958 KB): [VN]_FiinRatings_ACB_Public_Announcement_09092025.pdf
+2026-02-25 11:24:39,703 [INFO] [37/145] VI: VN_FiinRatings_APG_Ratings_Release_Issuer_Initial_25082025.pdf
+2026-02-25 11:24:39,745 [INFO]     OK (203 KB): VN_FiinRatings_APG_Ratings_Release_Issuer_Initial_25082025.pdf
+2026-02-25 11:24:40,546 [INFO] [38/145] VI: [VN]_FiinRatings_Surveillance_Credit_Report_DIC_062025.pdf
+2026-02-25 11:24:40,607 [INFO]     OK (494 KB): [VN]_FiinRatings_Surveillance_Credit_Report_DIC_062025.pdf
+2026-02-25 11:24:41,408 [INFO] [39/145] VI: [VN]_FiinRatings_DLPQ_Initial_Issuer_Credit_Rating_PA.pdf
+2026-02-25 11:24:41,461 [INFO]     OK (406 KB): [VN]_FiinRatings_DLPQ_Initial_Issuer_Credit_Rating_PA.pdf
+2026-02-25 11:24:42,264 [INFO] [40/145] VI: [VN]_FiinRatings_Cong_bo_XHTN_MSB.pdf
+2026-02-25 11:24:42,318 [INFO]     OK (355 KB): [VN]_FiinRatings_Cong_bo_XHTN_MSB.pdf
+2026-02-25 11:24:43,119 [INFO] [41/145] VI: TN.pdf
+2026-02-25 11:24:43,170 [INFO]     OK (380 KB): TN.pdf
+2026-02-25 11:24:43,972 [INFO] [42/145] VI: [VN]FiinRatings_Cong_bo_XHTN_Cap_nhat_Coteccons_2025_06.pdf
+2026-02-25 11:24:44,022 [INFO]     OK (248 KB): [VN]FiinRatings_Cong_bo_XHTN_Cap_nhat_Coteccons_2025_06.pdf
+2026-02-25 11:24:44,823 [INFO] [43/145] VI: VN_FiinRatings_TCBS_Ratings_Release_Issuer_Initial_20250604.pdf
+2026-02-25 11:24:44,877 [INFO]     OK (535 KB): VN_FiinRatings_TCBS_Ratings_Release_Issuer_Initial_20250604.pdf
+2026-02-25 11:24:45,686 [INFO] [44/145] VI: [VI]FiinRatings_HBXM_Issue-Rating-Release_062025_(1)_1_1.pdf
+2026-02-25 11:24:45,728 [INFO]     OK (176 KB): [VI]FiinRatings_HBXM_Issue-Rating-Release_062025_(1)_1_1.pdf
+2026-02-25 11:24:46,530 [INFO] [45/145] VI: FSP.pdf
+2026-02-25 11:24:46,595 [INFO]     OK (554 KB): FSP.pdf
+2026-02-25 11:24:47,396 [INFO] [46/145] VI: [VN]_FiinRatings_PSI_Surveillance_Public_Announcement_May2024_Final.pdf
+2026-02-25 11:24:47,449 [INFO]     OK (328 KB): [VN]_FiinRatings_PSI_Surveillance_Public_Announcement_May2024_Final.pdf
+2026-02-25 11:24:48,250 [INFO] [47/145] VI: [VI]FiinRatings_BWE-LA_Issue-Rating-Release_052025.pdf
+2026-02-25 11:24:48,289 [INFO]     OK (142 KB): [VI]FiinRatings_BWE-LA_Issue-Rating-Release_052025.pdf
+2026-02-25 11:24:49,092 [INFO] [48/145] VI: [VI]FiinRatings_HBXM_Rating-Release_052025_(1)_1_1.pdf
+2026-02-25 11:24:49,132 [INFO]     OK (178 KB): [VI]FiinRatings_HBXM_Rating-Release_052025_(1)_1_1.pdf
+2026-02-25 11:24:49,933 [INFO] [49/145] VI: [VN]_FiinRatings_VMH_Initial_Issuer_Credit_Rating_Report_(to_public).pdf
+2026-02-25 11:24:49,987 [INFO]     OK (408 KB): [VN]_FiinRatings_VMH_Initial_Issuer_Credit_Rating_Report_(to_public).pdf
+2026-02-25 11:24:50,788 [INFO] [50/145] VI: [VI]_FiinRatings_Surveillance_Credit_Report_VPMS_042025.pdf
+2026-02-25 11:24:50,847 [INFO]     OK (533 KB): [VI]_FiinRatings_Surveillance_Credit_Report_VPMS_042025.pdf
+2026-02-25 11:24:51,649 [INFO] [51/145] VI: [VI]FiinRatings_Issue_Ratings_Release_VPMS_042025.pdf
+2026-02-25 11:24:51,714 [INFO]     OK (392 KB): [VI]FiinRatings_Issue_Ratings_Release_VPMS_042025.pdf
+2026-02-25 11:24:52,515 [INFO] [53/145] VI: [VI]FiinRatings_BWE-LA_Rating-Release_042025.pdf
+2026-02-25 11:24:52,554 [INFO]     OK (151 KB): [VI]FiinRatings_BWE-LA_Rating-Release_042025.pdf
+2026-02-25 11:24:53,355 [INFO] [54/145] VI: VN_FiinRatings_HCVN_PA_Initial_Issuer_Credit_Rating_20250425.pdf
+2026-02-25 11:24:53,419 [INFO]     OK (604 KB): VN_FiinRatings_HCVN_PA_Initial_Issuer_Credit_Rating_20250425.pdf
+2026-02-25 11:24:54,220 [INFO] [55/145] VI: [VI]FiinRatings_NLG-Ratings-Release_042025.pdf
+2026-02-25 11:24:54,259 [INFO]     OK (150 KB): [VI]FiinRatings_NLG-Ratings-Release_042025.pdf
+2026-02-25 11:24:55,059 [INFO] [56/145] VI: VN-FiinRatings_VIB_Surveillance_Report_042025_(final).pdf
+2026-02-25 11:24:55,115 [INFO]     OK (486 KB): VN-FiinRatings_VIB_Surveillance_Report_042025_(final).pdf
+2026-02-25 11:24:55,916 [INFO] [57/145] VI: [VI]FiinRatings_Issuer-Rating-Release_Van_Huong_042025.pdf
+2026-02-25 11:24:56,004 [INFO]     OK (730 KB): [VI]FiinRatings_Issuer-Rating-Release_Van_Huong_042025.pdf
+2026-02-25 11:24:56,805 [INFO] [58/145] VI: [VI]FiinRatings_Issue-Rating-Release_XMHN_042025.pdf
+2026-02-25 11:24:56,852 [INFO]     OK (293 KB): [VI]FiinRatings_Issue-Rating-Release_XMHN_042025.pdf
+2026-02-25 11:24:57,653 [INFO] [59/145] VI: [VI]FiinRatings_Issuer-Rating-Release_XMHN_042025.pdf
+2026-02-25 11:24:57,711 [INFO]     OK (490 KB): [VI]FiinRatings_Issuer-Rating-Release_XMHN_042025.pdf
+2026-02-25 11:24:58,513 [INFO] [60/145] VI: VI_FiinRatings_F88__Surveillance_Rating_Note_20250402_(1).pdf
+2026-02-25 11:24:58,608 [INFO]     OK (740 KB): VI_FiinRatings_F88__Surveillance_Rating_Note_20250402_(1).pdf
+2026-02-25 11:24:59,409 [INFO] [61/145] VI: [VN]_FiinRatings_BAB_Surveillance_202504.pdf
+2026-02-25 11:24:59,497 [INFO]     OK (815 KB): [VN]_FiinRatings_BAB_Surveillance_202504.pdf
+2026-02-25 11:25:00,301 [INFO] [62/145] VI: VN-FiinRatings_HDBank_Surveillance_20250329-Final_(2).pdf
+2026-02-25 11:25:00,441 [INFO]     OK (832 KB): VN-FiinRatings_HDBank_Surveillance_20250329-Final_(2).pdf
+2026-02-25 11:25:01,242 [INFO] [63/145] VI: TPS_ICR_BCG_event_VN.pdf
+2026-02-25 11:25:01,320 [INFO]     OK (495 KB): TPS_ICR_BCG_event_VN.pdf
+2026-02-25 11:25:02,121 [INFO] [64/145] VI: VN-FiinRatings_ACB_Surveillance_Issuer_Rating_Report_to_client_Khanh_Vo.pdf
+2026-02-25 11:25:02,245 [INFO]     OK (856 KB): VN-FiinRatings_ACB_Surveillance_Issuer_Rating_Report_to_client_Khanh_Vo.pdf
+2026-02-25 11:25:03,047 [INFO] [65/145] VI: [VI]FiinRatings_Surveillance_Issuer_VPI_2025_03_web.pdf
+2026-02-25 11:25:03,139 [INFO]     OK (650 KB): [VI]FiinRatings_Surveillance_Issuer_VPI_2025_03_web.pdf
+2026-02-25 11:25:03,940 [INFO] [66/145] VI: [VI]_FiinRatings_Surveillance_PA_HDG_022025.pdf
+2026-02-25 11:25:04,019 [INFO]     OK (390 KB): [VI]_FiinRatings_Surveillance_PA_HDG_022025.pdf
+2026-02-25 11:25:04,821 [INFO] [67/145] VI: [VI]_FiinRatings_Surveillance_Issuer_CTD_2025_01_web.pdf
+2026-02-25 11:25:04,891 [INFO]     OK (356 KB): [VI]_FiinRatings_Surveillance_Issuer_CTD_2025_01_web.pdf
+2026-02-25 11:25:05,692 [INFO] [68/145] VI: [VN]_FiinRatings_VPS_Public_Announcement_17012025_Khanh_Vo.pdf
+2026-02-25 11:25:05,777 [INFO]     OK (650 KB): [VN]_FiinRatings_VPS_Public_Announcement_17012025_Khanh_Vo.pdf
+2026-02-25 11:25:06,578 [INFO] [69/145] VI: [VI]FiinRatings_ICR_Surveillance_DNXKS_012025.pdf
+2026-02-25 11:25:06,654 [INFO]     OK (487 KB): [VI]FiinRatings_ICR_Surveillance_DNXKS_012025.pdf
+2026-02-25 11:25:07,455 [INFO] [70/145] VI: [VN]_FiinRatings_DIC_Surveillance_Report_2024_12_31.pdf
+2026-02-25 11:25:07,575 [INFO]     OK (839 KB): [VN]_FiinRatings_DIC_Surveillance_Report_2024_12_31.pdf
+2026-02-25 11:25:08,376 [INFO] [71/145] VI: [VN]_FiinRatings_PSI_Surveillance_Public_Announcement_27122024_Khanh_Vo.pdf
+2026-02-25 11:25:08,465 [INFO]     OK (611 KB): [VN]_FiinRatings_PSI_Surveillance_Public_Announcement_27122024_Khanh_Vo.pdf
+2026-02-25 11:25:09,266 [INFO] [72/145] VI: [VI]FiinRatings_ICR_Surveillance_THBD_122024.pdf
+2026-02-25 11:25:09,314 [INFO]     OK (306 KB): [VI]FiinRatings_ICR_Surveillance_THBD_122024.pdf
+2026-02-25 11:25:10,116 [INFO] [73/145] VI: [VN]_FiinRatings_TPS_Surveillance_Public_Announcement_27122024.pdf
+2026-02-25 11:25:10,198 [INFO]     OK (440 KB): [VN]_FiinRatings_TPS_Surveillance_Public_Announcement_27122024.pdf
+2026-02-25 11:25:10,999 [INFO] [75/145] VI: [VN]_VIB_PA_final_(1).pdf
+2026-02-25 11:25:11,081 [INFO]     OK (515 KB): [VN]_VIB_PA_final_(1).pdf
+2026-02-25 11:25:11,882 [INFO] [76/145] VI: [VN]_FiinRatings_HDBank_PA_Surveillance-Rating-202412.pdf
+2026-02-25 11:25:11,976 [INFO]     OK (665 KB): [VN]_FiinRatings_HDBank_PA_Surveillance-Rating-202412.pdf
+2026-02-25 11:25:12,778 [INFO] [77/145] VI: [VI]FiinRatings_PA_Issue-Rating_HBXM_122024_1.pdf
+2026-02-25 11:25:12,829 [INFO]     OK (302 KB): [VI]FiinRatings_PA_Issue-Rating_HBXM_122024_1.pdf
+2026-02-25 11:25:13,631 [INFO] [78/145] VI: [VN]_FiinRatings_Fansipan_Initial_Issuer_Credit_Rating_PA_Final.pdf
+2026-02-25 11:25:13,733 [INFO]     OK (624 KB): [VN]_FiinRatings_Fansipan_Initial_Issuer_Credit_Rating_PA_Final.pdf
+2026-02-25 11:25:14,533 [INFO] [79/145] VI: [VI]FiinRatings_PA_Issue-Rating_BWE-LA_112024_2.pdf
+2026-02-25 11:25:14,590 [INFO]     OK (309 KB): [VI]FiinRatings_PA_Issue-Rating_BWE-LA_112024_2.pdf
+2026-02-25 11:25:15,391 [INFO] [80/145] VI: [VI]FiinRatings_PA_Surveillance_HTM_112024.pdf
+2026-02-25 11:25:15,441 [INFO]     OK (305 KB): [VI]FiinRatings_PA_Surveillance_HTM_112024.pdf
+2026-02-25 11:25:16,242 [INFO] [81/145] VI: [VI]FiinRatings_PA_Initial-ICR_HB-XM_112024.pdf
+2026-02-25 11:25:16,295 [INFO]     OK (325 KB): [VI]FiinRatings_PA_Initial-ICR_HB-XM_112024.pdf
+2026-02-25 11:25:17,096 [INFO] [84/145] VI: [VI]FiinRatings_PA_Surveillance_NLG_102024.pdf
+2026-02-25 11:25:17,153 [INFO]     OK (354 KB): [VI]FiinRatings_PA_Surveillance_NLG_102024.pdf
+2026-02-25 11:25:17,954 [INFO] [85/145] VI: [VI]FiinRatings_Initial-PA_BWE-LA_25102024.pdf
+2026-02-25 11:25:18,011 [INFO]     OK (343 KB): [VI]FiinRatings_Initial-PA_BWE-LA_25102024.pdf
+2026-02-25 11:25:18,812 [INFO] [86/145] VI: [VI]FiinRatings_Surveillance_Issuer_VPI_2024_10_web.pdf
+2026-02-25 11:25:18,896 [INFO]     OK (593 KB): [VI]FiinRatings_Surveillance_Issuer_VPI_2024_10_web.pdf
+2026-02-25 11:25:19,697 [INFO] [87/145] VI: [VI]_FiinRatings_F88__Rating_Note_20241012.pdf
+2026-02-25 11:25:19,914 [INFO]     OK (825 KB): [VI]_FiinRatings_F88__Rating_Note_20241012.pdf
+2026-02-25 11:25:20,716 [INFO] [88/145] VI: [VN]_FiinRatings_BAB_PA_Surveillance_Issuer_Credit_Rating_10.2024.pdf
+2026-02-25 11:25:20,816 [INFO]     OK (714 KB): [VN]_FiinRatings_BAB_PA_Surveillance_Issuer_Credit_Rating_10.2024.pdf
+2026-02-25 11:25:21,618 [INFO] [89/145] VI: [VN]_FiinRatings_Coteccons_PA_Surveillance_27092024.pdf
+2026-02-25 11:25:21,702 [INFO]     OK (460 KB): [VN]_FiinRatings_Coteccons_PA_Surveillance_27092024.pdf
+2026-02-25 11:25:22,503 [INFO] [90/145] VI: [VN]_FiinRatings_ACB_PA_Initial_Issuer_Credit_Rating_10092024.pdf
+2026-02-25 11:25:22,589 [INFO]     OK (533 KB): [VN]_FiinRatings_ACB_PA_Initial_Issuer_Credit_Rating_10092024.pdf
+2026-02-25 11:25:23,390 [INFO] [91/145] VI: [VI]FiinRatings_Surveillance_PA_HDG_082024.pdf
+2026-02-25 11:25:23,439 [INFO]     OK (332 KB): [VI]FiinRatings_Surveillance_PA_HDG_082024.pdf
+2026-02-25 11:25:24,241 [INFO] [92/145] VI: [VI]_FiinRatings_Techcombank_PA_Surveillance_Issuer_Credit_Rating_20240802_Final.pdf
+2026-02-25 11:25:24,289 [INFO]     OK (343 KB): [VI]_FiinRatings_Techcombank_PA_Surveillance_Issuer_Credit_Rating_20240802_Final.pdf
+2026-02-25 11:25:25,091 [INFO] [93/145] VI: [VN]_FiinRatings_VanHuong_Initial_ICR_12072024.pdf
+2026-02-25 11:25:25,212 [INFO]     OK (803 KB): [VN]_FiinRatings_VanHuong_Initial_ICR_12072024.pdf
+2026-02-25 11:25:26,013 [INFO] [94/145] VI: [VN]_FiinRatings_DNXKS_Initial_ICR_07102024.pdf
+2026-02-25 11:25:26,132 [INFO]     OK (821 KB): [VN]_FiinRatings_DNXKS_Initial_ICR_07102024.pdf
+2026-02-25 11:25:26,933 [INFO] [95/145] VI: [VN]_FiinRatings_DIC_Public_announcement_30062024.pdf
+2026-02-25 11:25:27,009 [INFO]     OK (450 KB): [VN]_FiinRatings_DIC_Public_announcement_30062024.pdf
+2026-02-25 11:25:27,811 [INFO] [96/145] VI: [VI]_FiinRatings_THBD_PA_062024.pdf
+2026-02-25 11:25:27,860 [INFO]     OK (336 KB): [VI]_FiinRatings_THBD_PA_062024.pdf
+2026-02-25 11:25:28,661 [INFO] [97/145] VI: [VN]_FiinRatings_PSI_Surveillance_Public_Announcement_26072024.pdf
+2026-02-25 11:25:28,733 [INFO]     OK (395 KB): [VN]_FiinRatings_PSI_Surveillance_Public_Announcement_26072024.pdf
+2026-02-25 11:25:29,534 [INFO] [98/145] VI: [VI]_PA_Initial_Issuer_Credit_Rating_Hung_Thinh_Phat_FR.pdf
+2026-02-25 11:25:29,622 [INFO]     OK (566 KB): [VI]_PA_Initial_Issuer_Credit_Rating_Hung_Thinh_Phat_FR.pdf
+2026-02-25 11:25:30,424 [INFO] [99/145] VI: [VN]_FiinRatings_Mcredit_PA_Initial_Issuer_Credit_Rating.pdf
+2026-02-25 11:25:30,510 [INFO]     OK (539 KB): [VN]_FiinRatings_Mcredit_PA_Initial_Issuer_Credit_Rating.pdf
+2026-02-25 11:25:31,311 [INFO] [100/145] VI: [VN]_FiinRatings_DK_ENC_Initial_PA.pdf
+2026-02-25 11:25:31,394 [INFO]     OK (592 KB): [VN]_FiinRatings_DK_ENC_Initial_PA.pdf
+2026-02-25 11:25:32,196 [INFO] [101/145] VI: VN_TPS_Public_Announcement_24052024.pdf
+2026-02-25 11:25:32,275 [INFO]     OK (511 KB): VN_TPS_Public_Announcement_24052024.pdf
+2026-02-25 11:25:33,076 [INFO] [102/145] VI: VN_FiinRatings_F88_PA_Surveillance_May_2024.pdf
+2026-02-25 11:25:33,158 [INFO]     OK (447 KB): VN_FiinRatings_F88_PA_Surveillance_May_2024.pdf
+2026-02-25 11:25:33,959 [INFO] [103/145] VI: [VI]_FiinRatings_Surveillance_PA_HTM_17052024.pdf
+2026-02-25 11:25:34,006 [INFO]     OK (284 KB): [VI]_FiinRatings_Surveillance_PA_HTM_17052024.pdf
+2026-02-25 11:25:34,808 [INFO] [104/145] VI: VN_FiinRatings_VPI_PA_Surveillance_20240429.pdf
+2026-02-25 11:25:34,853 [INFO]     OK (264 KB): VN_FiinRatings_VPI_PA_Surveillance_20240429.pdf
+2026-02-25 11:25:35,655 [INFO] [105/145] VI: [VI]FiinRatings_Initial-PA_NLG_042024.pdf
+2026-02-25 11:25:35,705 [INFO]     OK (329 KB): [VI]FiinRatings_Initial-PA_NLG_042024.pdf
+2026-02-25 11:25:36,505 [INFO] [106/145] VI: [FiinRatings]_VIB_Rating_PA_VI.pdf
+2026-02-25 11:25:36,596 [INFO]     OK (679 KB): [FiinRatings]_VIB_Rating_PA_VI.pdf
+2026-02-25 11:25:37,397 [INFO] [107/145] VI: [VN]_FiinRatings_BAB_PA_Initial_Issuer_Credit_Rating_20240329.pdf
+2026-02-25 11:25:37,471 [INFO]     OK (383 KB): [VN]_FiinRatings_BAB_PA_Initial_Issuer_Credit_Rating_20240329.pdf
+2026-02-25 11:25:38,273 [INFO] [108/145] VI: [VN]_FiinRatings_HDBank_PA_Initial_Issuer_Credit_Rating_20240329_FINAL.pdf
+2026-02-25 11:25:38,359 [INFO]     OK (652 KB): [VN]_FiinRatings_HDBank_PA_Initial_Issuer_Credit_Rating_20240329_FINAL.pdf
+2026-02-25 11:25:39,160 [INFO] [109/145] VI: [VI]FiinRatings_Surveillance-PA_HDG_022024.pdf
+2026-02-25 11:25:39,209 [INFO]     OK (334 KB): [VI]FiinRatings_Surveillance-PA_HDG_022024.pdf
+2026-02-25 11:25:40,010 [INFO] [110/145] VI: VN_FiinRatings_Hoang_Truc_My_Public_announcement_Initial_Credit_Rating.pdf
+2026-02-25 11:25:40,091 [INFO]     OK (581 KB): VN_FiinRatings_Hoang_Truc_My_Public_announcement_Initial_Credit_Rating.pdf
+2026-02-25 11:25:40,892 [INFO] [111/145] VI: [VI]FiinRatings_Surveillance-PA_GEG_012024.pdf
+2026-02-25 11:25:40,939 [INFO]     OK (322 KB): [VI]FiinRatings_Surveillance-PA_GEG_012024.pdf
+2026-02-25 11:25:41,741 [INFO] [112/145] VI: VN_FiinRatings_Coteccons_Public_announcement_Surveillance.pdf
+2026-02-25 11:25:41,783 [INFO]     OK (254 KB): VN_FiinRatings_Coteccons_Public_announcement_Surveillance.pdf
+2026-02-25 11:25:42,585 [INFO] [113/145] VI: VN_FiinRatings_DIC_Public-announcement_Initial-rating.pdf
+2026-02-25 11:25:42,638 [INFO]     OK (310 KB): VN_FiinRatings_DIC_Public-announcement_Initial-rating.pdf
+2026-02-25 11:25:43,440 [INFO] [114/145] VI: VN_FiinRatings_PSI-Surveillance_Public-Announcement.pdf
+2026-02-25 11:25:43,497 [INFO]     OK (344 KB): VN_FiinRatings_PSI-Surveillance_Public-Announcement.pdf
+2026-02-25 11:25:44,299 [INFO] [115/145] VI: VN_FiinRatings_F88_PA_Surveillance.pdf
+2026-02-25 11:25:44,349 [INFO]     OK (332 KB): VN_FiinRatings_F88_PA_Surveillance.pdf
+2026-02-25 11:25:45,151 [INFO] [116/145] VI: VN_FiinRatings_Techcombank_PA_Initial_Issuer-Credit-Rating.pdf
+2026-02-25 11:25:45,197 [INFO]     OK (350 KB): VN_FiinRatings_Techcombank_PA_Initial_Issuer-Credit-Rating.pdf
+2026-02-25 11:25:46,004 [INFO] [117/145] VI: [VI]_FiinRatings_CMX_Public_Announcement_20231010.pdf
+2026-02-25 11:25:46,080 [INFO]     OK (410 KB): [VI]_FiinRatings_CMX_Public_Announcement_20231010.pdf
+2026-02-25 11:25:46,881 [INFO] [118/145] VI: VN_FiinRatings_TPS_Public-announcement_Initial-rating.pdf
+2026-02-25 11:25:46,937 [INFO]     OK (356 KB): VN_FiinRatings_TPS_Public-announcement_Initial-rating.pdf
+2026-02-25 11:25:47,739 [INFO] [119/145] VI: VI_FiinRatings_Initial-PA_HDG.pdf
+2026-02-25 11:25:47,814 [INFO]     OK (449 KB): VI_FiinRatings_Initial-PA_HDG.pdf
+2026-02-25 11:25:48,615 [INFO] [120/145] VI: [VN]_FiinRatings_VDS_Public_Announcement.pdf
+2026-02-25 11:25:48,692 [INFO]     OK (448 KB): [VN]_FiinRatings_VDS_Public_Announcement.pdf
+2026-02-25 11:25:49,492 [INFO] [121/145] VI: VI_FiinRatings_PA_GEG_Initial-rating.pdf
+2026-02-25 11:25:49,573 [INFO]     OK (523 KB): VI_FiinRatings_PA_GEG_Initial-rating.pdf
+2026-02-25 11:25:50,373 [INFO] [122/145] VI: VN_FiinRatings_VPI_PA_Second-Surveillance.pdf
+2026-02-25 11:25:50,453 [INFO]     OK (476 KB): VN_FiinRatings_VPI_PA_Second-Surveillance.pdf
+2026-02-25 11:25:51,254 [INFO] [123/145] VI: VN_FiinRatings_Coteccons_PA_Initial_Issuer_Credit_Rating.pdf
+2026-02-25 11:25:51,338 [INFO]     OK (510 KB): VN_FiinRatings_Coteccons_PA_Initial_Issuer_Credit_Rating.pdf
+2026-02-25 11:25:52,140 [INFO] [124/145] VI: VI_FiinRatings_PA_NPM.pdf
+2026-02-25 11:25:52,191 [INFO]     OK (338 KB): VI_FiinRatings_PA_NPM.pdf
+2026-02-25 11:25:52,992 [INFO] [125/145] VI: VN_FiinRatings_PSI_Public_announcement_Initial_Rating.pdf
+2026-02-25 11:25:53,049 [INFO]     OK (352 KB): VN_FiinRatings_PSI_Public_announcement_Initial_Rating.pdf
+2026-02-25 11:25:53,850 [INFO] [126/145] VI: VN_FiinRatings_F88_PA_Surveillance.pdf
+2026-02-25 11:25:53,850 [INFO]     Đã có: VN_FiinRatings_F88_PA_Surveillance.pdf
+2026-02-25 11:25:54,651 [INFO] [127/145] VI: [VI]_FiinRatings_CMX_Public_Announcement_20230331.pdf
+2026-02-25 11:25:54,730 [INFO]     OK (501 KB): [VI]_FiinRatings_CMX_Public_Announcement_20230331.pdf
+2026-02-25 11:25:55,532 [INFO] [128/145] VI: VN_FiinRatings_VCI_Public_Announcement_Surveillance.pdf
+2026-02-25 11:25:55,579 [INFO]     OK (329 KB): VN_FiinRatings_VCI_Public_Announcement_Surveillance.pdf
+2026-02-25 11:25:56,381 [INFO] [129/145] VI: Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Chung_khoan_Rong_Viet.pdf
+2026-02-25 11:25:56,457 [INFO]     OK (413 KB): Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Chung_khoan_Rong_Viet.pdf
+2026-02-25 11:25:57,257 [INFO] [130/145] VI: VI_FiinRatings_KDH_Public_Announcement_Surveillance_2022Dec.pdf
+2026-02-25 11:25:57,310 [INFO]     OK (324 KB): VI_FiinRatings_KDH_Public_Announcement_Surveillance_2022Dec.pdf
+2026-02-25 11:25:58,111 [INFO] [132/145] VI: VI_FiinRatings_VPI_Public_Announcement_First_Surveillance.pdf
+2026-02-25 11:25:58,197 [INFO]     OK (340 KB): VI_FiinRatings_VPI_Public_Announcement_First_Surveillance.pdf
+2026-02-25 11:25:58,999 [INFO] [133/145] VI: [VN]_FiinRatings_MBS_Public_Announcement_Surveillance.pdf
+2026-02-25 11:25:59,078 [INFO]     OK (574 KB): [VN]_FiinRatings_MBS_Public_Announcement_Surveillance.pdf
+2026-02-25 11:25:59,880 [INFO] [134/145] VI: Theo_doi_dinh_ky_lan_2_ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Kinh_doanh_F88.pdf
+2026-02-25 11:25:59,928 [INFO]     OK (331 KB): Theo_doi_dinh_ky_lan_2_ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Kinh_doanh_F88.pdf
+2026-02-25 11:26:00,730 [INFO] [135/145] VI: Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Chung_khoan_Ban_Viet.pdf
+2026-02-25 11:26:00,780 [INFO]     OK (333 KB): Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Chung_khoan_Ban_Viet.pdf
+2026-02-25 11:26:01,581 [INFO] [136/145] VI: Theo_doi_dinh_ky_ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Bamboo_Capital.pdf
+2026-02-25 11:26:01,629 [INFO]     OK (311 KB): Theo_doi_dinh_ky_ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Bamboo_Capital.pdf
+2026-02-25 11:26:02,430 [INFO] [137/145] VI: Theo_doi_dinh_ky_ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Kinh_doanh_F88.pdf
+2026-02-25 11:26:02,479 [INFO]     OK (308 KB): Theo_doi_dinh_ky_ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Kinh_doanh_F88.pdf
+2026-02-25 11:26:03,280 [INFO] [138/145] VI: Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Chung_khoan_MB.pdf
+2026-02-25 11:26:03,330 [INFO]     OK (340 KB): Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Chung_khoan_MB.pdf
+2026-02-25 11:26:04,132 [INFO] [139/145] VI: [VI]_FiinRatings_VPI_Public_Announcement_20220420_(2).pdf
+2026-02-25 11:26:04,209 [INFO]     OK (435 KB): [VI]_FiinRatings_VPI_Public_Announcement_20220420_(2).pdf
+2026-02-25 11:26:05,010 [INFO] [140/145] VI: Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Dau_tu_va_Kinh_doanh_Nha_Khang_Dien.pdf
+2026-02-25 11:26:05,086 [INFO]     OK (408 KB): Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Dau_tu_va_Kinh_doanh_Nha_Khang_Dien.pdf
+2026-02-25 11:26:05,887 [INFO] [142/145] VI: Theo_doi_dinh_ky_ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Tai_chinh_Co_phan_Tin_Viet.pdf
+2026-02-25 11:26:05,959 [INFO]     OK (408 KB): Theo_doi_dinh_ky_ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Tai_chinh_Co_phan_Tin_Viet.pdf
+2026-02-25 11:26:06,759 [INFO] [143/145] VI: Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Kinh_doanh_F88.pdf
+2026-02-25 11:26:06,819 [INFO]     OK (372 KB): Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Kinh_doanh_F88.pdf
+2026-02-25 11:26:07,620 [INFO] [144/145] VI: Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Bamboo_Capital.pdf
+2026-02-25 11:26:07,675 [INFO]     OK (367 KB): Ket_qua_Xep_hang_Tin_nhiem_Doanh_nghiep_Cong_ty_Co_phan_Bamboo_Capital.pdf
+2026-02-25 11:26:08,477 [INFO] [145/145] VI: Issuer_Credit_Rating_Report_VietCredit_Finance_Joint_Stock_Company.pdf
+2026-02-25 11:26:08,532 [INFO]     OK (270 KB): Issuer_Credit_Rating_Report_VietCredit_Finance_Joint_Stock_Company.pdf
+2026-02-25 11:26:09,333 [INFO] 
+============================================================
+2026-02-25 11:26:09,333 [INFO] HOÀN THÀNH
+2026-02-25 11:26:09,333 [INFO]   Thời gian chạy : 0:03:00.784357
+2026-02-25 11:26:09,333 [INFO]   Bản ghi CSV    : 145
+2026-02-25 11:26:09,333 [INFO]   PDF tải OK     : 136
+2026-02-25 11:26:09,333 [INFO]   PDF lỗi        : 0
+2026-02-25 11:26:09,333 [INFO]   PDF bỏ qua     : 9  (không có link)
+2026-02-25 11:26:09,334 [INFO]   Output dir     : E:\thesis\fiinratings_output
+2026-02-25 11:26:09,334 [INFO] ============================================================

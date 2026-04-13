@@ -1,0 +1,2 @@
+dataset,target,rows,classes,min_class_count,synthetic_ratio,cv_splits,cv_repeats,accuracy,accuracy_std,balanced_accuracy,balanced_accuracy_std,f1_macro,f1_macro_std,f1_weighted,f1_weighted_std
+timegan,rating_detail,7087.0,3.0,864.0,0.25920699873006914,5.0,3.0,0.4089130608611465,0.09017280177069391,0.37365833420938427,0.05985949577211066,0.22917851768770886,0.05354025613332744,0.27251523807566536,0.08239816297708379
