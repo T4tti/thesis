@@ -1,0 +1,18 @@
+<svg width="160" height="32" viewBox="0 0 160 32" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <!-- Icon: rounded square background -->
+  <rect width="32" height="32" rx="8" fill="#465FFF"/>
+  <!-- Icon: bar chart bars (white, 3 bars of increasing height) -->
+  <rect x="8" y="16" width="4" height="9" rx="1.5" fill="white" opacity="1"/>
+  <rect x="14" y="11" width="4" height="14" rx="1.5" fill="white" opacity="0.85"/>
+  <rect x="20" y="7" width="4" height="18" rx="1.5" fill="white" opacity="0.65"/>
+  <!-- Wordmark: "VN-Rating" in dark text for light background -->
+  <text
+    x="40"
+    y="22.5"
+    font-family="'Outfit', 'Inter', system-ui, sans-serif"
+    font-size="17"
+    font-weight="700"
+    letter-spacing="-0.3"
+    fill="#101828"
+  >VN<tspan fill="#465FFF">-Rating</tspan></text>
+</svg>

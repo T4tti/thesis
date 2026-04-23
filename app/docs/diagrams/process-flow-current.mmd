@@ -1,0 +1,35 @@
+sequenceDiagram
+  autonumber
+  actor U as User
+  participant FE as RatingForm (Next.js)
+  participant BE as FastAPI Backend
+  participant TL as TLSTMFuzzy Predictor
+  participant GX as Gemini Explainer
+  participant GM as Gemini API
+  participant ST as MODEL_STATE
+  participant HC as prediction_history.csv
+
+  U->>FE: Upload CSV + chọn dòng
+  FE->>FE: Parse CSV theo header\nmap 12 financial fields
+  U->>FE: Submit phân tích
+
+  FE->>BE: POST /api/predict\n(features)
+  BE->>TL: predict_tlstm(...)
+  TL-->>BE: rating + probabilities + confidence + risk_score
+  BE-->>FE: PredictResult
+
+  FE->>FE: buildXaiContext()\nbuildTlstmExplainInput()
+
+  FE->>BE: POST /api/history\n(prediction + features + ticker/company)
+  BE->>ST: append in-memory data_df
+  BE->>HC: append CSV history
+  BE-->>FE: saved=true
+
+  FE->>BE: POST /api/explain\n(features + prediction + tlstm_prediction + xai_context)
+  BE->>GX: generate_gemini_explanation(...)
+  GX->>GM: chat.completions.create(...)
+  GM-->>GX: explanation text
+  GX-->>BE: explanation
+  BE-->>FE: provider/model/explanation
+
+  FE-->>U: Hiển thị rating, risk, probabilities,\nRisk Interpretation (Gemini)

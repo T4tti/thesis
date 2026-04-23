@@ -44,3 +44,28 @@
 - In dataset merge logic, keep rating normalization (`rating_detail` vs `rating_class`) and unit normalization (percentage fields divided by 100 in file 2) consistent.
 - Prefer adding new transformation logic as explicit, auditable steps in `src/pipelines/merge_dataset.py` rather than hidden notebook-only changes.
 - Keep augmentation artifact/report paths stable under `data/processed/` and `data/reports/` for reproducible comparisons.
+
+## Design Context
+
+### Users
+- Mixed audience: investment/credit analysts, internal research users, and corporate finance users.
+- Usage context is both desktop and mobile, supporting quick checks and deeper analysis.
+
+### Brand Personality
+- Authoritative
+- Rigorous
+- Impartial
+- Interface emotional goals: confidence, trust, calm, clarity.
+
+### Aesthetic Direction
+- Direction: editorial + analytical.
+- Theme strategy: light-first with dark support.
+- Color direction: align with existing VN-Rating logo identity (brand blue-led palette).
+- Product context: bilingual UI (EN/VI), finance-first workflows, professional decision-support tone.
+
+### Design Principles
+1. Data-first clarity: maximize scanability, hierarchy, and interpretable outputs.
+2. Evidence-backed confidence: present ratings/probabilities/explanations transparently.
+3. Professional calm: avoid visual noise and maintain high-credibility tone.
+4. Editorial structure: use strong typographic hierarchy for methodology/report content.
+5. Bilingual consistency: preserve equivalent clarity and density across EN/VI.

@@ -1,14 +1,19 @@
 """
-Shared application state — holds trained model and loaded data.
+Shared application state — holds trained models and loaded data.
 """
 from typing import Any, Dict, Optional
+import threading
 import pandas as pd
 
 MODEL_STATE: Dict[str, Any] = {
-    "pipeline": None,        # Trained sklearn Pipeline (Imputer + LGBMClassifier)
-    "label_encoder": None,   # sklearn LabelEncoder for IG/HY/Distressed
-    "metrics": None,         # CV metrics dict from training
-    "data_df": None,         # Full companies DataFrame (for reports endpoints)
-    "ready": False,          # True once model is trained and data loaded
-    "startup_time": None,    # Server start timestamp
+    # ── TLSTMFuzzy (PyTorch) ───────────────────────────────────────────────
+    "tlstm_model":   None,   # TLSTMFuzzyClassifier instance (eval mode)
+    "tlstm_meta":    None,   # Metadata dict from tlstm_meta.json
+
+    # ── Shared ─────────────────────────────────────────────────────────────
+    "data_df":       None,   # Full companies DataFrame (for reports endpoints)
+    "history_csv_path": None, # Optional CSV path for persisted analyze-history rows
+    "history_lock":  threading.Lock(),
+    "ready":         False,  # True once TLSTM model is ready
+    "startup_time":  None,   # Server start timestamp
 }

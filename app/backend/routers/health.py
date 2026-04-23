@@ -14,11 +14,17 @@ from state import MODEL_STATE
 router = APIRouter(prefix="/api", tags=["health"])
 
 
+def _is_model_ready() -> bool:
+    return bool(MODEL_STATE.get("ready", False) and MODEL_STATE.get("tlstm_model") is not None)
+
+
 @router.get("/health")
 async def health() -> Dict[str, Any]:
     """Return service health and model training status."""
-    ready = MODEL_STATE.get("ready", False)
-    metrics = MODEL_STATE.get("metrics") or {}
+    ready = _is_model_ready()
+    tlstm_meta = MODEL_STATE.get("tlstm_meta") or {}
+    hparams = tlstm_meta.get("model_hparams") or {}
+
     return {
         "status": "ok",
         "model_ready": ready,
@@ -28,9 +34,21 @@ async def health() -> Dict[str, Any]:
             else None
         ),
         "model_metrics": {
-            "cv_f1_weighted": round(metrics.get("cv_f1_weighted_mean", 0), 4),
-            "cv_f1_macro":    round(metrics.get("cv_f1_macro_mean", 0), 4),
-            "cv_accuracy":    round(metrics.get("cv_accuracy_mean", 0), 4),
-            "n_samples":      metrics.get("n_samples", 0),
+            "model": "TLSTMFuzzy",
+            "n_classes": hparams.get("n_classes"),
+            "n_sectors": hparams.get("n_sectors"),
+            "n_features": len(tlstm_meta.get("financial_features", [])),
         } if ready else None,
     }
+
+
+@router.get("/health/ready")
+async def readiness() -> JSONResponse:
+    """Readiness probe for orchestrators. Returns 200 only when model is ready."""
+    ready = _is_model_ready()
+    status_code = 200 if ready else 503
+    payload = {
+        "status": "ready" if ready else "starting",
+        "model_ready": ready,
+    }
+    return JSONResponse(status_code=status_code, content=payload)

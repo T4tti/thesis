@@ -2,85 +2,104 @@
 @tailwind components;
 @tailwind utilities;
 
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap');
-
-/* ── Root variables ─────────────────────────────────────────────────── */
 :root {
-  --bg:     #090a18;
-  --card:   #0f1020;
-  --border: rgba(255, 255, 255, 0.07);
+  color-scheme: light;
 }
 
-/* ── Base resets ────────────────────────────────────────────────────── */
-*, *::before, *::after { box-sizing: border-box; }
+.dark {
+  color-scheme: dark;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
 
 html {
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  scroll-behavior: smooth;
 }
 
 body {
-  font-family: 'Inter', system-ui, sans-serif;
-  background-color: var(--bg);
-  background-image:
-    radial-gradient(ellipse 80% 50% at 50% -10%, rgba(99,102,241,0.18), transparent),
-    radial-gradient(ellipse 40% 30% at 80% 80%,  rgba(14,165,233,0.08), transparent);
-  min-height: 100vh;
-  color: #f1f5f9;
-  overflow-x: hidden;
+  @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
 }
 
-/* ── Custom scrollbar ───────────────────────────────────────────────── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
-::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: rgba(99,102,241,0.3); border-radius: 99px; }
-::-webkit-scrollbar-thumb:hover { background: rgba(99,102,241,0.55); }
-
-/* ── Gradient text utility ──────────────────────────────────────────── */
-.gradient-text {
-  background: linear-gradient(135deg, #818cf8 0%, #38bdf8 100%);
-  -webkit-background-clip: text;
-  -webkit-text-fill-color: transparent;
-  background-clip: text;
+:focus-visible {
+  outline: 2px solid theme('colors.brand.500');
+  outline-offset: 2px;
 }
 
-/* ── Glass card utility ─────────────────────────────────────────────── */
-.glass-card {
-  background: rgba(15, 16, 32, 0.7);
-  backdrop-filter: blur(16px);
-  -webkit-backdrop-filter: blur(16px);
-  border: 1px solid rgba(255, 255, 255, 0.07);
+.skip-link {
+  position: fixed;
+  top: -48px;
+  left: 16px;
+  z-index: 100000;
+  border-radius: 8px;
+  background: theme('colors.gray.900');
+  color: theme('colors.white');
+  padding: 10px 14px;
+  font-size: 14px;
+  font-weight: 600;
+  transition: top 0.2s ease;
 }
 
-/* ── Animated hero grid background ─────────────────────────────────── */
-.hero-grid {
-  background-image:
-    linear-gradient(rgba(99,102,241,0.04) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(99,102,241,0.04) 1px, transparent 1px);
-  background-size: 50px 50px;
+.skip-link:focus {
+  top: 12px;
 }
 
-/* ── Blob animations ────────────────────────────────────────────────── */
-@keyframes blob {
-  0%,100% { transform: translate(0,0) scale(1);   }
-  33%      { transform: translate(30px,-20px) scale(1.05); }
-  66%      { transform: translate(-20px,20px) scale(0.95); }
-}
-.blob { animation: blob 7s ease-in-out infinite; }
-.blob-delay-2 { animation-delay: 2s; }
-.blob-delay-4 { animation-delay: 4s; }
-
-/* ── Select appearance fix ──────────────────────────────────────────── */
-select option {
-  background-color: #0f1020;
-  color: #f1f5f9;
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
 }
 
-/* ── Table hover row ────────────────────────────────────────────────── */
-.table-row-hover:hover { background: rgba(255,255,255,0.025); }
+::-webkit-scrollbar-track {
+  background: transparent;
+}
 
-/* ── Number input arrows hide ───────────────────────────────────────── */
-input[type=number]::-webkit-inner-spin-button,
-input[type=number]::-webkit-outer-spin-button { -webkit-appearance: none; margin: 0; }
-input[type=number] { -moz-appearance: textfield; }
+::-webkit-scrollbar-thumb {
+  background: theme('colors.gray.300');
+  border-radius: 99px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.gray.400');
+}
+
+input[type='number']::-webkit-inner-spin-button,
+input[type='number']::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type='number'] {
+  -moz-appearance: textfield;
+}
+
+.dark ::-webkit-scrollbar-thumb {
+  background: theme('colors.gray.700');
+}
+
+.dark ::-webkit-scrollbar-thumb:hover {
+  background: theme('colors.gray.600');
+}
+
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}

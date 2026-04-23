@@ -2,30 +2,28 @@
 
 import { useLanguage } from '@/context/LanguageContext'
 import RatingForm from '@/components/RatingForm'
-import { Cpu, Info } from 'lucide-react'
+import { BarChart3 } from 'lucide-react'
 
 export default function RatingToolPage() {
   const { t } = useLanguage()
   const tr = t.ratingTool
 
   return (
-    <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16">
-
-      {/* Header */}
-      <div className="mb-10">
-        <div className="flex items-center gap-2 text-primary-400 text-sm font-medium mb-3">
-          <Cpu className="w-4 h-4" />
-          <span className="uppercase tracking-widest text-xs">{tr.title}</span>
+    <div className="space-y-10 animate-in fade-in slide-in-from-bottom-4 duration-700">
+      <header className="flex flex-col gap-6 border-b border-gray-200 pb-10 dark:border-gray-800">
+        <div className="max-w-3xl">
+          <div className="mb-6 inline-flex items-center gap-2 rounded-full border border-brand-200 bg-brand-50 px-3 py-1.5 text-xs font-bold uppercase tracking-widest text-brand-600 dark:border-brand-500/30 dark:bg-brand-500/10 dark:text-brand-300">
+            <BarChart3 className="h-3.5 w-3.5" />
+            {tr.title}
+          </div>
+          <h1 className="text-4xl font-light tracking-tight text-gray-900 dark:text-white md:text-5xl lg:text-6xl">
+            {tr.title}
+          </h1>
+          <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
+            {tr.subtitle}
+          </p>
         </div>
-        <h1 className="text-4xl sm:text-5xl font-extrabold text-white mb-3">{tr.title}</h1>
-        <p className="text-slate-400 max-w-xl">{tr.subtitle}</p>
-      </div>
-
-      {/* Info banner */}
-      <div className="flex items-start gap-3 bg-primary-500/8 border border-primary-500/20 rounded-xl p-4 mb-10 max-w-3xl">
-        <Info className="w-4 h-4 text-primary-400 shrink-0 mt-0.5" />
-        <p className="text-slate-300 text-sm leading-relaxed">{tr.missingNote}</p>
-      </div>
+      </header>
 
       <RatingForm />
     </div>

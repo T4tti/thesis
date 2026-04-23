@@ -1,13 +1,18 @@
-const COLORS: Record<string, string> = {
-  IG:         '#10b981',
-  HY:         '#f59e0b',
-  Distressed: '#ef4444',
+const COLOR_CLASSES: Record<string, string> = {
+  IG:         'bg-ig',
+  HY:         'bg-hy',
+  Distressed: 'bg-distressed',
 }
 
 const ORDER = ['IG', 'HY', 'Distressed']
 
 interface Props {
   probabilities: Record<string, number>
+}
+
+const toClampedPercent = (value: number) => {
+  const finite = Number.isFinite(value) ? value : 0
+  return Math.max(0, Math.min(100, finite * 100))
 }
 
 export default function ProbabilityBars({ probabilities }: Props) {
@@ -18,21 +23,19 @@ export default function ProbabilityBars({ probabilities }: Props) {
   return (
     <div className="space-y-3">
       {sorted.map(cls => {
-        const pct = (probabilities[cls] ?? 0) * 100
-        const color = COLORS[cls] ?? '#6366f1'
+        const pct = toClampedPercent(probabilities[cls] ?? 0)
+        const bgClass = COLOR_CLASSES[cls] ?? 'bg-gray-400' // neutral gray for unknown ratings
         return (
           <div key={cls}>
             <div className="flex justify-between text-xs mb-1">
-              <span className="font-medium text-slate-300">{cls}</span>
-              <span className="text-slate-400 font-mono">{pct.toFixed(1)}%</span>
+              <span className="font-medium text-gray-700 dark:text-gray-200">{cls}</span>
+              <span className="font-mono text-gray-500 dark:text-gray-400">{pct.toFixed(1)}%</span>
             </div>
-            <div className="h-2.5 rounded-full bg-surface-100/40 overflow-hidden">
+            <div className="relative h-2.5 overflow-hidden rounded-full bg-gray-100 dark:bg-gray-800">
               <div
-                className="h-full rounded-full transition-all duration-700 ease-out"
+                className={`absolute inset-0 h-full w-full rounded-full transition-transform duration-700 ease-out ${bgClass}`}
                 style={{
-                  width: `${pct}%`,
-                  backgroundColor: color,
-                  boxShadow: `0 0 6px ${color}80`,
+                  transform: `translateX(-${100 - pct}%)`
                 }}
               />
             </div>

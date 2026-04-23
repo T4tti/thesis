@@ -1,0 +1,58 @@
+flowchart TB
+  %% ===== OFFLINE =====
+  subgraph OFF[Offline: Data and Training Pipeline]
+    direction LR
+    D[(Source Dataset)] --> SPLIT[Split: Train / Validate / Test]
+
+    SPLIT --> PRE_TR[Preprocessing Train\n- Handle missing values\n- Convert target to numeric]
+    SPLIT --> PRE_VA[Preprocessing Validate\n- Handle missing values\n- Convert target to numeric]
+    SPLIT --> PRE_TE[Preprocessing Test\n- Handle missing values\n- Convert target to numeric]
+
+    PRE_TR --> TG[TimeGAN\nSynthetic augmentation]
+    TG --> HM_TRAIN[Train Hybrid\nFuzzy -> Transformer -> Bi-LSTM]
+
+    PRE_TR --> BM_TRAIN[Train Baselines\nLSTM / TCN / PatchTST]
+    PRE_VA --> HM_TRAIN
+    PRE_VA --> BM_TRAIN
+
+    HM_TRAIN --> SEL[Model selection and calibration]
+    BM_TRAIN --> SEL
+    SEL --> ART[(Model artifacts and metadata)]
+  end
+
+  %% ===== ONLINE =====
+  subgraph ON[Online: Serving and Inference]
+    direction LR
+    ART --> API[FastAPI Backend\nMODEL_STATE and shared services]
+
+    U[User] --> FE[Frontend Next.js\nRatingForm / Reports / Methodology]
+    FE --> PRED[POST /api/predict\nfeatures]
+    PRED --> TLSTM[TLSTMFuzzy Predictor]
+    TLSTM --> API
+
+    FE --> HIST[POST /api/history]
+    HIST --> PH[(prediction_history.csv)]
+
+    FE --> EXPL[POST /api/explain]
+    EXPL --> GX[Gemini Explainer]
+    GX --> GA[Gemini API]
+
+    API --> RESP[PredictResult\n- rating\n- probabilities\n- confidence\n- risk_score]
+    GA --> RESP
+    RESP --> FE
+    FE --> UO[Display output\nIG / HY / Distressed + risk interpretation]
+    UO --> U
+  end
+
+  PRE_TE --> EVAL[Final test evaluation\nIG / HY / Distressed]
+  EVAL --> ART
+
+  classDef data fill:#e8f5ff,stroke:#2b6cb0,stroke-width:1px
+  classDef train fill:#fff3d6,stroke:#b7791f,stroke-width:1px
+  classDef serve fill:#eafbea,stroke:#2f855a,stroke-width:1px
+  classDef ext fill:#f4ecff,stroke:#6b46c1,stroke-width:1px
+
+  class D,PH,ART data
+  class PRE_TR,PRE_VA,PRE_TE,TG,HM_TRAIN,BM_TRAIN,SEL,EVAL train
+  class FE,API,PRED,HIST,EXPL,TLSTM,RESP,U,UO serve
+  class GX,GA ext

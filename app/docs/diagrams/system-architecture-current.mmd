@@ -1,0 +1,75 @@
+flowchart LR
+  subgraph FE[Frontend - Next.js 14]
+    P1[Home page]
+    P2[Methodology page]
+    P3[Reports page + DataTable]
+    P4[Rating Tool page + RatingForm]
+  end
+
+  subgraph API[Backend - FastAPI]
+    H1[GET /api/health]
+    R1[GET /api/stats]
+    R2[GET /api/sectors]
+    R3[GET /api/companies]
+    R4[GET /api/benchmark]
+    R5[POST /api/history]
+    PR[POST /api/predict]
+    PT[POST /api/predict/tlstm]
+    EX[POST /api/explain]
+  end
+
+  subgraph CORE[Core services]
+    S1[MODEL_STATE shared state]
+    M1[TLSTMFuzzy model + meta]
+    X1[Gemini explainer]
+  end
+
+  subgraph DATA[Data layer]
+    D1[merged_credit_rating_common_3groups.csv]
+    D2[merged_credit_rating_common.csv]
+    D3[prediction_history.csv]
+  end
+
+  subgraph EXT[External]
+    G1[Gemini API]
+  end
+
+  P1 --> R1
+  P2 --> R4
+  P3 --> R1
+  P3 --> R2
+  P3 --> R3
+  P4 --> PR
+  P4 --> PT
+  P4 --> EX
+  P4 --> R5
+
+  H1 --> S1
+  R1 --> S1
+  R2 --> S1
+  R3 --> S1
+  R4 --> S1
+  R5 --> S1
+  PR --> M1
+  PT --> M1
+  EX --> X1
+
+  M1 --> S1
+  X1 --> G1
+
+  D1 --> S1
+  D2 --> S1
+  D3 --> S1
+  R5 --> D3
+
+  classDef fe fill:#eef7ff,stroke:#2a6fb3,stroke-width:1px
+  classDef api fill:#f0fff4,stroke:#2f855a,stroke-width:1px
+  classDef core fill:#fff9e6,stroke:#b7791f,stroke-width:1px
+  classDef data fill:#fff5f5,stroke:#c53030,stroke-width:1px
+  classDef ext fill:#f7f0ff,stroke:#6b46c1,stroke-width:1px
+
+  class P1,P2,P3,P4 fe
+  class H1,R1,R2,R3,R4,R5,PR,PT,EX api
+  class S1,M1,X1 core
+  class D1,D2,D3 data
+  class G1 ext

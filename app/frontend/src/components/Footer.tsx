@@ -1,20 +1,24 @@
+'use client'
+
 import { useLanguage } from '@/context/LanguageContext'
 import { BarChart2 } from 'lucide-react'
 
 export default function Footer() {
   const { t } = useLanguage()
   return (
-    <footer className="border-t border-white/5 bg-surface-400/60 mt-24">
-      <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-10">
-        <div className="flex flex-col sm:flex-row items-center justify-between gap-4">
-          <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-lg bg-gradient-to-br from-primary-400 to-primary-600 flex items-center justify-center">
-              <BarChart2 className="w-3.5 h-3.5 text-white" />
+    <footer className="mt-10 border-t border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <div className="mx-auto w-full max-w-screen-2xl px-3 py-5 sm:px-4 md:px-6">
+        <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
+          <div className="flex items-center gap-2 text-center sm:text-left">
+            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500">
+              <BarChart2 className="h-3.5 w-3.5 text-white" />
             </div>
-            <span className="font-bold text-white">VN<span className="text-primary-400">-Rate</span></span>
-            <span className="text-slate-500 text-sm hidden sm:block">— {t.footer.tagline}</span>
+            <span className="text-sm font-bold text-gray-900 dark:text-white">
+              VN<span className="text-brand-500">-Rating</span>
+            </span>
+            <span className="hidden text-sm text-gray-500 dark:text-gray-400 sm:block">- {t.footer.tagline}</span>
           </div>
-          <p className="text-slate-500 text-sm text-center">{t.footer.copyright}</p>
+          <p className="text-center text-sm text-gray-500 dark:text-gray-400">{t.footer.copyright}</p>
         </div>
       </div>
     </footer>

@@ -1,0 +1,40 @@
+# Environment variables (all local variants)
+.env
+.env.*
+*.env
+
+# Keep safe templates/examples in repo
+!.env.example
+!.env.sample
+!.env.template
+!.env.*.example
+
+# Secret files and token dumps
+*.secret
+*.secrets
+*.token
+*.tokens
+*.jwt
+secrets.*
+secret.*
+
+# Private keys and certificates
+*.pem
+*.key
+*.p12
+*.pfx
+*.jks
+*.keystore
+*.crt
+*.cer
+*.csr
+*.der
+
+# Cloud/service credentials
+*credentials*.json
+*service-account*.json
+*google-credentials*.json
+*firebase-adminsdk*.json
+
+# Local vault/password databases
+*.kdbx
