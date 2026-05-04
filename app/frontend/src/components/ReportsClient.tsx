@@ -31,7 +31,7 @@ export default function ReportsClient({ stats, sectors, statsError }: Props) {
             <Database className="h-3.5 w-3.5" />
             {tr.title}
           </div>
-          <h1 className="text-4xl font-light tracking-tight text-gray-900 dark:text-white md:text-5xl lg:text-6xl">
+          <h1 className="text-4xl font-light tracking-tight text-gray-900 dark:text-white md:text-5xl lg:text-6xl font-serif">
             {tr.title}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
@@ -43,7 +43,7 @@ export default function ReportsClient({ stats, sectors, statsError }: Props) {
       {/* Stats error banner */}
       {statsError && (
         <div
-          className="flex items-start gap-3 rounded-xl border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10"
+          className="flex items-start gap-3 rounded-none border border-red-200 bg-red-50 p-4 dark:border-red-500/30 dark:bg-red-500/10"
           role="alert"
         >
           <AlertCircle className="mt-0.5 h-4 w-4 shrink-0 text-red-500" />
@@ -52,8 +52,8 @@ export default function ReportsClient({ stats, sectors, statsError }: Props) {
       )}
 
       {/* 2. Metrics Section: Unified Analytical Strip */}
-      <section className="rounded-2xl bg-gray-50/50 p-8 shadow-inner ring-1 ring-gray-200/50 dark:bg-gray-800/20 dark:ring-gray-800/50">
-        <div className="grid grid-cols-2 gap-y-8 divide-x divide-gray-200 dark:divide-gray-800 md:grid-cols-4">
+      <section className="rounded-none bg-gray-50/50 p-8 shadow-inner ring-1 ring-gray-200/50 dark:bg-gray-800/20 dark:ring-gray-800/50">
+        <div className="grid grid-cols-2 gap-y-8 divide-x divide-gray-200 dark:divide-gray-800 md:grid-cols-3">
           <div className="flex flex-col px-6 first:pl-0">
             <dt className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               <Database className="h-4 w-4" />
@@ -72,22 +72,13 @@ export default function ReportsClient({ stats, sectors, statsError }: Props) {
               {stats ? stats.unique_tickers.toLocaleString() : '-'}
             </dd>
           </div>
-          <div className="flex flex-col px-6">
+          <div className="flex flex-col px-6 last:pr-0 border-r-0">
             <dt className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
               <Globe2 className="h-4 w-4" />
               {tr.sectors}
             </dt>
             <dd className="mt-2 text-3xl font-bold tracking-tight text-ig-dark dark:text-ig">
               {stats ? String(stats.unique_sectors) : '-'}
-            </dd>
-          </div>
-          <div className="flex flex-col px-6 last:pr-0">
-            <dt className="flex items-center gap-2 text-sm font-medium text-gray-500 dark:text-gray-400">
-              <CalendarRange className="h-4 w-4" />
-              {tr.dateRange}
-            </dt>
-            <dd className="mt-2 text-3xl font-bold tracking-tight text-hy-dark dark:text-hy">
-              {stats ? `${stats.year_range.min}-${stats.year_range.max}` : '-'}
             </dd>
           </div>
         </div>

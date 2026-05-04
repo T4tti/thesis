@@ -47,7 +47,7 @@ export default function MethodologyPage() {
             <Cpu className="h-3.5 w-3.5" />
             {m.title}
           </div>
-          <h1 className="text-4xl font-light tracking-tight text-gray-900 dark:text-white md:text-5xl lg:text-6xl">
+          <h1 className="text-4xl font-light tracking-tight text-gray-900 dark:text-white md:text-5xl lg:text-6xl font-serif">
             {m.title}
           </h1>
           <p className="mt-6 max-w-2xl text-lg leading-relaxed text-gray-600 dark:text-gray-300">
@@ -56,11 +56,11 @@ export default function MethodologyPage() {
         </div>
       </header>
 
-      {/* Model & System Features */}
-      <div className="grid grid-cols-1 gap-12 lg:grid-cols-2 lg:gap-16">
-        <section className="flex flex-col gap-6">
+      {/* Model & System Features: Asymmetric 12-column grid */}
+      <div className="grid grid-cols-1 gap-12 lg:grid-cols-12 lg:gap-16">
+        <section className="flex flex-col gap-6 lg:col-span-7">
           <header className="border-b border-gray-900 pb-4 dark:border-white">
-            <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">{m.systemTitle}</h2>
+            <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white font-serif">{m.systemTitle}</h2>
           </header>
           <div className="space-y-4 pt-2">
             {[
@@ -81,16 +81,16 @@ export default function MethodologyPage() {
           </div>
         </section>
 
-        <section className="flex flex-col gap-6">
+        <section className="flex flex-col gap-6 lg:col-span-5 lg:border-l lg:border-gray-200 lg:pl-12 lg:dark:border-gray-800">
           <header className="border-b border-gray-900 pb-4 dark:border-white">
-            <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">{m.modelTitle}</h2>
+            <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white font-serif">{m.modelTitle}</h2>
           </header>
-          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 pt-2">
+          <p className="text-sm leading-relaxed text-gray-600 dark:text-gray-300 pt-2 font-serif italic">
             {m.modelDesc}
           </p>
-          <div className="flex flex-wrap gap-2 mt-4">
+          <div className="flex flex-wrap gap-3 mt-4">
             {['Median Imputation', 'TLSTMFuzzy', 'Class-Balanced Weights', '5-Fold Stratified CV', 'Point-in-Time Split'].map(tag => (
-              <span key={tag} className="flex items-center gap-1.5 rounded-none border-b border-brand-200 bg-transparent px-2 py-1 text-xs font-bold uppercase tracking-widest text-brand-600 dark:border-brand-500/40 dark:text-brand-400">
+              <span key={tag} className="flex items-center gap-1.5 rounded-none border border-gray-200 bg-white px-2.5 py-1.5 text-[10px] font-bold uppercase tracking-widest text-gray-500 transition-colors hover:border-brand-500 hover:text-brand-600 dark:border-gray-800 dark:bg-gray-900 dark:text-gray-400">
                 <CheckCircle2 className="h-3 w-3" />
                 {tag}
               </span>
@@ -102,7 +102,7 @@ export default function MethodologyPage() {
       {/* Ratios Dictionary */}
       <section className="flex flex-col gap-6">
         <header className="border-b border-gray-900 pb-4 dark:border-white">
-          <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">{m.ratiosTitle}</h2>
+          <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white font-serif">{m.ratiosTitle}</h2>
           <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">{m.ratiosSubtitle}</p>
         </header>
 
@@ -134,7 +134,7 @@ export default function MethodologyPage() {
                     <div className="mb-4 inline-flex items-center rounded-none border-b border-gray-200 bg-transparent pb-1 text-xs font-mono text-gray-500 dark:border-gray-700 dark:text-gray-400 sm:hidden">
                       {ratio.formula}
                     </div>
-                    <div className="prose prose-sm dark:prose-invert max-w-none">
+                    <div className="prose prose-sm dark:prose-invert max-w-none font-serif">
                       <p className="text-sm leading-relaxed text-gray-700 dark:text-gray-300">{ratio.interp}</p>
                     </div>
                   </div>
@@ -145,37 +145,54 @@ export default function MethodologyPage() {
         </div>
       </section>
 
-      {/* Benchmark Strip */}
+      {/* Benchmark Strip: Prominent Primary Metric */}
       <section className="flex flex-col gap-6">
         <header className="border-b border-gray-900 pb-4 dark:border-white">
-          <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">{m.benchmarkTitle}</h2>
+          <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white font-serif">{m.benchmarkTitle}</h2>
         </header>
 
-        <div className="mt-4 grid grid-cols-1 divide-y divide-gray-200 border-y border-gray-200 dark:divide-gray-800 dark:border-gray-800 sm:grid-cols-3 sm:divide-x sm:divide-y-0">
-          {[
-            { label: m.metricF1w, key: 'cv_f1_weighted', accent: 'text-brand-500 dark:text-brand-400' },
-            { label: m.metricF1m, key: 'cv_f1_macro', accent: 'text-blue-500 dark:text-blue-400' },
-            { label: m.metricAcc, key: 'cv_balanced_accuracy', accent: 'text-ig-dark dark:text-ig' },
-          ].map(({ label, key, accent }) => {
-            const val = benchmark?.production_model_cv?.[key as keyof typeof benchmark.production_model_cv]
-            return (
-              <div key={key} className="flex flex-col items-center justify-center py-10 px-4">
-                <div className={`text-5xl font-light tracking-tight mb-3 ${accent}`}>
-                  {typeof val === 'number' ? `${(val * 100).toFixed(1)}%` : '...'}
-                </div>
-                <div className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400">
-                  {label}
-                </div>
+        <div className="grid grid-cols-1 gap-12 lg:grid-cols-12">
+          {/* Primary Metric: F1 Weighted */}
+          <div className="flex flex-col items-center justify-center rounded-none border border-brand-200 bg-brand-50/50 p-12 dark:border-brand-500/20 dark:bg-brand-500/5 lg:col-span-7">
+            <div className="text-xs font-bold uppercase tracking-widest text-brand-600 dark:text-brand-400 mb-6">
+              Primary Model Performance ({m.metricF1w})
+            </div>
+            <div className="text-7xl font-light tracking-tighter text-brand-600 dark:text-brand-400 font-serif">
+              {typeof benchmark?.production_model_cv?.cv_f1_weighted === 'number' 
+                ? `${(benchmark.production_model_cv.cv_f1_weighted * 100).toFixed(1)}%` 
+                : '...'}
+            </div>
+            <div className="mt-8 flex items-center gap-4 text-xs font-mono text-gray-500 dark:text-gray-400">
+              <span className="flex items-center gap-1.5"><CheckCircle2 className="h-3 w-3" /> Stratified 5-Fold</span>
+              <span className="h-3 w-px bg-gray-300 dark:bg-gray-700"></span>
+              <span className="flex items-center gap-1.5">n = {benchmark?.production_model_cv.n_samples?.toLocaleString()}</span>
+            </div>
+          </div>
+
+          {/* Supporting Metrics */}
+          <div className="grid grid-cols-1 gap-8 sm:grid-cols-2 lg:col-span-5 lg:grid-cols-1">
+            <div className="flex flex-col justify-center rounded-none border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900/50">
+              <div className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">
+                {m.metricF1m}
               </div>
-            )
-          })}
+              <div className="text-4xl font-bold tracking-tight text-blue-600 dark:text-blue-400 font-serif">
+                {typeof benchmark?.production_model_cv?.cv_f1_macro === 'number' 
+                  ? `${(benchmark.production_model_cv.cv_f1_macro * 100).toFixed(1)}%` 
+                  : '...'}
+              </div>
+            </div>
+            <div className="flex flex-col justify-center rounded-none border border-gray-200 bg-white p-8 dark:border-gray-800 dark:bg-gray-900/50">
+              <div className="text-xs font-bold uppercase tracking-widest text-gray-500 dark:text-gray-400 mb-2">
+                {m.metricAcc}
+              </div>
+              <div className="text-4xl font-bold tracking-tight text-ig-dark dark:text-ig font-serif">
+                {typeof benchmark?.production_model_cv?.cv_balanced_accuracy === 'number' 
+                  ? `${(benchmark.production_model_cv.cv_balanced_accuracy * 100).toFixed(1)}%` 
+                  : '...'}
+              </div>
+            </div>
+          </div>
         </div>
-        
-        {benchmark && (
-          <p className="text-right text-xs font-mono text-gray-400 dark:text-gray-500">
-            n = {benchmark.production_model_cv.n_samples?.toLocaleString()} | 5-Fold Stratified CV
-          </p>
-        )}
       </section>
     </div>
   )

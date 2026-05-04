@@ -38,6 +38,27 @@ SECTOR_MAPPING = {
     9: "Public Utilities", 10: "Technology", 11: "Transportation", 12: "__MISSING__"
 }
 
+SECTOR_NAMES_LOCALIZED = {
+    "Basic Industries": {"en": "Basic Industries", "vi": "Công nghiệp Cơ bản"},
+    "Capital Goods": {"en": "Capital Goods", "vi": "Tư liệu Sản xuất"},
+    "Consumer Durables": {"en": "Consumer Durables", "vi": "Hàng Tiêu dùng Bền vững"},
+    "Consumer Non-Durables": {"en": "Consumer Non-Durables", "vi": "Hàng Tiêu dùng Không bền"},
+    "Consumer Services": {"en": "Consumer Services", "vi": "Dịch vụ Tiêu dùng"},
+    "Energy": {"en": "Energy", "vi": "Năng lượng"},
+    "Finance": {"en": "Finance", "vi": "Tài chính"},
+    "Health Care": {"en": "Health Care", "vi": "Y tế"},
+    "Miscellaneous": {"en": "Khác", "vi": "Khác"},
+    "Public Utilities": {"en": "Tiện ích Công cộng", "vi": "Tiện ích Công cộng"},
+    "Technology": {"en": "Công nghệ", "vi": "Công nghệ"},
+    "Transportation": {"en": "Giao thông Vận tải", "vi": "Giao thông Vận tải"},
+}
+
+def _get_localized_sector(name: str, lang: Lang) -> str:
+    mapping = SECTOR_NAMES_LOCALIZED.get(name)
+    if not mapping:
+        return name
+    return mapping.get(lang, mapping["en"])
+
 
 def _get_df(lang: Lang = "en") -> pd.DataFrame:
     df = MODEL_STATE.get("data_df")
@@ -192,6 +213,7 @@ async def get_companies(
     sector:   Optional[str] = Query(None),
     rating:   Optional[str] = Query(None),
     search:   Optional[str] = Query(None),
+    sort_order: str          = Query("desc", pattern="^(asc|desc)$"),
     lang: Lang = Depends(resolve_lang),
 ) -> Dict[str, Any]:
     """Return paginated company list, optionally filtered."""
@@ -199,7 +221,17 @@ async def get_companies(
 
     # Filters
     if sector and sector != "all":
-        df = df[df["sector"].str.lower() == sector.lower()]
+        # Search in both localized and original names
+        def matches_sector(row_sector: str) -> bool:
+            orig = str(row_sector).lower()
+            loc_en = _get_localized_sector(row_sector, "en").lower()
+            loc_vi = _get_localized_sector(row_sector, "vi").lower()
+            target = sector.lower()
+            return target in (orig, loc_en, loc_vi)
+        
+        mask = df["sector"].apply(matches_sector)
+        df = df[mask]
+    
     if rating and rating != "all":
         df = df[df["rating_detail"].str.upper() == rating.upper()]
     if search:
@@ -212,7 +244,8 @@ async def get_companies(
 
     # Show newest ratings first in Reports & Data (including newly saved analyze history).
     sort_dt = pd.to_datetime(df["rating_date"], errors="coerce")
-    df = df.assign(_sort_date=sort_dt).sort_values("_sort_date", ascending=False, na_position="last")
+    is_asc = (sort_order == "asc")
+    df = df.assign(_sort_date=sort_dt).sort_values("_sort_date", ascending=is_asc, na_position="last" if not is_asc else "first")
 
     total = len(df)
     pages = max(1, math.ceil(total / per_page))
@@ -228,6 +261,11 @@ async def get_companies(
     ]
     keep = [c for c in display_cols if c in subset.columns]
     records = subset[keep].fillna("").to_dict(orient="records")
+    
+    # Translate sectors in the output
+    for r in records:
+        if "sector" in r:
+            r["sector"] = _get_localized_sector(r["sector"], lang)
 
     return {
         "data":     records,
@@ -280,7 +318,9 @@ async def get_stats(lang: Lang = Depends(resolve_lang)) -> Dict[str, Any]:
 async def get_sectors(lang: Lang = Depends(resolve_lang)) -> List[str]:
     """Return sorted list of unique sector names."""
     df = _get_df(lang)
-    return sorted(df["sector"].dropna().unique().tolist())
+    unique_sectors = df["sector"].dropna().unique().tolist()
+    localized = sorted([_get_localized_sector(s, lang) for s in unique_sectors])
+    return localized
 
 
 # ---------------------------------------------------------------------------

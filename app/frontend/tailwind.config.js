@@ -29,6 +29,7 @@ module.exports = {
       },
       fontFamily: {
         sans: ['var(--font-outfit)', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-spectral)', 'serif'],
       },
     },
   },

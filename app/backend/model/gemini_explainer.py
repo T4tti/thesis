@@ -86,6 +86,132 @@ def _create_gemini_client(api_key: str) -> OpenAI:
     return OpenAI(base_url=base_url, api_key=api_key)
 
 
+def get_gemini_client() -> OpenAI:
+    """
+    Public helper to construct a Gemini OpenAI-compatible client.
+
+    Reads `GEMINI_API_KEY` (or `GOOGLE_API_KEY`) from the environment, matching the
+    fallback logic used by `generate_gemini_explanation()`.
+    """
+    api_key = os.getenv("GEMINI_API_KEY", "").strip()
+    if not api_key:
+        api_key = os.getenv("GOOGLE_API_KEY", "").strip()
+    if not api_key:
+        api_key = _read_env_file_value("GEMINI_API_KEY")
+    if not api_key:
+        raise RuntimeError(
+            "Gemini API key is missing. Set GEMINI_API_KEY in backend environment."
+        )
+
+    return _create_gemini_client(api_key)
+
+
+def build_explanation_prompt(
+    features: Dict[str, Optional[float]],
+    prediction: Dict[str, Any],
+    lang: str,
+    xai_context: Optional[Dict[str, Any]],
+    tlstm_prediction: Optional[Dict[str, Any]],
+    sp_context: Dict[str, Any],
+) -> str:
+    """
+    Build a compressed prompt for streaming explain (~480 tokens target).
+
+    Compression rules:
+    - Do NOT include the full SP_GLOBAL_SCALE list.
+    - Summarise xai_context to top 3 drivers only (formatted bullets).
+    - Replace sp_context JSON with a single sentence.
+    - Only include non-null financial features.
+    """
+    safe_lang = "vi" if str(lang).lower() == "vi" else "en"
+
+    rating = str(prediction.get("rating") or "Unknown").strip()
+    confidence = _to_float_or_none(prediction.get("confidence"))
+    risk_score = _to_float_or_none(prediction.get("risk_score"))
+    probs = prediction.get("probabilities") or {}
+
+    confidence_text = "N/A" if confidence is None else f"{confidence * 100:.1f}%"
+    risk_score_text = "N/A" if risk_score is None else f"{risk_score:.0f}/100"
+
+    top_probs = []
+    for label, prob in sorted(probs.items(), key=lambda item: float(item[1]), reverse=True)[:3]:
+        p = _to_float_or_none(prob)
+        if p is None:
+            continue
+        top_probs.append(f"{label}={p:.3g}")
+    probs_text = ", ".join(top_probs) if top_probs else "N/A"
+
+    tlstm = tlstm_prediction or {}
+    tlstm_rating = str(tlstm.get("rating") or rating).strip()
+    tlstm_conf = _to_float_or_none(tlstm.get("confidence"))
+    tlstm_risk = _to_float_or_none(tlstm.get("risk_score"))
+    tlstm_conf_text = "N/A" if tlstm_conf is None else f"{tlstm_conf * 100:.1f}%"
+    tlstm_risk_text = "N/A" if tlstm_risk is None else f"{tlstm_risk:.0f}/100"
+
+    feature_pairs = []
+    for key in FEATURES:
+        val = _to_float_or_none(features.get(key))
+        if val is None:
+            continue
+        feature_pairs.append(f"{key}={val:.6g}")
+    feature_text = ", ".join(feature_pairs) if feature_pairs else "None"
+
+    drivers = (xai_context or {}).get("shap_style_top_drivers") or []
+    if not isinstance(drivers, list):
+        drivers = []
+
+    driver_lines = []
+    for item in drivers[:3]:
+        if not isinstance(item, dict):
+            continue
+        label = str(item.get("label") or item.get("feature") or "driver")
+        value = _to_float_or_none(item.get("value"))
+        neutral = _to_float_or_none(item.get("neutral_reference"))
+        direction = str(item.get("impact_direction") or "")
+        arrow = "↑ risk" if "increase" in direction else "↓ risk"
+        if value is None or neutral is None:
+            continue
+        driver_lines.append(f"• {label}: {value:.4g} (neutral={neutral:.4g}, {arrow})")
+    if not driver_lines:
+        driver_lines = ["• (no drivers available)"]
+
+    notch = str(sp_context.get("indicative_notch") or "N/A")
+    notch_range = str(sp_context.get("indicative_range") or "N/A")
+    migration_note = str(sp_context.get("migration_note") or "").strip()
+    sp_sentence = f"Indicative S&P notch: {notch} (range {notch_range})."
+    if migration_note:
+        sp_sentence = f"{sp_sentence} {migration_note}"
+
+    if safe_lang == "vi":
+        return (
+            "Ban la chuyen gia phan tich xep hang tin dung doanh nghiep.\n"
+            "Viet ngắn gọn, bao thu, khong duoc tu y bịa so lieu.\n\n"
+            "YEU CAU DAU RA:\n"
+            "- Tra loi bang 8-10 bullet (180-280 tu), khong markdown phuc tap.\n"
+            "- Cau truc 4 khoi: (1) Tong quan rui ro 2 bullet; (2) Top-3 dong luc 3 bullet; "
+            "(3) Vi tri notch S&P va ap luc re-rating 2 bullet; (4) Hanh dong uu tien 2 bullet.\n"
+            "- Neu thong tin thieu/khong chac chan, noi ro bat dinh.\n\n"
+            f"Du doan chinh: rating={rating}, confidence={confidence_text}, risk_score={risk_score_text}, top_probs={probs_text}\n"
+            f"TLSTM anchor: rating={tlstm_rating}, confidence={tlstm_conf_text}, risk_score={tlstm_risk_text}\n"
+            f"Top-3 drivers:\n{chr(10).join(driver_lines)}\n"
+            f"{sp_sentence}\n"
+            f"Financial features (provided only): {feature_text}\n"
+        )
+
+    return (
+        "You are a precise corporate credit-rating analyst. Write concisely. Never invent data.\n\n"
+        "OUTPUT REQUIREMENTS:\n"
+        "- Return 8-10 bullets (180-280 words), plain text only.\n"
+        "- Structure 4 blocks: (1) Risk overview 2 bullets; (2) Top-3 driver analysis 3 bullets; "
+        "(3) S&P notch positioning + re-rating pressure 2 bullets; (4) Priority actions 2 bullets.\n"
+        "- If inputs are missing or confidence is weak, state uncertainty explicitly.\n\n"
+        f"Primary prediction: rating={rating}, confidence={confidence_text}, risk_score={risk_score_text}, top_probs={probs_text}\n"
+        f"TLSTM anchor: rating={tlstm_rating}, confidence={tlstm_conf_text}, risk_score={tlstm_risk_text}\n"
+        f"Top-3 drivers:\n{chr(10).join(driver_lines)}\n"
+        f"{sp_sentence}\n"
+        f"Financial features (provided only): {feature_text}\n"
+    )
+
 
 def _to_float_or_none(value: Any) -> Optional[float]:
     try:

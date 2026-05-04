@@ -28,10 +28,10 @@ interface Props {
   sectors: string[]
 }
 
-export default function DataTable({ sectors }: Props) {
-  const { t } = useLanguage()
+export default function DataTable({ sectors: initialSectors }: Props) {
+  const { t, lang } = useLanguage()
   const tr = t.reports
-
+ 
   const [data, setData] = useState<PageResult | null>(null)
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -39,6 +39,23 @@ export default function DataTable({ sectors }: Props) {
   const [rating, setRating] = useState('')
   const [search, setSearch] = useState('')
   const [searchInput, setSearchInput] = useState('')
+  const [sortOrder, setSortOrder] = useState('desc')
+  const [sectors, setSectors] = useState<string[]>(initialSectors)
+ 
+  const fetchSectors = useCallback(async () => {
+    try {
+      const res = await fetch(`${API_BASE_URL}/api/sectors`)
+      if (!res.ok) throw new Error('Network response was not ok')
+      const json: string[] = await res.json()
+      setSectors(json)
+    } catch (err) {
+      console.error('Failed to fetch localized sectors:', err)
+    }
+  }, [])
+ 
+  useEffect(() => {
+    fetchSectors()
+  }, [fetchSectors, lang])
 
   const fetchData = useCallback(async () => {
     setLoading(true)
@@ -48,6 +65,7 @@ export default function DataTable({ sectors }: Props) {
       ...(sector ? { sector } : {}),
       ...(rating ? { rating } : {}),
       ...(search ? { search } : {}),
+      sort_order: sortOrder,
     })
     try {
       const res = await fetch(`${API_BASE_URL}/api/companies?${params}`)
@@ -59,7 +77,7 @@ export default function DataTable({ sectors }: Props) {
     } finally {
       setLoading(false)
     }
-  }, [page, sector, rating, search])
+  }, [page, sector, rating, search, sortOrder])
 
   useEffect(() => { fetchData() }, [fetchData])
 
@@ -94,12 +112,12 @@ export default function DataTable({ sectors }: Props) {
             placeholder={tr.searchPlaceholder}
             value={searchInput}
             onChange={e => setSearchInput(e.target.value)}
-            className="w-full rounded-xl border border-gray-300 bg-white py-3 pl-10 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 min-h-[44px]"
+            className="w-full rounded-none border border-gray-300 bg-white py-3 pl-10 pr-4 text-sm text-gray-800 placeholder:text-gray-400 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-white/90 min-h-[44px]"
           />
           <button
             type="submit"
             aria-label={tr.searchPlaceholder}
-          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-lg bg-brand-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 min-h-[36px]"
+          className="absolute right-2 top-1/2 -translate-y-1/2 rounded-none bg-brand-500 px-4 py-2 text-xs font-semibold text-white transition-colors hover:bg-brand-600 min-h-[36px]"
           >
             {tr.searchBtn}
           </button>
@@ -112,7 +130,7 @@ export default function DataTable({ sectors }: Props) {
               value={sector}
               onChange={e => { setSector(e.target.value); handleFilterChange() }}
               aria-label={tr.filterSector}
-              className="w-full cursor-pointer appearance-none rounded-xl border border-gray-300 bg-white py-3 pl-9 pr-8 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 min-h-[44px]"
+              className="w-full cursor-pointer appearance-none rounded-none border border-gray-300 bg-white py-3 pl-9 pr-8 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 min-h-[44px]"
             >
               <option value="">{tr.filterSector}</option>
               {sectors.map(s => <option key={s} value={s}>{s}</option>)}
@@ -122,18 +140,27 @@ export default function DataTable({ sectors }: Props) {
             value={rating}
             onChange={e => { setRating(e.target.value); handleFilterChange() }}
             aria-label={tr.filterRating}
-            className="w-full min-w-[140px] cursor-pointer appearance-none rounded-xl border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 min-h-[44px]"
+            className="w-full min-w-[140px] cursor-pointer appearance-none rounded-none border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 min-h-[44px]"
           >
             <option value="">{tr.filterRating}</option>
             <option value="IG">IG</option>
             <option value="HY">HY</option>
             <option value="Distressed">Distressed</option>
           </select>
+          <select
+            value={sortOrder}
+            onChange={e => { setSortOrder(e.target.value); handleFilterChange() }}
+            aria-label={tr.sortLabel}
+            className="w-full min-w-[150px] cursor-pointer appearance-none rounded-none border border-gray-300 bg-white px-4 py-3 text-sm text-gray-700 focus:border-brand-300 focus:outline-none focus:ring-2 focus:ring-brand-500/10 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 min-h-[44px]"
+          >
+            <option value="desc">{tr.sortNewest}</option>
+            <option value="asc">{tr.sortOldest}</option>
+          </select>
         </div>
       </div>
 
       {/* Table */}
-      <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
+      <div className="overflow-hidden rounded-none border border-gray-200 bg-white dark:border-gray-800 dark:bg-gray-900">
         <div className="overflow-x-auto">
           <table className="min-w-[720px] w-full text-sm" aria-busy={loading}>
             <caption className="sr-only">{tr.title}</caption>
@@ -193,19 +220,19 @@ export default function DataTable({ sectors }: Props) {
               onClick={() => setPage(p => Math.max(1, p - 1))}
               disabled={data.page === 1}
               aria-label={tr.prev}
-              className="flex items-center gap-1 rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 disabled:opacity-40 dark:border-gray-700 dark:hover:bg-gray-800 min-h-[44px] sm:min-h-0 sm:px-3 sm:py-1.5"
+              className="flex items-center gap-1 rounded-none border border-gray-300 px-4 py-2 hover:bg-gray-100 disabled:opacity-40 dark:border-gray-700 dark:hover:bg-gray-800 min-h-[44px] sm:min-h-0 sm:px-3 sm:py-1.5"
             >
               <ChevronLeft className="w-3.5 h-3.5" />
               {tr.prev}
             </button>
-            <span className="flex items-center rounded-lg border border-gray-300 bg-white px-4 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 min-h-[44px] sm:min-h-0 sm:px-3 sm:py-1.5">
+            <span className="flex items-center rounded-none border border-gray-300 bg-white px-4 py-2 text-gray-800 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-200 min-h-[44px] sm:min-h-0 sm:px-3 sm:py-1.5">
               {data.page} / {data.pages}
             </span>
             <button
               onClick={() => setPage(p => Math.min(data.pages, p + 1))}
               disabled={data.page === data.pages}
               aria-label={tr.next}
-              className="flex items-center gap-1 rounded-lg border border-gray-300 px-4 py-2 hover:bg-gray-100 disabled:opacity-40 dark:border-gray-700 dark:hover:bg-gray-800 min-h-[44px] sm:min-h-0 sm:px-3 sm:py-1.5"
+              className="flex items-center gap-1 rounded-none border border-gray-300 px-4 py-2 hover:bg-gray-100 disabled:opacity-40 dark:border-gray-700 dark:hover:bg-gray-800 min-h-[44px] sm:min-h-0 sm:px-3 sm:py-1.5"
             >
               {tr.next}
               <ChevronRight className="w-3.5 h-3.5" />

@@ -37,7 +37,7 @@ const AppSidebar: React.FC = () => {
           type="button"
           onClick={closeMobileSidebar}
           aria-label="Close menu"
-          className="rounded-lg p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
+          className="rounded-none p-2 text-gray-500 transition-colors hover:bg-gray-100 hover:text-gray-900 dark:text-gray-300 dark:hover:bg-gray-800 dark:hover:text-white"
         >
           <X className="h-4 w-4" />
         </button>
@@ -90,7 +90,7 @@ const AppSidebar: React.FC = () => {
                       }
                     }}
                     aria-current={active ? "page" : undefined}
-                    className={`group flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors ${
+                    className={`group flex items-center gap-3 rounded-none px-3 py-2 text-sm font-medium transition-colors ${
                       active
                         ? "bg-brand-50 text-brand-500 dark:bg-brand-500/15 dark:text-brand-400"
                         : "text-gray-700 hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/5"

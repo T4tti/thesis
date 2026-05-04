@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Outfit } from 'next/font/google'
+import { Outfit, Spectral } from 'next/font/google'
 import './globals.css'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { ThemeProvider } from '@/context/ThemeContext'
@@ -10,6 +10,14 @@ const outfit = Outfit({
   subsets: ['latin'],
   display: 'swap',
   variable: '--font-outfit',
+})
+
+const spectral = Spectral({
+  subsets: ['latin'],
+  weight: ['300', '400', '500', '700', '800'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  variable: '--font-spectral',
 })
 
 export const metadata: Metadata = {
@@ -26,7 +34,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={outfit.variable}>
+    <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${spectral.variable}`}>
       <body className="min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100 font-sans">
         <LanguageProvider>
           <ThemeProvider>

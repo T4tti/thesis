@@ -13,7 +13,7 @@ export default function StatsCard({ icon, label, value, sub, accent = 'text-bran
   return (
     <Card padding="sm" hover>
       <div>
-        <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-lg bg-brand-50 dark:bg-brand-500/15 ${accent}`}>
+        <div className={`mb-3 flex h-10 w-10 items-center justify-center rounded-none bg-brand-50 dark:bg-brand-500/15 ${accent}`}>
           {icon}
         </div>
         <div className={`mb-1 text-2xl font-bold tracking-tight ${accent}`}>{value}</div>

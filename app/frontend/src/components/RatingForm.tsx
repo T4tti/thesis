@@ -5,6 +5,7 @@ import { useLanguage } from '@/context/LanguageContext'
 import { Send, RotateCcw, AlertCircle, Upload, BarChart3 } from 'lucide-react'
 import ProbabilityBars from './ProbabilityBars'
 import RatingBadge from './RatingBadge'
+import SpNotchBadge from '@/components/SpNotchBadge'
 import { API_BASE_URL } from '@/lib/config'
 import { apiFetch } from '@/lib/api'
 
@@ -50,6 +51,19 @@ interface ExplainResult {
   xai_used?: boolean
 }
 
+interface SpContext {
+  rating_class: string
+  indicative_notch: string
+  indicative_range: string
+  range_low: string
+  range_high: string
+  confidence_band: string
+  risk_band: string
+  sp_scale: string[]
+  disclaimer: string
+  migration_note: string
+}
+
 type FieldKey = typeof FIELD_GROUPS[number]['fields'][number]
 
 type ShapLikeRule = {
@@ -76,11 +90,13 @@ const SHAP_LIKE_RULES: Record<FieldKey, ShapLikeRule> = {
 type CsvRow = Partial<Record<FieldKey, string>> & {
   __ticker?: string
   __company?: string
+  __sector?: string
 }
 
 type AppliedCsvMeta = {
   ticker?: string
   companyName?: string
+  sector?: string
 }
 
 const normalizeHeader = (header: string) =>
@@ -121,6 +137,7 @@ const HEADER_ALIAS_TO_FIELD: Record<string, FieldKey> = {
 
 const TICKER_HEADER_ALIASES = new Set(['ticker', 'symbol', 'stockcode', 'stockticker', 'mack'])
 const COMPANY_HEADER_ALIASES = new Set(['company', 'companyname', 'name', 'issuer'])
+const SECTOR_HEADER_ALIASES = new Set(['sector', 'industry', 'linhvuc', 'nganh'])
 
 const resolveFieldFromHeader = (header: string): FieldKey | null => {
   const normalized = normalizeHeader(header)
@@ -274,6 +291,135 @@ export default function RatingForm() {
     previous_rating: prediction.previous_rating,
   })
 
+  const streamExplain = async (payload: Record<string, number | null>, prediction: PredictResult) => {
+    setExplainLoading(true)
+    setExplainText('')
+    setExplainError(null)
+    setExplainModel(null)
+    setSpContext(null)
+
+    const xaiContext = buildXaiContext(prediction, payload)
+    const tlstmPrediction = buildTlstmExplainInput(prediction)
+
+    const decoder = new TextDecoder()
+    let buffer = ''
+    let firstTokenSeen = false
+
+    try {
+      const explainRes = await fetch(`${API_BASE_URL}/api/explain`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          features: payload,
+          prediction,
+          tlstm_prediction: tlstmPrediction,
+          lang,
+          xai_context: xaiContext,
+          stream: true,
+        }),
+      })
+
+      if (!explainRes.ok) {
+        let detail = `HTTP ${explainRes.status}`
+        try {
+          const errBody = await explainRes.json()
+          detail = errBody?.detail || detail
+        } catch {
+          // Keep fallback HTTP status text when body is not JSON.
+        }
+        throw new Error(detail)
+      }
+
+      const reader = explainRes.body?.getReader()
+      if (!reader) {
+        throw new Error('Explain stream is unavailable.')
+      }
+
+      while (true) {
+        const { value, done } = await reader.read()
+        if (done) break
+
+        buffer += decoder.decode(value, { stream: true })
+        const lines = buffer.split('\n')
+        buffer = lines.pop() ?? ''
+
+        for (const rawLine of lines) {
+          const line = rawLine.trimEnd()
+          if (!line.startsWith('data: ')) continue
+
+          const eventText = line.slice('data: '.length).trim()
+          if (!eventText) continue
+
+          let event: unknown
+          try {
+            event = JSON.parse(eventText) as unknown
+          } catch {
+            continue
+          }
+
+          if (typeof event === 'object' && event !== null && 'token' in event) {
+            const token = (event as { token?: unknown }).token
+            if (typeof token === 'string' && token.length > 0) {
+              if (!firstTokenSeen) {
+                firstTokenSeen = true
+                setExplainLoading(false)
+              }
+              setExplainText(prev => (prev || '') + token)
+            }
+            continue
+          }
+
+          if (typeof event === 'object' && event !== null && 'done' in event) {
+            const doneFlag = (event as { done?: unknown }).done
+            const ctx = (event as { sp_context?: unknown }).sp_context
+            if (doneFlag === true && typeof ctx === 'object' && ctx !== null) {
+              setSpContext(ctx as SpContext)
+            }
+            setExplainLoading(false)
+            continue
+          }
+
+          if (typeof event === 'object' && event !== null && 'error' in event) {
+            const errMsg = (event as { error?: unknown }).error
+            if (typeof errMsg === 'string' && errMsg.length > 0) {
+              setExplainError(formatExplainError(errMsg))
+            } else {
+              setExplainError(formatExplainError(tr.explainErrorMsg))
+            }
+            setExplainLoading(false)
+          }
+        }
+      }
+
+      buffer += decoder.decode()
+      const tailLines = buffer.split('\n')
+      for (const rawLine of tailLines) {
+        const line = rawLine.trimEnd()
+        if (!line.startsWith('data: ')) continue
+        const eventText = line.slice('data: '.length).trim()
+        if (!eventText) continue
+
+        try {
+          const event = JSON.parse(eventText) as unknown
+          if (typeof event === 'object' && event !== null && 'done' in event) {
+            const doneFlag = (event as { done?: unknown }).done
+            const ctx = (event as { sp_context?: unknown }).sp_context
+            if (doneFlag === true && typeof ctx === 'object' && ctx !== null) {
+              setSpContext(ctx as SpContext)
+            }
+          }
+        } catch {
+          // Ignore tail parse errors.
+        }
+      }
+    } catch (explainErr) {
+      const rawMessage = explainErr instanceof Error ? explainErr.message : tr.explainErrorMsg
+      setExplainError(formatExplainError(rawMessage))
+    } finally {
+      setExplainLoading(false)
+    }
+  }
+
   const formatBackendError = (message: string) => {
     const msg = message.toLowerCase()
     if (msg.includes('failed to fetch') || msg.includes('networkerror') || msg.includes('load failed')) {
@@ -342,6 +488,7 @@ export default function RatingForm() {
   const [explainText, setExplainText] = useState<string | null>(null)
   const [explainError, setExplainError] = useState<string | null>(null)
   const [explainModel, setExplainModel] = useState<string | null>(null)
+  const [spContext, setSpContext] = useState<SpContext | null>(null)
 
   const handleChange = (field: string, val: string) => {
     if (appliedCsvMeta) {
@@ -364,6 +511,8 @@ export default function RatingForm() {
     setExplainText(null)
     setExplainError(null)
     setExplainModel(null)
+    setSpContext(null)
+    setSpContext(null)
     if (csvInputRef.current) {
       csvInputRef.current.value = ''
     }
@@ -394,6 +543,7 @@ export default function RatingForm() {
     setAppliedCsvMeta({
       ticker: row.__ticker?.trim() || undefined,
       companyName: row.__company?.trim() || undefined,
+      sector: row.__sector?.trim() || undefined,
     })
     setResult(null)
     setError(null)
@@ -432,10 +582,12 @@ export default function RatingForm() {
 
       let tickerIndex = -1
       let companyIndex = -1
+      let sectorIndex = -1
       headers.forEach((header, idx) => {
         const normalized = normalizeHeader(header)
         if (tickerIndex === -1 && TICKER_HEADER_ALIASES.has(normalized)) tickerIndex = idx
         if (companyIndex === -1 && COMPANY_HEADER_ALIASES.has(normalized)) companyIndex = idx
+        if (sectorIndex === -1 && SECTOR_HEADER_ALIASES.has(normalized)) sectorIndex = idx
       })
 
       const parsedRows: CsvRow[] = matrix
@@ -449,6 +601,7 @@ export default function RatingForm() {
           })
           if (tickerIndex >= 0) parsedRow.__ticker = (rawRow[tickerIndex] || '').trim()
           if (companyIndex >= 0) parsedRow.__company = (rawRow[companyIndex] || '').trim()
+          if (sectorIndex >= 0) parsedRow.__sector = (rawRow[sectorIndex] || '').trim()
           return parsedRow
         })
         .filter(row => ALL_FIELDS.some(field => (row[field] || '').trim() !== ''))
@@ -496,6 +649,7 @@ export default function RatingForm() {
         body: JSON.stringify(payload),
       }, lang)
       setResult(data)
+      setLoading(false)
 
       void fetch(`${API_BASE_URL}/api/history`, {
           method: 'POST',
@@ -505,6 +659,7 @@ export default function RatingForm() {
             features: payload,
             ticker: appliedCsvMeta?.ticker,
             company_name: appliedCsvMeta?.companyName,
+            sector: appliedCsvMeta?.sector,
             source: 'VN-Rating Analyze',
           }),
         })
@@ -512,43 +667,7 @@ export default function RatingForm() {
         // Keep UX non-blocking: prediction already succeeded even if history save fails.
         })
 
-      const xaiContext = buildXaiContext(data, payload)
-      const tlstmPrediction = buildTlstmExplainInput(data)
-
-      setExplainLoading(true)
-      try {
-        const explainRes = await fetch(`${API_BASE_URL}/api/explain`, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            features: payload,
-            prediction: data,
-              tlstm_prediction: tlstmPrediction,
-            lang,
-            xai_context: xaiContext,
-          }),
-        })
-
-        if (!explainRes.ok) {
-          let detail = `HTTP ${explainRes.status}`
-          try {
-            const errBody = await explainRes.json()
-            detail = errBody?.detail || detail
-          } catch {
-            // Keep fallback HTTP status text when body is not JSON.
-          }
-          throw new Error(detail)
-        }
-
-        const explainData: ExplainResult = await explainRes.json()
-        setExplainText(explainData.explanation)
-        setExplainModel(explainData.model || null)
-      } catch (explainErr) {
-        const rawMessage = explainErr instanceof Error ? explainErr.message : tr.explainErrorMsg
-        setExplainError(formatExplainError(rawMessage))
-      } finally {
-        setExplainLoading(false)
-      }
+      void streamExplain(payload, data)
     } catch (err) {
       const rawMessage = err instanceof Error ? err.message : tr.errorMsg
       setError(formatBackendError(rawMessage || tr.errorMsg))
@@ -570,7 +689,7 @@ export default function RatingForm() {
   return (
     <div className={`flex flex-col ${result || loading || error ? 'flex-col-reverse' : ''} lg:grid lg:grid-cols-2 items-start gap-12 lg:gap-16`}>
       {/* ── Form panel ─────────────────────────────────────────────── */}
-      <section className="flex flex-col gap-6">
+      <section className="flex flex-col gap-6 w-full min-w-0">
         <header className="border-b border-gray-900 pb-4 dark:border-white flex justify-between items-end">
           <div>
             <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">{tr.formTitle}</h2>
@@ -619,12 +738,12 @@ export default function RatingForm() {
             )}
 
             {csvRows.length > 0 && (
-              <div className="mt-6 flex flex-col sm:flex-row gap-4">
+              <div className="mt-6 flex flex-col sm:flex-row gap-4 w-full max-w-full overflow-hidden">
                 <select
                   value={csvSelectedIndex}
                   onChange={e => setCsvSelectedIndex(Number(e.target.value))}
                   aria-label="CSV row selection"
-                  className="flex-1 rounded-none border-0 border-b-2 border-gray-200 bg-transparent py-2 pl-0 pr-8 text-sm font-semibold text-gray-900 focus:border-brand-500 focus:ring-0 dark:border-gray-800 dark:text-white"
+                  className="flex-1 min-w-0 rounded-none border-0 border-b-2 border-gray-200 bg-transparent py-2 pl-0 pr-8 text-sm font-semibold text-gray-900 focus:border-brand-500 focus:ring-0 dark:border-gray-800 dark:text-white truncate"
                 >
                   {csvRows.map((row, idx) => (
                     <option key={`${row.__ticker || 'row'}-${idx}`} value={idx}>
@@ -635,7 +754,7 @@ export default function RatingForm() {
                 <button
                   type="button"
                   onClick={applyCsvRowToForm}
-                  className="shrink-0 rounded-none border border-gray-900 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-900 transition-colors hover:bg-gray-100 dark:border-white dark:text-white dark:hover:bg-white/10"
+                  className="shrink-0 rounded-none border border-gray-900 px-5 py-2.5 text-xs font-bold uppercase tracking-widest text-gray-900 transition-colors hover:bg-gray-100 dark:border-white dark:text-white dark:hover:bg-white/10 whitespace-nowrap"
                 >
                   {tr.csvApplyRow}
                 </button>
@@ -711,7 +830,7 @@ export default function RatingForm() {
       {/* ── Result panel ───────────────────────────────────────────── */}
       <section className="flex min-h-0 flex-col gap-6 lg:min-h-[400px]">
         <header className="border-b border-gray-900 pb-4 dark:border-white">
-          <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white">{tr.resultTitle}</h2>
+          <h2 className="text-xl font-bold tracking-tight text-gray-900 dark:text-white font-serif tracking-normal">{tr.resultTitle}</h2>
         </header>
 
         <div className="flex flex-1 flex-col items-center justify-center py-5">
@@ -733,7 +852,7 @@ export default function RatingForm() {
 
           {/* Error */}
           {error && (
-            <div className="flex w-full items-start gap-3 rounded-xl border border-distressed/30 bg-distressed/10 p-4" role="alert">
+            <div className="flex w-full items-start gap-3 rounded-none border border-distressed/30 bg-distressed/10 p-4" role="alert">
               <AlertCircle className="w-5 h-5 text-distressed-dark shrink-0 mt-0.5 dark:text-distressed" />
               <p className="text-sm text-distressed-dark dark:text-distressed">{error}</p>
             </div>
@@ -777,6 +896,10 @@ export default function RatingForm() {
                 <ProbabilityBars probabilities={result.probabilities} />
               </div>
 
+              {spContext && !explainLoading && (
+                <SpNotchBadge spContext={spContext} />
+              )}
+
               {explainLoading && (
                 <div className="border-t border-gray-200 pt-6 dark:border-gray-800" role="status" aria-live="polite">
                   <div className="flex items-center gap-2 text-sm text-gray-600 dark:text-gray-300">
@@ -801,7 +924,7 @@ export default function RatingForm() {
                     <p className="mb-2 text-xs text-gray-500 dark:text-gray-400">{explainModel}</p>
                   )}
                   <div className="prose prose-sm dark:prose-invert max-w-none">
-                    <p className="max-h-56 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-gray-300">
+                    <p className="max-h-56 overflow-y-auto whitespace-pre-line text-sm leading-relaxed text-gray-700 dark:text-gray-300 font-serif italic">
                       {explainText}
                     </p>
                   </div>

@@ -10,7 +10,7 @@ export default function Footer() {
       <div className="mx-auto w-full max-w-screen-2xl px-3 py-5 sm:px-4 md:px-6">
         <div className="flex flex-col items-center justify-between gap-3 sm:flex-row">
           <div className="flex items-center gap-2 text-center sm:text-left">
-            <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-brand-500">
+            <div className="flex h-7 w-7 items-center justify-center rounded-none bg-brand-500">
               <BarChart2 className="h-3.5 w-3.5 text-white" />
             </div>
             <span className="text-sm font-bold text-gray-900 dark:text-white">
