@@ -28,8 +28,8 @@ module.exports = {
         distressed: { DEFAULT: '#f04438', light: '#f97066', dark: '#b42318' },
       },
       fontFamily: {
-        sans: ['var(--font-outfit)', 'system-ui', 'sans-serif'],
-        serif: ['var(--font-spectral)', 'serif'],
+        sans: ['var(--font-sans)', 'Be Vietnam Pro', 'system-ui', 'sans-serif'],
+        serif: ['var(--font-serif)', 'Lora', 'Georgia', 'serif'],
       },
     },
   },

@@ -21,6 +21,13 @@ html {
   -moz-osx-font-smoothing: grayscale;
 }
 
+/* Vietnamese text optimisation: enable kerning and ligatures for stacked diacritics */
+:lang(vi) {
+  font-feature-settings: "kern" 1, "liga" 1;
+  -webkit-font-smoothing: antialiased;
+  text-rendering: optimizeLegibility;
+}
+
 body {
   @apply bg-gray-50 text-gray-900 dark:bg-gray-950 dark:text-gray-100;
 }

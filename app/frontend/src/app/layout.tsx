@@ -1,23 +1,29 @@
 import type { Metadata } from 'next'
-import { Outfit, Spectral } from 'next/font/google'
+import { Be_Vietnam_Pro, Lora } from 'next/font/google'
 import './globals.css'
 import { LanguageProvider } from '@/context/LanguageContext'
 import { ThemeProvider } from '@/context/ThemeContext'
 import { SidebarProvider } from '@/context/SidebarContext'
 import AppShell from '@/components/AppShell'
 
-const outfit = Outfit({ 
-  subsets: ['latin'],
-  display: 'swap',
-  variable: '--font-outfit',
-})
-
-const spectral = Spectral({
-  subsets: ['latin'],
-  weight: ['300', '400', '500', '700', '800'],
+// Be Vietnam Pro: engineered for Vietnamese orthography.
+// The 'vietnamese' subset loads U+1E00–1EFF (all tone marks: ắ ặ ề ổ ướ …)
+const beVietnamPro = Be_Vietnam_Pro({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['300', '400', '500', '600', '700'],
   style: ['normal', 'italic'],
   display: 'swap',
-  variable: '--font-spectral',
+  variable: '--font-sans',
+})
+
+// Lora: calligraphic serif with full Vietnamese diacritic coverage.
+// Used for editorial prose (methodology page, reports).
+const lora = Lora({
+  subsets: ['latin', 'vietnamese'],
+  weight: ['400', '500', '600', '700'],
+  style: ['normal', 'italic'],
+  display: 'swap',
+  variable: '--font-serif',
 })
 
 export const metadata: Metadata = {
@@ -34,7 +40,7 @@ export const metadata: Metadata = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" suppressHydrationWarning className={`${outfit.variable} ${spectral.variable}`}>
+    <html lang="en" suppressHydrationWarning className={`${beVietnamPro.variable} ${lora.variable}`}>
       <body className="min-h-screen bg-gray-50 text-gray-900 antialiased dark:bg-gray-950 dark:text-gray-100 font-sans">
         <LanguageProvider>
           <ThemeProvider>

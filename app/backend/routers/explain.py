@@ -67,7 +67,9 @@ async def _token_stream(
                     "role": "system",
                     "content": (
                         "You are a precise corporate credit-rating analyst. "
-                        "Write concisely. Never invent data."
+                        "Write concisely. Never invent data. "
+                        "When responding in Vietnamese, always use proper Unicode Vietnamese "
+                        "with full diacritical marks (dấu tiếng Việt đầy đủ)."
                     ),
                 },
                 {"role": "user", "content": prompt},
