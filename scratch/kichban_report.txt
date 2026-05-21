@@ -1,0 +1,24 @@
+Loading e:\thesis\kichban.xlsx...
+Sheets in excel file: ['Sheet1']
+
+==================================================
+SHEET: Sheet1
+==================================================
+Shape: (12, 4)
+Columns:
+['Kịch bản', 'Tên phương pháp', 'Phương pháp tổng hợp', 'Mô hình mạng sử dụng']
+
+Data:
+    Kịch bản Tên phương pháp          Phương pháp tổng hợp                                                         Mô hình mạng sử dụng
+0          1        T-BiLSTM                           NaN                                               Transformer-Bidirectional LSTM
+1          2             TCN                           NaN                                         Temporal Convolutional Network (TCN)
+2          3            LSTM                           NaN                                                                         LSTM
+3          4        PatchTST                           NaN                                     Patch Time-Series Transformer (PatchTST)
+4          5         XGBoost                           NaN                                                                      XGBoost
+5          6        LightGBM                           NaN                                                                     LightGBM
+6          7          FI-TTX        Fuzzy Choquet Integral                               Transformer-Bidirectional LSTM + TCN + XGBoost
+7          8          FI-PLL        Fuzzy Choquet Integral                                                   PatchTST + LSTM + LightGBM
+8          9       FI-TTLPXL        Fuzzy Choquet Integral  Transformer-Bidirectional LSTM + TCN + XGBoost + PatchTST + LSTM + LightGBM
+9         10          FR-TTX  Gompertz fuzzy ranking-based                               Transformer-Bidirectional LSTM + TCN + XGBoost
+10        11          FR-PLL  Gompertz fuzzy ranking-based                                                   PatchTST + LSTM + LightGBM
+11        12       FR-TTLPXL  Gompertz fuzzy ranking-based  Transformer-Bidirectional LSTM + TCN + XGBoost + PatchTST + LSTM + LightGBM

@@ -1,0 +1,2 @@
+model,protocol,train_rows,test_rows,feature_count,accuracy,precision_weighted,recall_weighted,f1_macro,f1_weighted,qwk,target_accuracy,target_passed
+LightGBM_temporal_teacher,row_level,6891,1723,30,0.9204875217643644,0.9216221721352165,0.9204875217643644,0.8265230230624683,0.9208458717234133,0.8726497215893549,0.9199,True

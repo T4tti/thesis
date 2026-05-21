@@ -1,0 +1,692 @@
+
+=========================================
+DETAILED METRICS FOR: Transformer-BiLSTM.ipynb
+=========================================
+
+[Cell 26] Source code starts with: # ============================================================
+--- Output ---
+[Strategy C+E+F] Applied 9 config overrides over BEST_TUNED_CONFIG
+Training for max 50 epochs (patience=50)...
+Epoch   1/50 | TrLoss: 0.6144 | VlLoss: 0.3853 | TrAcc: 0.527 | VlAcc: 0.749 | TrF1w: 0.491 | VlF1w: 0.758 | TrQWK: 0.391 | VlQWK: 0.534 | VlAUC: 0.878 | LR: 0.000277
+Epoch   2/50 | TrLoss: 0.4244 | VlLoss: 0.2024 | TrAcc: 0.722 | VlAcc: 0.884 | TrF1w: 0.720 | VlF1w: 0.892 | TrQWK: 0.670 | VlQWK: 0.790 | VlAUC: 0.948 | LR: 0.000477
+Epoch   3/50 | TrLoss: 0.3578 | VlLoss: 0.1722 | TrAcc: 0.768 | VlAcc: 0.920 | TrF1w: 0.769 | VlF1w: 0.921 | TrQWK: 0.732 | VlQWK: 0.868 | VlAUC: 0.960 | LR: 0.000725
+Epoch   4/50 | TrLoss: 0.2762 | VlLoss: 0.1709 | TrAcc: 0.816 | VlAcc: 0.899 | TrF1w: 0.816 | VlF1w: 0.903 | TrQWK: 0.811 | VlQWK: 0.849 | VlAUC: 0.966 | LR: 0.000925
+Epoch   5/50 | TrLoss: 0.1756 | VlLoss: 0.1461 | TrAcc: 0.881 | VlAcc: 0.897 | TrF1w: 0.881 | VlF1w: 0.900 | TrQWK: 0.897 | VlQWK: 0.836 | VlAUC: 0.971 | LR: 0.001000
+Epoch   6/50 | TrLoss: 0.1298 | VlLoss: 0.1426 | TrAcc: 0.913 | VlAcc: 0.906 | TrF1w: 0.912 | VlF1w: 0.910 | TrQWK: 0.931 | VlQWK: 0.850 | VlAUC: 0.973 | LR: 0.000999
+Epoch   7/50 | TrLoss: 0.1142 | VlLoss: 0.1318 | TrAcc: 0.922 | VlAcc: 0.915 | TrF1w: 0.921 | VlF1w: 0.918 | TrQWK: 0.937 | VlQWK: 0.865 | VlAUC: 0.976 | LR: 0.000995
+Epoch   8/50 | TrLoss: 0.1055 | VlLoss: 0.1578 | TrAcc: 0.933 | VlAcc: 0.884 | TrF1w: 0.932 | VlF1w: 0.889 | TrQWK: 0.946 | VlQWK: 0.822 | VlAUC: 0.975 | LR: 0.000989
+Epoch   9/50 | TrLoss: 0.0969 | VlLoss: 0.1395 | TrAcc: 0.934 | VlAcc: 0.911 | TrF1w: 0.934 | VlF1w: 0.914 | TrQWK: 0.948 | VlQWK: 0.858 | VlAUC: 0.977 | LR: 0.000981
+Epoch  10/50 | TrLoss: 0.0988 | VlLoss: 0.1405 | TrAcc: 0.929 | VlAcc: 0.905 | TrF1w: 0.929 | VlF1w: 0.909 | TrQWK: 0.943 | VlQWK: 0.852 | VlAUC: 0.978 | LR: 0.000970
+Epoch  11/50 | TrLoss: 0.0927 | VlLoss: 0.1361 | TrAcc: 0.935 | VlAcc: 0.907 | TrF1w: 0.935 | VlF1w: 0.909 | TrQWK: 0.949 | VlQWK: 0.848 | VlAUC: 0.980 | LR: 0.000957
+Epoch  12/50 | TrLoss: 0.0921 | VlLoss: 0.1334 | TrAcc: 0.937 | VlAcc: 0.912 | TrF1w: 0.937 | VlF1w: 0.913 | TrQWK: 0.949 | VlQWK: 0.857 | VlAUC: 0.980 | LR: 0.000941
+Epoch  13/50 | TrLoss: 0.0900 | VlLoss: 0.1446 | TrAcc: 0.936 | VlAcc: 0.901 | TrF1w: 0.936 | VlF1w: 0.905 | TrQWK: 0.948 | VlQWK: 0.845 | VlAUC: 0.977 | LR: 0.000924
+Epoch  14/50 | TrLoss: 0.0910 | VlLoss: 0.1499 | TrAcc: 0.937 | VlAcc: 0.907 | TrF1w: 0.936 | VlF1w: 0.910 | TrQWK: 0.950 | VlQWK: 0.858 | VlAUC: 0.978 | LR: 0.000904
+Epoch  15/50 | TrLoss: 0.0886 | VlLoss: 0.1355 | TrAcc: 0.937 | VlAcc: 0.907 | TrF1w: 0.937 | VlF1w: 0.910 | TrQWK: 0.951 | VlQWK: 0.853 | VlAUC: 0.978 | LR: 0.000883
+Epoch  16/50 | TrLoss: 0.0882 | VlLoss: 0.1313 | TrAcc: 0.940 | VlAcc: 0.918 | TrF1w: 0.940 | VlF1w: 0.919 | TrQWK: 0.952 | VlQWK: 0.865 | VlAUC: 0.980 | LR: 0.000860
+Epoch  17/50 | TrLoss: 0.0795 | VlLoss: 0.1348 | TrAcc: 0.944 | VlAcc: 0.912 | TrF1w: 0.944 | VlF1w: 0.914 | TrQWK: 0.954 | VlQWK: 0.859 | VlAUC: 0.979 | LR: 0.000835
+Epoch  18/50 | TrLoss: 0.0815 | VlLoss: 0.1350 | TrAcc: 0.943 | VlAcc: 0.918 | TrF1w: 0.943 | VlF1w: 0.919 | TrQWK: 0.954 | VlQWK: 0.866 | VlAUC: 0.979 | LR: 0.000808
+Epoch  19/50 | TrLoss: 0.0788 | VlLoss: 0.1359 | TrAcc: 0.946 | VlAcc: 0.916 | TrF1w: 0.946 | VlF1w: 0.918 | TrQWK: 0.957 | VlQWK: 0.865 | VlAUC: 0.979 | LR: 0.000780
+Epoch  20/50 | TrLoss: 0.0863 | VlLoss: 0.1364 | TrAcc: 0.941 | VlAcc: 0.906 | TrF1w: 0.941 | VlF1w: 0.909 | TrQWK: 0.952 | VlQWK: 0.851 | VlAUC: 0.979 | LR: 0.000750
+Epoch  21/50 | TrLoss: 0.0837 | VlLoss: 0.1371 | TrAcc: 0.936 | VlAcc: 0.910 | TrF1w: 0.936 | VlF1w: 0.912 | TrQWK: 0.950 | VlQWK: 0.857 | VlAUC: 0.980 | LR: 0.000719
+Epoch  22/50 | TrLoss: 0.0864 | VlLoss: 0.1365 | TrAcc: 0.939 | VlAcc: 0.911 | TrF1w: 0.939 | VlF1w: 0.913 | TrQWK: 0.950 | VlQWK: 0.858 | VlAUC: 0.979 | LR: 0.000688
+Epoch  23/50 | TrLoss: 0.0794 | VlLoss: 0.1321 | TrAcc: 0.943 | VlAcc: 0.919 | TrF1w: 0.943 | VlF1w: 0.921 | TrQWK: 0.954 | VlQWK: 0.868 | VlAUC: 0.981 | LR: 0.000655
+Epoch  24/50 | TrLoss: 0.0754 | VlLoss: 0.1361 | TrAcc: 0.948 | VlAcc: 0.915 | TrF1w: 0.948 | VlF1w: 0.917 | TrQWK: 0.958 | VlQWK: 0.869 | VlAUC: 0.980 | LR: 0.000621
+Epoch  25/50 | TrLoss: 0.0776 | VlLoss: 0.1378 | TrAcc: 0.946 | VlAcc: 0.913 | TrF1w: 0.946 | VlF1w: 0.915 | TrQWK: 0.957 | VlQWK: 0.861 | VlAUC: 0.980 | LR: 0.000587
+Epoch  26/50 | TrLoss: 0.0763 | VlLoss: 0.1361 | TrAcc: 0.944 | VlAcc: 0.914 | TrF1w: 0.943 | VlF1w: 0.915 | TrQWK: 0.956 | VlQWK: 0.859 | VlAUC: 0.980 | LR: 0.000553
+Epoch  27/50 | TrLoss: 0.0753 | VlLoss: 0.1371 | TrAcc: 0.945 | VlAcc: 0.916 | TrF1w: 0.945 | VlF1w: 0.919 | TrQWK: 0.956 | VlQWK: 0.872 | VlAUC: 0.980 | LR: 0.000518
+Epoch  28/50 | TrLoss: 0.0754 | VlLoss: 0.1354 | TrAcc: 0.946 | VlAcc: 0.919 | TrF1w: 0.945 | VlF1w: 0.921 | TrQWK: 0.957 | VlQWK: 0.874 | VlAUC: 0.981 | LR: 0.000483
+Epoch  29/50 | TrLoss: 0.0655 | VlLoss: 0.1425 | TrAcc: 0.953 | VlAcc: 0.914 | TrF1w: 0.953 | VlF1w: 0.916 | TrQWK: 0.963 | VlQWK: 0.862 | VlAUC: 0.979 | LR: 0.000448
+Epoch  30/50 | TrLoss: 0.0702 | VlLoss: 0.1369 | TrAcc: 0.951 | VlAcc: 0.912 | TrF1w: 0.951 | VlF1w: 0.914 | TrQWK: 0.960 | VlQWK: 0.865 | VlAUC: 0.980 | LR: 0.000414
+Epoch  31/50 | TrLoss: 0.0679 | VlLoss: 0.1364 | TrAcc: 0.951 | VlAcc: 0.921 | TrF1w: 0.951 | VlF1w: 0.922 | TrQWK: 0.961 | VlQWK: 0.875 | VlAUC: 0.982 | LR: 0.000380
+Epoch  32/50 | TrLoss: 0.0691 | VlLoss: 0.1387 | TrAcc: 0.949 | VlAcc: 0.913 | TrF1w: 0.949 | VlF1w: 0.915 | TrQWK: 0.960 | VlQWK: 0.860 | VlAUC: 0.980 | LR: 0.000346
+Epoch  33/50 | TrLoss: 0.0638 | VlLoss: 0.1387 | TrAcc: 0.952 | VlAcc: 0.922 | TrF1w: 0.952 | VlF1w: 0.923 | TrQWK: 0.962 | VlQWK: 0.876 | VlAUC: 0.981 | LR: 0.000314
+Epoch  34/50 | TrLoss: 0.0702 | VlLoss: 0.1400 | TrAcc: 0.952 | VlAcc: 0.918 | TrF1w: 0.952 | VlF1w: 0.919 | TrQWK: 0.961 | VlQWK: 0.865 | VlAUC: 0.980 | LR: 0.000282
+Epoch  35/50 | TrLoss: 0.0691 | VlLoss: 0.1402 | TrAcc: 0.950 | VlAcc: 0.916 | TrF1w: 0.950 | VlF1w: 0.919 | TrQWK: 0.961 | VlQWK: 0.871 | VlAUC: 0.980 | LR: 0.000251
+Epoch  36/50 | TrLoss: 0.0591 | VlLoss: 0.1411 | TrAcc: 0.957 | VlAcc: 0.918 | TrF1w: 0.957 | VlF1w: 0.919 | TrQWK: 0.965 | VlQWK: 0.869 | VlAUC: 0.980 | LR: 0.000222
+Epoch  37/50 | TrLoss: 0.0642 | VlLoss: 0.1454 | TrAcc: 0.954 | VlAcc: 0.908 | TrF1w: 0.954 | VlF1w: 0.911 | TrQWK: 0.962 | VlQWK: 0.858 | VlAUC: 0.979 | LR: 0.000193
+Epoch  38/50 | TrLoss: 0.0612 | VlLoss: 0.1403 | TrAcc: 0.956 | VlAcc: 0.923 | TrF1w: 0.956 | VlF1w: 0.925 | TrQWK: 0.966 | VlQWK: 0.881 | VlAUC: 0.980 | LR: 0.000167
+Epoch  39/50 | TrLoss: 0.0666 | VlLoss: 0.1406 | TrAcc: 0.951 | VlAcc: 0.921 | TrF1w: 0.951 | VlF1w: 0.922 | TrQWK: 0.961 | VlQWK: 0.875 | VlAUC: 0.981 | LR: 0.000142
+Epoch  40/50 | TrLoss: 0.0596 | VlLoss: 0.1426 | TrAcc: 0.955 | VlAcc: 0.916 | TrF1w: 0.955 | VlF1w: 0.918 | TrQWK: 0.964 | VlQWK: 0.871 | VlAUC: 0.980 | LR: 0.000119
+Epoch  41/50 | TrLoss: 0.0644 | VlLoss: 0.1427 | TrAcc: 0.950 | VlAcc: 0.927 | TrF1w: 0.950 | VlF1w: 0.928 | TrQWK: 0.960 | VlQWK: 0.879 | VlAUC: 0.981 | LR: 0.000097
+Epoch  42/50 | TrLoss: 0.0634 | VlLoss: 0.1425 | TrAcc: 0.954 | VlAcc: 0.922 | TrF1w: 0.954 | VlF1w: 0.923 | TrQWK: 0.962 | VlQWK: 0.877 | VlAUC: 0.981 | LR: 0.000078
+Epoch  43/50 | TrLoss: 0.0580 | VlLoss: 0.1422 | TrAcc: 0.955 | VlAcc: 0.921 | TrF1w: 0.955 | VlF1w: 0.922 | TrQWK: 0.963 | VlQWK: 0.876 | VlAUC: 0.981 | LR: 0.000060
+Epoch  44/50 | TrLoss: 0.0590 | VlLoss: 0.1420 | TrAcc: 0.958 | VlAcc: 0.918 | TrF1w: 0.958 | VlF1w: 0.919 | TrQWK: 0.966 | VlQWK: 0.872 | VlAUC: 0.981 | LR: 0.000045
+Epoch  45/50 | TrLoss: 0.0571 | VlLoss: 0.1403 | TrAcc: 0.958 | VlAcc: 0.922 | TrF1w: 0.957 | VlF1w: 0.924 | TrQWK: 0.966 | VlQWK: 0.878 | VlAUC: 0.981 | LR: 0.000032
+Epoch  46/50 | TrLoss: 0.0558 | VlLoss: 0.1412 | TrAcc: 0.960 | VlAcc: 0.921 | TrF1w: 0.959 | VlF1w: 0.923 | TrQWK: 0.967 | VlQWK: 0.877 | VlAUC: 0.981 | LR: 0.000021
+Epoch  47/50 | TrLoss: 0.0549 | VlLoss: 0.1411 | TrAcc: 0.961 | VlAcc: 0.921 | TrF1w: 0.961 | VlF1w: 0.923 | TrQWK: 0.969 | VlQWK: 0.877 | VlAUC: 0.981 | LR: 0.000013
+Epoch  48/50 | TrLoss: 0.0566 | VlLoss: 0.1410 | TrAcc: 0.960 | VlAcc: 0.922 | TrF1w: 0.960 | VlF1w: 0.923 | TrQWK: 0.967 | VlQWK: 0.878 | VlAUC: 0.981 | LR: 0.000007
+Epoch  49/50 | TrLoss: 0.0622 | VlLoss: 0.1410 | TrAcc: 0.953 | VlAcc: 0.923 | TrF1w: 0.953 | VlF1w: 0.925 | TrQWK: 0.963 | VlQWK: 0.880 | VlAUC: 0.981 | LR: 0.000003
+Epoch  50/50 | TrLoss: 0.0576 | VlLoss: 0.1411 | TrAcc: 0.959 | VlAcc: 0.923 | TrF1w: 0.959 | VlF1w: 0.925 | TrQWK: 0.968 | VlQWK: 0.880 | VlAUC: 0.981 | LR: 0.000002
+Training completed! Best val_f1_weighted: 0.9275 at epoch 41
+------------------------------
+
+[Cell 32] Source code starts with: # ============================================================
+--- Output ---
+--- TEST SET EVALUATION (ROW-LEVEL TRANSFORMER) ---
+Accuracy: 0.9205
+Precision (Weighted): 0.9264
+Recall (Weighted):    0.9205
+F1-macro:             0.8327
+F1-weighted:          0.9226
+QWK (Quadratic Weighted Kappa): 0.8778
+AUC: 0.9825
+--------------------------------------------------
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.56      0.81      0.66        59
+           1       0.89      0.87      0.88       559
+           2       0.97      0.95      0.96      1105
+
+    accuracy                           0.92      1723
+   macro avg       0.80      0.88      0.83      1723
+weighted avg       0.93      0.92      0.92      1723
+Metrics saved to: /kaggle/working/credit_rating_artifacts/transformer_metrics.csv
+------------------------------
+
+[Cell 35] Source code starts with: # Build row-level result table for test predictions.
+--- Output ---
+=== Sample Predictions ===
+Ticker     True (num)           Pred (num)    Match
+------------------------------------------------------
+CRS        2                             2        Y
+ORCL       2                             2        Y
+SYY        2                             2        Y
+AEE        2                             2        Y
+LLY        2                             2        Y
+EOG        2                             2        Y
+SYY        2                             2        Y
+MSFT       2                             2        Y
+ENR        2                             1        N
+ENR        2                             2        Y
+MHK        2                             2        Y
+ALR        1                             0        N
+NGG        2                             2        Y
+CMP        1                             1        Y
+NFG        2                             2        Y
+HLT        1                             1        Y
+VEON       1                             1        Y
+BAK        2                             2        Y
+CVS        2                             2        Y
+BWA        2                             2        Y
+CLH        1                             1        Y
+HEES       1                             1        Y
+SANM       1                             1        Y
+CHTR       1                             1        Y
+TDG        0                             0        Y
+XYL        2                             2        Y
+DLX        2                             2        Y
+TDG        1                             0        N
+EMN        2                             2        Y
+CCZ        2                             2        Y
+
+=== Summary ===
+Total predictions: 1723
+Expected test rows: 1723
+Correct: 1586
+Accuracy: 0.9205
+F1 (weighted): 0.9226
+AUC-ROC (OvR): 0.9825
+Saved row-level predictions to: /kaggle/working/credit_rating_artifacts/transformer_row_level_predictions.csv
+
+All artifacts saved to: /kaggle/working/credit_rating_artifacts
+------------------------------
+
+[Cell 37] Source code starts with: # ============================================================
+--- Output ---
+--- ROW-LEVEL TEST EVALUATION: TEMPORAL LIGHTGBM TEACHER ---
+Train rows (train+val): 6891
+Test rows:              1723
+Feature count:          30
+Accuracy:               0.920488
+F1-macro:               0.826523
+F1-weighted:            0.920846
+QWK:                    0.872650
+Target threshold:       >= 0.9199
+Threshold status:       PASS
+------------------------------------------------------------
+              precision    recall  f1-score   support
+
+           0       0.60      0.69      0.65        59
+           1       0.89      0.86      0.88       559
+           2       0.95      0.96      0.96      1105
+
+    accuracy                           0.92      1723
+   macro avg       0.82      0.84      0.83      1723
+weighted avg       0.92      0.92      0.92      1723
+
+Row-level teacher metrics saved to: /kaggle/working/credit_rating_artifacts/row_level_temporal_teacher_metrics.csv
+Row-level teacher predictions saved to: /kaggle/working/credit_rating_artifacts/row_level_temporal_teacher_predictions.csv
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: kb7-fi-ttx.ipynb
+=========================================
+
+[Cell 13] Source code starts with: import time
+--- Output ---
+Test Inference/Evaluation Time: 0.045912 seconds
+
+[Val] Acc=0.9188  MacroF1=0.8103  WtF1=0.9184  AUC=0.9580  QWK=0.8611
+
+[Test] Acc=0.9228  MacroF1=0.8085  WtF1=0.9223  AUC=0.9583  QWK=0.8695
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6275    0.5424    0.5818        59
+           1     0.8713    0.8962    0.8836       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9228      1723
+   macro avg     0.8208    0.7984    0.8085      1723
+weighted avg     0.9221    0.9228    0.9223      1723
+Saved ROC curves to: /kaggle/working/credit_rating_artifacts/fi_ttx_roc.png
+Saved metrics + predictions to /kaggle/working/credit_rating_artifacts
+------------------------------
+
+[Cell 21] Source code starts with: import pickle
+--- Output ---
+Ensemble saved: /kaggle/working/credit_rating_artifacts/fi_ttx_ensemble.pkl
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FI_TTX
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.918794            0.918161         0.918794  0.810270     0.918395 0.958027 0.861105
+ Test  0.922809            0.922105         0.922809  0.808484     0.922286 0.958319 0.869480
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: kb8-fi-pll.ipynb
+=========================================
+
+[Cell 13] Source code starts with: import time
+--- Output ---
+Test Inference/Evaluation Time: 0.049676 seconds
+
+[Val] Acc=0.9200  MacroF1=0.8189  WtF1=0.9197  AUC=0.9598  QWK=0.8636
+
+[Test] Acc=0.9234  MacroF1=0.8214  WtF1=0.9234  AUC=0.9596  QWK=0.8720
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6316    0.6102    0.6207        59
+           1     0.8768    0.8909    0.8838       559
+           2     0.9627    0.9566    0.9596      1105
+
+    accuracy                         0.9234      1723
+   macro avg     0.8237    0.8192    0.8214      1723
+weighted avg     0.9235    0.9234    0.9234      1723
+Saved ROC curves to: /kaggle/working/credit_rating_artifacts/fi_pll_roc.png
+Saved metrics + predictions to /kaggle/working/credit_rating_artifacts
+------------------------------
+
+[Cell 21] Source code starts with: import pickle
+--- Output ---
+Ensemble saved: /kaggle/working/credit_rating_artifacts/fi_pll_ensemble.pkl
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FI_PLL
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.919954            0.919616         0.919954  0.818855     0.919743 0.959848 0.863581
+ Test  0.923389            0.923454         0.923389  0.821351     0.923391 0.959580 0.872045
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: kb9-fi-ttlpxl.ipynb
+=========================================
+
+[Cell 13] Source code starts with: import time
+--- Output ---
+Test Inference/Evaluation Time: 0.041167 seconds
+
+[Val] Acc=0.9211  MacroF1=0.8272  WtF1=0.9211  AUC=0.9610  QWK=0.8660
+
+[Test] Acc=0.9246  MacroF1=0.8240  WtF1=0.9245  AUC=0.9600  QWK=0.8737
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6429    0.6102    0.6261        59
+           1     0.8772    0.8945    0.8857       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9246      1723
+   macro avg     0.8279    0.8204    0.8240      1723
+weighted avg     0.9245    0.9246    0.9245      1723
+Saved ROC curves to: /kaggle/working/credit_rating_artifacts/fi_ttlpxl_roc.png
+Saved metrics + predictions to /kaggle/working/credit_rating_artifacts
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: kb10-fr-ttx.ipynb
+=========================================
+
+[Cell 12] Source code starts with: import time
+--- Output ---
+Test Inference/Evaluation Time: 0.082298 seconds
+
+[Val] Acc=0.9188  MacroF1=0.7888  WtF1=0.9166  AUC=0.9567  QWK=0.8561
+
+[Test] Acc=0.9193  MacroF1=0.7711  WtF1=0.9170  AUC=0.9570  QWK=0.8598
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6053    0.3898    0.4742        59
+           1     0.8586    0.9016    0.8796       559
+           2     0.9627    0.9566    0.9596      1105
+
+    accuracy                         0.9193      1723
+   macro avg     0.8088    0.7493    0.7711      1723
+weighted avg     0.9167    0.9193    0.9170      1723
+Saved ROC curves to: /kaggle/working/credit_rating_artifacts/fr_ttx_roc.png
+Saved metrics + predictions to /kaggle/working/credit_rating_artifacts
+------------------------------
+
+[Cell 20] Source code starts with: import pickle
+--- Output ---
+Ensemble saved: /kaggle/working/credit_rating_artifacts/fr_ttx_ensemble.pkl
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FR_TTX
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.918794            0.916518         0.918794  0.788764     0.916570 0.956704 0.856147
+ Test  0.919327            0.916662         0.919327  0.771136     0.917019 0.957011 0.859821
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: kb11-fr-pll.ipynb
+=========================================
+
+[Cell 12] Source code starts with: import time
+--- Output ---
+Test Inference/Evaluation Time: 0.064425 seconds
+
+[Val] Acc=0.9188  MacroF1=0.7915  WtF1=0.9173  AUC=0.9589  QWK=0.8581
+
+[Test] Acc=0.9216  MacroF1=0.7965  WtF1=0.9207  AUC=0.9617  QWK=0.8664
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6170    0.4915    0.5472        59
+           1     0.8670    0.8980    0.8822       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9216      1723
+   macro avg     0.8159    0.7820    0.7965      1723
+weighted avg     0.9204    0.9216    0.9207      1723
+Saved ROC curves to: /kaggle/working/credit_rating_artifacts/fr_pll_roc.png
+Saved metrics + predictions to /kaggle/working/credit_rating_artifacts
+------------------------------
+
+[Cell 20] Source code starts with: import pickle
+--- Output ---
+Ensemble saved: /kaggle/working/credit_rating_artifacts/fr_pll_ensemble.pkl
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FR_PLL
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.918794            0.916779         0.918794  0.791528     0.917260 0.958914 0.858062
+ Test  0.921648            0.920355         0.921648  0.796485     0.920662 0.961739 0.866425
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: kb12-fr-ttlpxl.ipynb
+=========================================
+
+[Cell 12] Source code starts with: import time
+--- Output ---
+Test Inference/Evaluation Time: 0.084676 seconds
+
+[Val] Acc=0.9188  MacroF1=0.7915  WtF1=0.9173  AUC=0.9577  QWK=0.8581
+
+[Test] Acc=0.9211  MacroF1=0.7916  WtF1=0.9199  AUC=0.9612  QWK=0.8652
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6087    0.4746    0.5333        59
+           1     0.8655    0.8980    0.8815       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9211      1723
+   macro avg     0.8126    0.7764    0.7916      1723
+weighted avg     0.9196    0.9211    0.9199      1723
+Saved ROC curves to: /kaggle/working/credit_rating_artifacts/fr_ttlpxl_roc.png
+Saved metrics + predictions to /kaggle/working/credit_rating_artifacts
+------------------------------
+
+[Cell 20] Source code starts with: import pickle
+--- Output ---
+Ensemble saved: /kaggle/working/credit_rating_artifacts/fr_ttlpxl_ensemble.pkl
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FR_TTLPXL
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.918794            0.916779         0.918794  0.791528     0.917260 0.957661 0.858062
+ Test  0.921068            0.919585         0.921068  0.791615     0.919937 0.961172 0.865169
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: lightgbm-baseline.ipynb
+=========================================
+
+[Cell 5] Source code starts with: id_to_raw_local = {v: k for k, v in raw_to_id.items()} if 'raw_to_id' in globals() else {i: i for i in range(n_classes)}
+--- Output ---
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.6122    0.5085    0.5556        59
+           1     0.8633    0.8927    0.8777       559
+           2     0.9617    0.9538    0.9577      1105
+
+    accuracy                         0.9187      1723
+   macro avg     0.8124    0.7850    0.7970      1723
+weighted avg     0.9178    0.9187    0.9180      1723
+
+--- TEST SET EVALUATION ---
+Accuracy: 0.9187
+Precision (Weighted): 0.9178
+Recall (Weighted):    0.9187
+F1-macro:            0.7970
+F1-weighted:         0.9180
+QWK (Quadratic Weighted Kappa): 0.8622
+AUC: 0.9654
+---------------------------
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_roc_curves.png
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: lstm-baseline.ipynb
+=========================================
+
+[Cell 4] Source code starts with: class FocalOrdinalLoss(nn.Module):
+--- Output ---
+Loss: focal_ordinal | gamma=1.5 | ordinal_alpha=0.04 | label_smoothing=0.0
+Epoch 01 | TrLoss 0.2632 | VaLoss 0.1459 | VaAcc 0.9118 | VaF1 0.6322 | VaAUC 0.9449 | VaQWK 0.7984
+Epoch 02 | TrLoss 0.1390 | VaLoss 0.1284 | VaAcc 0.9176 | VaF1 0.7778 | VaAUC 0.9556 | VaQWK 0.8595
+Epoch 03 | TrLoss 0.1286 | VaLoss 0.1236 | VaAcc 0.9153 | VaF1 0.7932 | VaAUC 0.9561 | VaQWK 0.8616
+Epoch 04 | TrLoss 0.1250 | VaLoss 0.1212 | VaAcc 0.9165 | VaF1 0.7803 | VaAUC 0.9565 | VaQWK 0.8594
+Epoch 05 | TrLoss 0.1229 | VaLoss 0.1197 | VaAcc 0.9153 | VaF1 0.7932 | VaAUC 0.9564 | VaQWK 0.8616
+Epoch 06 | TrLoss 0.1193 | VaLoss 0.1178 | VaAcc 0.9176 | VaF1 0.8103 | VaAUC 0.9565 | VaQWK 0.8665
+Epoch 07 | TrLoss 0.1161 | VaLoss 0.1186 | VaAcc 0.9153 | VaF1 0.7932 | VaAUC 0.9552 | VaQWK 0.8616
+Epoch 08 | TrLoss 0.1167 | VaLoss 0.1161 | VaAcc 0.9188 | VaF1 0.8184 | VaAUC 0.9592 | VaQWK 0.8690
+Epoch 09 | TrLoss 0.1155 | VaLoss 0.1172 | VaAcc 0.9188 | VaF1 0.8052 | VaAUC 0.9575 | VaQWK 0.8656
+Epoch 10 | TrLoss 0.1133 | VaLoss 0.1152 | VaAcc 0.9176 | VaF1 0.8103 | VaAUC 0.9578 | VaQWK 0.8665
+Epoch 11 | TrLoss 0.1122 | VaLoss 0.1141 | VaAcc 0.9176 | VaF1 0.8062 | VaAUC 0.9599 | VaQWK 0.8598
+Epoch 12 | TrLoss 0.1105 | VaLoss 0.1145 | VaAcc 0.9176 | VaF1 0.8062 | VaAUC 0.9589 | VaQWK 0.8598
+Epoch 13 | TrLoss 0.1084 | VaLoss 0.1156 | VaAcc 0.9176 | VaF1 0.8148 | VaAUC 0.9592 | VaQWK 0.8621
+Epoch 14 | TrLoss 0.1071 | VaLoss 0.1149 | VaAcc 0.9176 | VaF1 0.7812 | VaAUC 0.9603 | VaQWK 0.8590
+Epoch 15 | TrLoss 0.1067 | VaLoss 0.1113 | VaAcc 0.9165 | VaF1 0.7974 | VaAUC 0.9615 | VaQWK 0.8573
+Epoch 16 | TrLoss 0.1041 | VaLoss 0.1123 | VaAcc 0.9176 | VaF1 0.7907 | VaAUC 0.9611 | VaQWK 0.8562
+Epoch 17 | TrLoss 0.1036 | VaLoss 0.1131 | VaAcc 0.9176 | VaF1 0.8014 | VaAUC 0.9608 | VaQWK 0.8586
+Epoch 18 | TrLoss 0.1021 | VaLoss 0.1113 | VaAcc 0.9165 | VaF1 0.7806 | VaAUC 0.9624 | VaQWK 0.8536
+Epoch 19 | TrLoss 0.1016 | VaLoss 0.1119 | VaAcc 0.9165 | VaF1 0.7922 | VaAUC 0.9630 | VaQWK 0.8561
+Epoch 20 | TrLoss 0.1000 | VaLoss 0.1106 | VaAcc 0.9153 | VaF1 0.7913 | VaAUC 0.9636 | VaQWK 0.8541
+Epoch 21 | TrLoss 0.0989 | VaLoss 0.1121 | VaAcc 0.9188 | VaF1 0.8220 | VaAUC 0.9635 | VaQWK 0.8628
+Epoch 22 | TrLoss 0.0982 | VaLoss 0.1125 | VaAcc 0.9165 | VaF1 0.7806 | VaAUC 0.9636 | VaQWK 0.8536
+Epoch 23 | TrLoss 0.0968 | VaLoss 0.1107 | VaAcc 0.9188 | VaF1 0.7915 | VaAUC 0.9632 | VaQWK 0.8581
+Epoch 24 | TrLoss 0.0958 | VaLoss 0.1145 | VaAcc 0.9165 | VaF1 0.8053 | VaAUC 0.9638 | VaQWK 0.8580
+Epoch 25 | TrLoss 0.0932 | VaLoss 0.1116 | VaAcc 0.9165 | VaF1 0.7922 | VaAUC 0.9646 | VaQWK 0.8561
+Epoch 26 | TrLoss 0.0921 | VaLoss 0.1129 | VaAcc 0.9176 | VaF1 0.8014 | VaAUC 0.9634 | VaQWK 0.8586
+Epoch 27 | TrLoss 0.0893 | VaLoss 0.1137 | VaAcc 0.9165 | VaF1 0.8006 | VaAUC 0.9642 | VaQWK 0.8568
+Epoch 28 | TrLoss 0.0904 | VaLoss 0.1099 | VaAcc 0.9200 | VaF1 0.8145 | VaAUC 0.9657 | VaQWK 0.8624
+Epoch 29 | TrLoss 0.0888 | VaLoss 0.1126 | VaAcc 0.9200 | VaF1 0.8196 | VaAUC 0.9654 | VaQWK 0.8652
+Epoch 30 | TrLoss 0.0871 | VaLoss 0.1142 | VaAcc 0.9165 | VaF1 0.8126 | VaAUC 0.9633 | VaQWK 0.8583
+Epoch 31 | TrLoss 0.0865 | VaLoss 0.1182 | VaAcc 0.9165 | VaF1 0.7867 | VaAUC 0.9637 | VaQWK 0.8549
+Epoch 32 | TrLoss 0.0842 | VaLoss 0.1157 | VaAcc 0.9153 | VaF1 0.7672 | VaAUC 0.9629 | VaQWK 0.8516
+Epoch 33 | TrLoss 0.0845 | VaLoss 0.1186 | VaAcc 0.9142 | VaF1 0.7756 | VaAUC 0.9621 | VaQWK 0.8502
+Epoch 34 | TrLoss 0.0822 | VaLoss 0.1172 | VaAcc 0.9130 | VaF1 0.7926 | VaAUC 0.9630 | VaQWK 0.8496
+Epoch 35 | TrLoss 0.0808 | VaLoss 0.1189 | VaAcc 0.9142 | VaF1 0.7881 | VaAUC 0.9624 | VaQWK 0.8504
+Epoch 36 | TrLoss 0.0805 | VaLoss 0.1178 | VaAcc 0.9176 | VaF1 0.7963 | VaAUC 0.9630 | VaQWK 0.8574
+Epoch 37 | TrLoss 0.0785 | VaLoss 0.1259 | VaAcc 0.9107 | VaF1 0.7760 | VaAUC 0.9603 | VaQWK 0.8437
+Epoch 38 | TrLoss 0.0778 | VaLoss 0.1155 | VaAcc 0.9165 | VaF1 0.8084 | VaAUC 0.9617 | VaQWK 0.8572
+Epoch 39 | TrLoss 0.0756 | VaLoss 0.1213 | VaAcc 0.9118 | VaF1 0.7885 | VaAUC 0.9583 | VaQWK 0.8483
+Epoch 40 | TrLoss 0.0749 | VaLoss 0.1300 | VaAcc 0.9165 | VaF1 0.7899 | VaAUC 0.9579 | VaQWK 0.8543
+Epoch 41 | TrLoss 0.0758 | VaLoss 0.1216 | VaAcc 0.9142 | VaF1 0.7879 | VaAUC 0.9590 | VaQWK 0.8502
+Epoch 42 | TrLoss 0.0710 | VaLoss 0.1202 | VaAcc 0.9153 | VaF1 0.7962 | VaAUC 0.9606 | VaQWK 0.8551
+Epoch 43 | TrLoss 0.0705 | VaLoss 0.1289 | VaAcc 0.9107 | VaF1 0.7760 | VaAUC 0.9572 | VaQWK 0.8437
+Epoch 44 | TrLoss 0.0687 | VaLoss 0.1228 | VaAcc 0.9188 | VaF1 0.7944 | VaAUC 0.9580 | VaQWK 0.8570
+Epoch 45 | TrLoss 0.0677 | VaLoss 0.1244 | VaAcc 0.9107 | VaF1 0.7908 | VaAUC 0.9615 | VaQWK 0.8457
+Epoch 46 | TrLoss 0.0682 | VaLoss 0.1345 | VaAcc 0.9095 | VaF1 0.7805 | VaAUC 0.9564 | VaQWK 0.8425
+Epoch 47 | TrLoss 0.0655 | VaLoss 0.1311 | VaAcc 0.9165 | VaF1 0.8125 | VaAUC 0.9568 | VaQWK 0.8582
+Epoch 48 | TrLoss 0.0640 | VaLoss 0.1511 | VaAcc 0.9095 | VaF1 0.7844 | VaAUC 0.9516 | VaQWK 0.8425
+Epoch 49 | TrLoss 0.0633 | VaLoss 0.1349 | VaAcc 0.9165 | VaF1 0.8067 | VaAUC 0.9550 | VaQWK 0.8551
+Epoch 50 | TrLoss 0.0628 | VaLoss 0.1449 | VaAcc 0.9060 | VaF1 0.7686 | VaAUC 0.9513 | VaQWK 0.8358
+Saved: /kaggle/working/credit_rating_artifacts/lstm_metrics.csv
+Saved: /kaggle/working/credit_rating_artifacts/lstm_training_history.csv
+------------------------------
+
+[Cell 6] Source code starts with: if 'model' not in globals() or 'test_loader' not in globals():
+--- Output ---
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.5932    0.5932    0.5932        59
+           1     0.8728    0.8837    0.8782       559
+           2     0.9617    0.9557    0.9587      1105
+
+    accuracy                         0.9199      1723
+   macro avg     0.8093    0.8109    0.8100      1723
+weighted avg     0.9203    0.9199    0.9201      1723
+
+Saved: /kaggle/working/credit_rating_artifacts/lstm_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/lstm_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/lstm_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/lstm_test_roc_curves.png
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: patchtst-baseline.ipynb
+=========================================
+
+[Cell 4] Source code starts with: class FocalOrdinalLoss(nn.Module):
+--- Output ---
+Loss: focal_ordinal | gamma=1.5 | ordinal_alpha=0.04 | label_smoothing=0.0
+Epoch 01 | TrLoss 0.2041 | VaLoss 0.1411 | VaAcc 0.9130 | VaF1 0.6866 | VaAUC 0.9466 | VaQWK 0.8105
+Epoch 02 | TrLoss 0.1424 | VaLoss 0.1361 | VaAcc 0.9176 | VaF1 0.7970 | VaAUC 0.9482 | VaQWK 0.8337
+Epoch 03 | TrLoss 0.1312 | VaLoss 0.1267 | VaAcc 0.9188 | VaF1 0.8052 | VaAUC 0.9526 | VaQWK 0.8656
+Epoch 04 | TrLoss 0.1228 | VaLoss 0.1187 | VaAcc 0.9176 | VaF1 0.7904 | VaAUC 0.9575 | VaQWK 0.8620
+Epoch 05 | TrLoss 0.1194 | VaLoss 0.1213 | VaAcc 0.9165 | VaF1 0.7476 | VaAUC 0.9570 | VaQWK 0.8551
+Epoch 06 | TrLoss 0.1170 | VaLoss 0.1181 | VaAcc 0.9188 | VaF1 0.7945 | VaAUC 0.9585 | VaQWK 0.8633
+Epoch 07 | TrLoss 0.1139 | VaLoss 0.1259 | VaAcc 0.9188 | VaF1 0.7945 | VaAUC 0.9524 | VaQWK 0.8633
+Epoch 08 | TrLoss 0.1133 | VaLoss 0.1225 | VaAcc 0.9176 | VaF1 0.7843 | VaAUC 0.9511 | VaQWK 0.8608
+Epoch 09 | TrLoss 0.1096 | VaLoss 0.1216 | VaAcc 0.9188 | VaF1 0.8143 | VaAUC 0.9561 | VaQWK 0.8679
+Epoch 10 | TrLoss 0.1093 | VaLoss 0.1211 | VaAcc 0.9200 | VaF1 0.8094 | VaAUC 0.9536 | VaQWK 0.8670
+Epoch 11 | TrLoss 0.1078 | VaLoss 0.1214 | VaAcc 0.9165 | VaF1 0.7863 | VaAUC 0.9556 | VaQWK 0.8606
+Epoch 12 | TrLoss 0.1062 | VaLoss 0.1210 | VaAcc 0.9130 | VaF1 0.7624 | VaAUC 0.9566 | VaQWK 0.8542
+Epoch 13 | TrLoss 0.1057 | VaLoss 0.1210 | VaAcc 0.9130 | VaF1 0.7624 | VaAUC 0.9581 | VaQWK 0.8542
+Epoch 14 | TrLoss 0.1041 | VaLoss 0.1259 | VaAcc 0.9176 | VaF1 0.8103 | VaAUC 0.9539 | VaQWK 0.8665
+Epoch 15 | TrLoss 0.1004 | VaLoss 0.1224 | VaAcc 0.9130 | VaF1 0.7717 | VaAUC 0.9544 | VaQWK 0.8549
+Epoch 16 | TrLoss 0.0995 | VaLoss 0.1250 | VaAcc 0.9165 | VaF1 0.7891 | VaAUC 0.9508 | VaQWK 0.8566
+Epoch 17 | TrLoss 0.0974 | VaLoss 0.1311 | VaAcc 0.9188 | VaF1 0.7790 | VaAUC 0.9515 | VaQWK 0.8556
+Epoch 18 | TrLoss 0.0985 | VaLoss 0.1260 | VaAcc 0.9165 | VaF1 0.7803 | VaAUC 0.9554 | VaQWK 0.8594
+Epoch 19 | TrLoss 0.0926 | VaLoss 0.1258 | VaAcc 0.9118 | VaF1 0.7826 | VaAUC 0.9535 | VaQWK 0.8527
+Epoch 20 | TrLoss 0.0908 | VaLoss 0.1309 | VaAcc 0.9188 | VaF1 0.8054 | VaAUC 0.9512 | VaQWK 0.8598
+Epoch 21 | TrLoss 0.0898 | VaLoss 0.1261 | VaAcc 0.9165 | VaF1 0.7867 | VaAUC 0.9530 | VaQWK 0.8549
+Epoch 22 | TrLoss 0.0898 | VaLoss 0.1300 | VaAcc 0.9200 | VaF1 0.8010 | VaAUC 0.9534 | VaQWK 0.8665
+Epoch 23 | TrLoss 0.0870 | VaLoss 0.1420 | VaAcc 0.9142 | VaF1 0.7787 | VaAUC 0.9502 | VaQWK 0.8520
+Epoch 24 | TrLoss 0.0826 | VaLoss 0.1425 | VaAcc 0.9049 | VaF1 0.7836 | VaAUC 0.9509 | VaQWK 0.8466
+Epoch 25 | TrLoss 0.0837 | VaLoss 0.1363 | VaAcc 0.9072 | VaF1 0.7732 | VaAUC 0.9504 | VaQWK 0.8403
+Epoch 26 | TrLoss 0.0813 | VaLoss 0.1352 | VaAcc 0.9188 | VaF1 0.7849 | VaAUC 0.9494 | VaQWK 0.8624
+Epoch 27 | TrLoss 0.0811 | VaLoss 0.1317 | VaAcc 0.9153 | VaF1 0.7913 | VaAUC 0.9524 | VaQWK 0.8541
+Epoch 28 | TrLoss 0.0771 | VaLoss 0.1381 | VaAcc 0.9176 | VaF1 0.7755 | VaAUC 0.9560 | VaQWK 0.8567
+Epoch 29 | TrLoss 0.0776 | VaLoss 0.1326 | VaAcc 0.9107 | VaF1 0.7757 | VaAUC 0.9527 | VaQWK 0.8459
+Epoch 30 | TrLoss 0.0742 | VaLoss 0.1319 | VaAcc 0.9153 | VaF1 0.7673 | VaAUC 0.9563 | VaQWK 0.8517
+Epoch 31 | TrLoss 0.0707 | VaLoss 0.1388 | VaAcc 0.9095 | VaF1 0.7572 | VaAUC 0.9523 | VaQWK 0.8431
+Epoch 32 | TrLoss 0.0747 | VaLoss 0.1312 | VaAcc 0.9084 | VaF1 0.7741 | VaAUC 0.9552 | VaQWK 0.8483
+Epoch 33 | TrLoss 0.0675 | VaLoss 0.1422 | VaAcc 0.9107 | VaF1 0.7847 | VaAUC 0.9534 | VaQWK 0.8442
+Epoch 34 | TrLoss 0.0689 | VaLoss 0.1432 | VaAcc 0.9084 | VaF1 0.7679 | VaAUC 0.9521 | VaQWK 0.8407
+Epoch 35 | TrLoss 0.0677 | VaLoss 0.1435 | VaAcc 0.9118 | VaF1 0.7745 | VaAUC 0.9527 | VaQWK 0.8432
+Epoch 36 | TrLoss 0.0653 | VaLoss 0.1522 | VaAcc 0.9084 | VaF1 0.7602 | VaAUC 0.9547 | VaQWK 0.8432
+Epoch 37 | TrLoss 0.0629 | VaLoss 0.1537 | VaAcc 0.9072 | VaF1 0.7618 | VaAUC 0.9529 | VaQWK 0.8405
+Epoch 38 | TrLoss 0.0626 | VaLoss 0.1500 | VaAcc 0.8944 | VaF1 0.7631 | VaAUC 0.9517 | VaQWK 0.8249
+Epoch 39 | TrLoss 0.0613 | VaLoss 0.1658 | VaAcc 0.9049 | VaF1 0.7696 | VaAUC 0.9482 | VaQWK 0.8382
+Epoch 40 | TrLoss 0.0585 | VaLoss 0.1605 | VaAcc 0.9026 | VaF1 0.7559 | VaAUC 0.9537 | VaQWK 0.8278
+Epoch 41 | TrLoss 0.0566 | VaLoss 0.1632 | VaAcc 0.9014 | VaF1 0.7690 | VaAUC 0.9476 | VaQWK 0.8338
+Epoch 42 | TrLoss 0.0574 | VaLoss 0.1588 | VaAcc 0.9060 | VaF1 0.7754 | VaAUC 0.9494 | VaQWK 0.8348
+Epoch 43 | TrLoss 0.0559 | VaLoss 0.1596 | VaAcc 0.9060 | VaF1 0.7671 | VaAUC 0.9485 | VaQWK 0.8401
+Epoch 44 | TrLoss 0.0534 | VaLoss 0.1716 | VaAcc 0.9084 | VaF1 0.7857 | VaAUC 0.9479 | VaQWK 0.8397
+Epoch 45 | TrLoss 0.0503 | VaLoss 0.1973 | VaAcc 0.8956 | VaF1 0.7262 | VaAUC 0.9464 | VaQWK 0.8174
+Epoch 46 | TrLoss 0.0523 | VaLoss 0.1883 | VaAcc 0.9060 | VaF1 0.7778 | VaAUC 0.9477 | VaQWK 0.8458
+Epoch 47 | TrLoss 0.0498 | VaLoss 0.1785 | VaAcc 0.9118 | VaF1 0.7672 | VaAUC 0.9469 | VaQWK 0.8448
+Epoch 48 | TrLoss 0.0493 | VaLoss 0.1916 | VaAcc 0.8956 | VaF1 0.7724 | VaAUC 0.9498 | VaQWK 0.8250
+Epoch 49 | TrLoss 0.0487 | VaLoss 0.1976 | VaAcc 0.9118 | VaF1 0.7858 | VaAUC 0.9494 | VaQWK 0.8460
+Epoch 50 | TrLoss 0.0480 | VaLoss 0.1968 | VaAcc 0.9037 | VaF1 0.7791 | VaAUC 0.9459 | VaQWK 0.8354
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_metrics.csv
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_training_history.csv
+------------------------------
+
+[Cell 6] Source code starts with: if 'model' not in globals() or 'test_loader' not in globals():
+--- Output ---
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.6415    0.5763    0.6071        59
+           1     0.8713    0.8962    0.8836       559
+           2     0.9635    0.9548    0.9591      1105
+
+    accuracy                         0.9228      1723
+   macro avg     0.8254    0.8091    0.8166      1723
+weighted avg     0.9225    0.9228    0.9225      1723
+
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_test_roc_curves.png
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: tcn-baseline.ipynb
+=========================================
+
+[Cell 4] Source code starts with: class FocalOrdinalLoss(nn.Module):
+--- Output ---
+Loss: focal_ordinal | gamma=1.5 | ordinal_alpha=0.04 | label_smoothing=0.0
+Epoch 01 | TrLoss 0.3006 | VaLoss 0.1540 | VaAcc 0.9060 | VaF1 0.7178 | VaAUC 0.9431 | VaQWK 0.7477
+Epoch 02 | TrLoss 0.1495 | VaLoss 0.1310 | VaAcc 0.9188 | VaF1 0.7919 | VaAUC 0.9519 | VaQWK 0.8461
+Epoch 03 | TrLoss 0.1335 | VaLoss 0.1247 | VaAcc 0.9176 | VaF1 0.7966 | VaAUC 0.9579 | VaQWK 0.8456
+Epoch 04 | TrLoss 0.1273 | VaLoss 0.1204 | VaAcc 0.9176 | VaF1 0.8011 | VaAUC 0.9573 | VaQWK 0.8643
+Epoch 05 | TrLoss 0.1236 | VaLoss 0.1196 | VaAcc 0.9188 | VaF1 0.8156 | VaAUC 0.9563 | VaQWK 0.8639
+Epoch 06 | TrLoss 0.1189 | VaLoss 0.1183 | VaAcc 0.9153 | VaF1 0.7880 | VaAUC 0.9577 | VaQWK 0.8605
+Epoch 07 | TrLoss 0.1166 | VaLoss 0.1162 | VaAcc 0.9188 | VaF1 0.8156 | VaAUC 0.9570 | VaQWK 0.8639
+Epoch 08 | TrLoss 0.1152 | VaLoss 0.1163 | VaAcc 0.9176 | VaF1 0.7959 | VaAUC 0.9571 | VaQWK 0.8631
+Epoch 09 | TrLoss 0.1129 | VaLoss 0.1161 | VaAcc 0.9176 | VaF1 0.8075 | VaAUC 0.9563 | VaQWK 0.8615
+Epoch 10 | TrLoss 0.1113 | VaLoss 0.1172 | VaAcc 0.9176 | VaF1 0.8075 | VaAUC 0.9558 | VaQWK 0.8615
+Epoch 11 | TrLoss 0.1091 | VaLoss 0.1156 | VaAcc 0.9176 | VaF1 0.7982 | VaAUC 0.9576 | VaQWK 0.8591
+Epoch 12 | TrLoss 0.1070 | VaLoss 0.1136 | VaAcc 0.9200 | VaF1 0.8043 | VaAUC 0.9588 | VaQWK 0.8658
+Epoch 13 | TrLoss 0.1063 | VaLoss 0.1143 | VaAcc 0.9176 | VaF1 0.8030 | VaAUC 0.9588 | VaQWK 0.8603
+Epoch 14 | TrLoss 0.1044 | VaLoss 0.1172 | VaAcc 0.9153 | VaF1 0.8042 | VaAUC 0.9571 | VaQWK 0.8617
+Epoch 15 | TrLoss 0.1052 | VaLoss 0.1149 | VaAcc 0.9153 | VaF1 0.7914 | VaAUC 0.9576 | VaQWK 0.8542
+Epoch 16 | TrLoss 0.1021 | VaLoss 0.1169 | VaAcc 0.9200 | VaF1 0.8123 | VaAUC 0.9588 | VaQWK 0.8646
+Epoch 17 | TrLoss 0.1005 | VaLoss 0.1147 | VaAcc 0.9176 | VaF1 0.7982 | VaAUC 0.9590 | VaQWK 0.8591
+Epoch 18 | TrLoss 0.1001 | VaLoss 0.1162 | VaAcc 0.9176 | VaF1 0.8062 | VaAUC 0.9578 | VaQWK 0.8598
+Epoch 19 | TrLoss 0.0953 | VaLoss 0.1175 | VaAcc 0.9188 | VaF1 0.8188 | VaAUC 0.9590 | VaQWK 0.8634
+Epoch 20 | TrLoss 0.0949 | VaLoss 0.1186 | VaAcc 0.9153 | VaF1 0.8014 | VaAUC 0.9582 | VaQWK 0.8567
+Epoch 21 | TrLoss 0.0921 | VaLoss 0.1186 | VaAcc 0.9176 | VaF1 0.8106 | VaAUC 0.9562 | VaQWK 0.8610
+Epoch 22 | TrLoss 0.0920 | VaLoss 0.1166 | VaAcc 0.9153 | VaF1 0.7883 | VaAUC 0.9584 | VaQWK 0.8548
+Epoch 23 | TrLoss 0.0923 | VaLoss 0.1156 | VaAcc 0.9130 | VaF1 0.7918 | VaAUC 0.9597 | VaQWK 0.8523
+Epoch 24 | TrLoss 0.0896 | VaLoss 0.1234 | VaAcc 0.9165 | VaF1 0.7952 | VaAUC 0.9591 | VaQWK 0.8553
+Epoch 25 | TrLoss 0.0892 | VaLoss 0.1195 | VaAcc 0.9165 | VaF1 0.7921 | VaAUC 0.9594 | VaQWK 0.8560
+Epoch 26 | TrLoss 0.0842 | VaLoss 0.1216 | VaAcc 0.9142 | VaF1 0.7972 | VaAUC 0.9593 | VaQWK 0.8551
+Epoch 27 | TrLoss 0.0836 | VaLoss 0.1242 | VaAcc 0.9153 | VaF1 0.7856 | VaAUC 0.9576 | VaQWK 0.8527
+Epoch 28 | TrLoss 0.0826 | VaLoss 0.1240 | VaAcc 0.9095 | VaF1 0.7695 | VaAUC 0.9566 | VaQWK 0.8434
+Epoch 29 | TrLoss 0.0821 | VaLoss 0.1197 | VaAcc 0.9095 | VaF1 0.7778 | VaAUC 0.9588 | VaQWK 0.8489
+Epoch 30 | TrLoss 0.0798 | VaLoss 0.1231 | VaAcc 0.9153 | VaF1 0.7964 | VaAUC 0.9590 | VaQWK 0.8553
+Epoch 31 | TrLoss 0.0773 | VaLoss 0.1261 | VaAcc 0.9165 | VaF1 0.7896 | VaAUC 0.9577 | VaQWK 0.8541
+Epoch 32 | TrLoss 0.0760 | VaLoss 0.1241 | VaAcc 0.9130 | VaF1 0.7778 | VaAUC 0.9586 | VaQWK 0.8501
+Epoch 33 | TrLoss 0.0751 | VaLoss 0.1340 | VaAcc 0.9130 | VaF1 0.7963 | VaAUC 0.9568 | VaQWK 0.8532
+Epoch 34 | TrLoss 0.0741 | VaLoss 0.1292 | VaAcc 0.9153 | VaF1 0.7796 | VaAUC 0.9574 | VaQWK 0.8515
+Epoch 35 | TrLoss 0.0725 | VaLoss 0.1283 | VaAcc 0.9118 | VaF1 0.7831 | VaAUC 0.9575 | VaQWK 0.8471
+Epoch 36 | TrLoss 0.0723 | VaLoss 0.1313 | VaAcc 0.9153 | VaF1 0.8029 | VaAUC 0.9560 | VaQWK 0.8542
+Epoch 37 | TrLoss 0.0697 | VaLoss 0.1372 | VaAcc 0.9118 | VaF1 0.7964 | VaAUC 0.9553 | VaQWK 0.8485
+Epoch 38 | TrLoss 0.0707 | VaLoss 0.1335 | VaAcc 0.9107 | VaF1 0.7790 | VaAUC 0.9559 | VaQWK 0.8457
+Epoch 39 | TrLoss 0.0665 | VaLoss 0.1418 | VaAcc 0.9118 | VaF1 0.7799 | VaAUC 0.9537 | VaQWK 0.8476
+Epoch 40 | TrLoss 0.0701 | VaLoss 0.1315 | VaAcc 0.9118 | VaF1 0.7924 | VaAUC 0.9557 | VaQWK 0.8518
+Epoch 41 | TrLoss 0.0640 | VaLoss 0.1385 | VaAcc 0.9084 | VaF1 0.7826 | VaAUC 0.9529 | VaQWK 0.8460
+Epoch 42 | TrLoss 0.0644 | VaLoss 0.1477 | VaAcc 0.9107 | VaF1 0.7867 | VaAUC 0.9512 | VaQWK 0.8488
+Epoch 43 | TrLoss 0.0631 | VaLoss 0.1412 | VaAcc 0.9084 | VaF1 0.7770 | VaAUC 0.9501 | VaQWK 0.8444
+Epoch 44 | TrLoss 0.0607 | VaLoss 0.1469 | VaAcc 0.9142 | VaF1 0.7820 | VaAUC 0.9517 | VaQWK 0.8490
+Epoch 45 | TrLoss 0.0613 | VaLoss 0.1459 | VaAcc 0.9095 | VaF1 0.7749 | VaAUC 0.9516 | VaQWK 0.8467
+Epoch 46 | TrLoss 0.0603 | VaLoss 0.1483 | VaAcc 0.9107 | VaF1 0.7886 | VaAUC 0.9521 | VaQWK 0.8505
+Epoch 47 | TrLoss 0.0599 | VaLoss 0.1446 | VaAcc 0.9118 | VaF1 0.7854 | VaAUC 0.9519 | VaQWK 0.8489
+Epoch 48 | TrLoss 0.0593 | VaLoss 0.1472 | VaAcc 0.9118 | VaF1 0.7740 | VaAUC 0.9517 | VaQWK 0.8487
+Epoch 49 | TrLoss 0.0558 | VaLoss 0.1525 | VaAcc 0.9142 | VaF1 0.7872 | VaAUC 0.9502 | VaQWK 0.8527
+Epoch 50 | TrLoss 0.0576 | VaLoss 0.1528 | VaAcc 0.9118 | VaF1 0.7948 | VaAUC 0.9497 | VaQWK 0.8508
+Saved: /kaggle/working/credit_rating_artifacts/tcn_metrics.csv
+Saved: /kaggle/working/credit_rating_artifacts/tcn_training_history.csv
+------------------------------
+
+[Cell 6] Source code starts with: if 'model' not in globals() or 'test_loader' not in globals():
+--- Output ---
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.5902    0.6102    0.6000        59
+           1     0.8774    0.8837    0.8806       559
+           2     0.9618    0.9566    0.9592      1105
+
+    accuracy                         0.9211      1723
+   macro avg     0.8098    0.8168    0.8132      1723
+weighted avg     0.9217    0.9211    0.9214      1723
+
+--- TEST SET EVALUATION ---
+Accuracy: 0.9211
+Precision (Weighted): 0.9217
+Recall (Weighted):    0.9211
+F1-macro:            0.8132
+F1-weighted:         0.9214
+QWK (Quadratic Weighted Kappa): 0.8665
+AUC: 0.9545
+---------------------------
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_roc_curves.png
+------------------------------
+
+=========================================
+DETAILED METRICS FOR: xgboost-baseline.ipynb
+=========================================
+
+[Cell 5] Source code starts with: id_to_raw_local = {v: k for k, v in raw_to_id.items()} if 'raw_to_id' in globals() else {i: i for i in range(n_classes)}
+--- Output ---
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.6279    0.4576    0.5294        59
+           1     0.8601    0.9016    0.8803       559
+           2     0.9634    0.9538    0.9586      1105
+
+    accuracy                         0.9199      1723
+   macro avg     0.8171    0.7710    0.7895      1723
+weighted avg     0.9184    0.9199    0.9185      1723
+
+--- TEST SET EVALUATION ---
+Accuracy: 0.9199
+Precision (Weighted): 0.9184
+Recall (Weighted):    0.9199
+F1-macro:            0.7895
+F1-weighted:         0.9185
+QWK (Quadratic Weighted Kappa): 0.8624
+AUC: 0.9641
+---------------------------
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_roc_curves.png
+------------------------------

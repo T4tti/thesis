@@ -1,0 +1,69 @@
+[VALID] KB10_FR-TTX.ipynb: 11 markdown + 10 code = 21 cells, 41.2 KB
+  Cell  0 [MD]: # Kịch bản 10: FR-TTX — Gompertz Fuzzy Ranking Ensemble
+  Cell  1 [MD]: ## 1. Môi trường & Thư viện
+  Cell  2 [PY]: import os, sys, platform, random, warnings, itertools, math
+  Cell  3 [MD]: ## 2. Gompertz Fuzzy Ranking — Core Implementation
+  Cell  4 [PY]: # ═══════════════════════════════════════════════════════════════════════════════
+  Cell  5 [MD]: ## 3. Tải Dữ liệu
+  Cell  6 [PY]: # ── Tải dữ liệu train / val / test ─────────────────────────────────────────
+  Cell  7 [MD]: ## 4. OOF Probabilities từ Baseline Notebooks
+  Cell  8 [PY]: MODEL_KEYS   = ['tBiLSTM', 'tcn', 'xgboost']
+  Cell  9 [MD]: ## 5. Học Tham số Gompertz (Fit Ensemble)
+  Cell 10 [PY]: print("=" * 65)
+  Cell 11 [MD]: ## 6. Đánh giá Val & Test
+  Cell 12 [PY]: import time
+  Cell 13 [MD]: ## 7. Visualize Model Importance & Gompertz Curve
+  Cell 14 [PY]: # ── Model Importance Bar Chart ───────────────────────────────────────────────
+  Cell 15 [MD]: ## xAI LIME Interpretation
+  Cell 16 [PY]: # ==============================================================================
+  Cell 17 [MD]: ## xAI SHAP Interpretation
+  Cell 18 [PY]: # ==============================================================================
+  Cell 19 [MD]: ## 8. Lưu Model & Benchmark
+  Cell 20 [PY]: import pickle
+
+[VALID] KB11_FR-PLL.ipynb: 11 markdown + 10 code = 21 cells, 41.2 KB
+  Cell  0 [MD]: # Kịch bản 11: FR-PLL — Gompertz Fuzzy Ranking Ensemble
+  Cell  1 [MD]: ## 1. Môi trường & Thư viện
+  Cell  2 [PY]: import os, sys, platform, random, warnings, itertools, math
+  Cell  3 [MD]: ## 2. Gompertz Fuzzy Ranking — Core Implementation
+  Cell  4 [PY]: # ═══════════════════════════════════════════════════════════════════════════════
+  Cell  5 [MD]: ## 3. Tải Dữ liệu
+  Cell  6 [PY]: # ── Tải dữ liệu train / val / test ─────────────────────────────────────────
+  Cell  7 [MD]: ## 4. OOF Probabilities từ Baseline Notebooks
+  Cell  8 [PY]: MODEL_KEYS   = ['patchtst', 'lstm', 'lgbm']
+  Cell  9 [MD]: ## 5. Học Tham số Gompertz (Fit Ensemble)
+  Cell 10 [PY]: print("=" * 65)
+  Cell 11 [MD]: ## 6. Đánh giá Val & Test
+  Cell 12 [PY]: import time
+  Cell 13 [MD]: ## 7. Visualize Model Importance & Gompertz Curve
+  Cell 14 [PY]: # ── Model Importance Bar Chart ───────────────────────────────────────────────
+  Cell 15 [MD]: ## xAI LIME Interpretation
+  Cell 16 [PY]: # ==============================================================================
+  Cell 17 [MD]: ## xAI SHAP Interpretation
+  Cell 18 [PY]: # ==============================================================================
+  Cell 19 [MD]: ## 8. Lưu Model & Benchmark
+  Cell 20 [PY]: import pickle
+
+[VALID] KB12_FR-TTLPXL.ipynb: 11 markdown + 10 code = 21 cells, 41.4 KB
+  Cell  0 [MD]: # Kịch bản 12: FR-TTLPXL — Gompertz Fuzzy Ranking Ensemble
+  Cell  1 [MD]: ## 1. Môi trường & Thư viện
+  Cell  2 [PY]: import os, sys, platform, random, warnings, itertools, math
+  Cell  3 [MD]: ## 2. Gompertz Fuzzy Ranking — Core Implementation
+  Cell  4 [PY]: # ═══════════════════════════════════════════════════════════════════════════════
+  Cell  5 [MD]: ## 3. Tải Dữ liệu
+  Cell  6 [PY]: # ── Tải dữ liệu train / val / test ─────────────────────────────────────────
+  Cell  7 [MD]: ## 4. OOF Probabilities từ Baseline Notebooks
+  Cell  8 [PY]: MODEL_KEYS   = ['tBiLSTM', 'tcn', 'lstm', 'patchtst', 'xgboost', 'lgbm']
+  Cell  9 [MD]: ## 5. Học Tham số Gompertz (Fit Ensemble)
+  Cell 10 [PY]: print("=" * 65)
+  Cell 11 [MD]: ## 6. Đánh giá Val & Test
+  Cell 12 [PY]: import time
+  Cell 13 [MD]: ## 7. Visualize Model Importance & Gompertz Curve
+  Cell 14 [PY]: # ── Model Importance Bar Chart ───────────────────────────────────────────────
+  Cell 15 [MD]: ## xAI LIME Interpretation
+  Cell 16 [PY]: # ==============================================================================
+  Cell 17 [MD]: ## xAI SHAP Interpretation
+  Cell 18 [PY]: # ==============================================================================
+  Cell 19 [MD]: ## 8. Lưu Model & Benchmark
+  Cell 20 [PY]: import pickle
+

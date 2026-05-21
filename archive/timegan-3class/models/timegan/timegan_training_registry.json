@@ -3,7 +3,7 @@
     "status": "trained",
     "n": 473,
     "selected_seed": 42,
-    "stability_score": 0.1631840428409802
+    "stability_score": 0.12429738591657807
   },
   "per_class": {
     "0": {
@@ -11,14 +11,14 @@
       "status": "trained",
       "save": "Invalid filepath extension for saving. Please add either a `.keras` extension for the native Keras format (recommended) or a `.h5` extension. Use `model.export(filepath)` if you want to export a SavedModel for use with TFLite/TFServing/etc. Received: filepath=/kaggle/working/models/timegan/timegan_class_0.pkl.",
       "selected_seed": 42,
-      "stability_score": 0.1756670742374824
+      "stability_score": 0.1598223711661338
     },
     "1": {
       "n": 428,
       "status": "trained",
       "save": "Invalid filepath extension for saving. Please add either a `.keras` extension for the native Keras format (recommended) or a `.h5` extension. Use `model.export(filepath)` if you want to export a SavedModel for use with TFLite/TFServing/etc. Received: filepath=/kaggle/working/models/timegan/timegan_class_1.pkl.",
       "selected_seed": 42,
-      "stability_score": 0.20159362575657125
+      "stability_score": 0.1985860012169166
     }
   },
   "per_sector": {},

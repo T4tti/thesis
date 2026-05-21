@@ -11,7 +11,8 @@
     "roe",
     "roa",
     "operating_cashflow_ps",
-    "free_cashflow_ps"
+    "free_cashflow_ps",
+    "delta_days"
   ],
   "categorical_features": [
     "rating_agency",
@@ -22,63 +23,68 @@
     "log_transform": {
       "current_ratio": {
         "transform_type": "log1p",
-        "pre_skewness": 2.630915231893817,
-        "post_skewness": 1.1004159828225732
+        "pre_skewness": 2.633448319336227,
+        "post_skewness": 1.1218801973586008
       },
       "debt_equity_ratio": {
         "transform_type": "signed_log1p",
-        "pre_skewness": 2.587380784404801,
-        "post_skewness": -1.0943779466780843
+        "pre_skewness": 2.405061352330511,
+        "post_skewness": -1.0357528304727794
       },
       "gross_profit_margin": {
         "transform_type": "none",
-        "pre_skewness": 0.48547027657522585,
-        "post_skewness": 0.48547027657522585
+        "pre_skewness": 0.5074324168729774,
+        "post_skewness": 0.5074324168729774
       },
       "operating_profit_margin": {
         "transform_type": "signed_log1p",
-        "pre_skewness": -1.219211078116579,
-        "post_skewness": -1.1097128106944065
+        "pre_skewness": -2.0688371596662214,
+        "post_skewness": -1.8161108881230572
       },
       "ebit_margin": {
         "transform_type": "signed_log1p",
-        "pre_skewness": -1.2158961013136338,
-        "post_skewness": -1.1073086388102646
+        "pre_skewness": -2.0162774661708194,
+        "post_skewness": -1.771669168681052
       },
       "pretax_profit_margin": {
         "transform_type": "signed_log1p",
-        "pre_skewness": -1.3661127236381252,
-        "post_skewness": -1.1629487065902364
+        "pre_skewness": -2.0834599032197123,
+        "post_skewness": -1.743033468940643
       },
       "net_profit_margin": {
         "transform_type": "signed_log1p",
-        "pre_skewness": -2.2078782837958157,
-        "post_skewness": -1.681392958770429
+        "pre_skewness": -2.8695147970045025,
+        "post_skewness": -2.27696959697891
       },
       "asset_turnover": {
         "transform_type": "log1p",
-        "pre_skewness": 1.989512342394488,
-        "post_skewness": 1.0455079923932704
+        "pre_skewness": 1.996809467316304,
+        "post_skewness": 1.0568538596694819
       },
       "roe": {
         "transform_type": "none",
-        "pre_skewness": -0.32765833403940897,
-        "post_skewness": -0.32765833403940897
+        "pre_skewness": 0.4128406464558967,
+        "post_skewness": 0.4128406464558967
       },
       "roa": {
         "transform_type": "signed_log1p",
-        "pre_skewness": -1.2594527197355465,
-        "post_skewness": -1.2403663658677664
+        "pre_skewness": -1.438201477806095,
+        "post_skewness": -1.395033898193133
       },
       "operating_cashflow_ps": {
         "transform_type": "signed_log1p",
-        "pre_skewness": 2.319882129650729,
-        "post_skewness": 0.08701391338849213
+        "pre_skewness": 2.2670809650473505,
+        "post_skewness": 0.08590570346207575
       },
       "free_cashflow_ps": {
         "transform_type": "none",
-        "pre_skewness": 0.7816530509492469,
-        "post_skewness": 0.7816530509492469
+        "pre_skewness": 0.8328913505256446,
+        "post_skewness": 0.8328913505256446
+      },
+      "delta_days": {
+        "transform_type": "log1p",
+        "pre_skewness": 1.263056984516006,
+        "post_skewness": -0.9048810947289039
       }
     },
     "categorical_encoding": {
