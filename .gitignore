@@ -38,3 +38,4 @@ secret.*
 
 # Local vault/password databases
 *.kdbx
+*.toml
