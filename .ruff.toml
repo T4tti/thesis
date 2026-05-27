@@ -1,0 +1,25 @@
+# Ruff configuration for VN-Rating repository
+# Configures exclusions to keep linter focused on source directories
+
+exclude = [
+    ".git",
+    ".venv",
+    "venv",
+    "tmp",
+    "archive",
+    "scratch",
+    ".agent",
+    ".agents",
+    "scripts",
+    "fix_notebook.py",
+    "analyze_dataset.py",
+    "read_pdf.py",
+    "scratch_fuzzy.py",
+    "notebooks",
+]
+
+line-length = 120
+target-version = "py310"
+
+[lint]
+ignore = ["E402"]

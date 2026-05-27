@@ -132,7 +132,7 @@ for nb_path, cfg in notebooks.items():
                 norm_src = norm_src.replace(norm_target, norm_replacement)
                 cell["source"] = [line + "\n" for line in norm_src.splitlines()]
                 replaced = True
-                print(f"  Successfully updated cell!")
+                print("  Successfully updated cell!")
                 break
                 
     if not replaced:
@@ -160,7 +160,7 @@ for nb_path, cfg in notebooks.items():
                         new_lines = lines[:start_fn] + replacement.splitlines() + lines[end_fn+1:]
                         cell["source"] = [l + "\n" for l in new_lines]
                         replaced = True
-                        print(f"  Successfully updated cell using fallback line-range replacement!")
+                        print("  Successfully updated cell using fallback line-range replacement!")
                         break
                         
     if replaced:

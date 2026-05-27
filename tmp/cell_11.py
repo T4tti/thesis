@@ -40,7 +40,7 @@ if not preprocessed:
 
 
 
-    print(f"\nâœ“ Feature identification:")
+    print("\nâœ“ Feature identification:")
 
     print(f"  Numeric features: {len(FEATURE_NUMERIC)}")
 
@@ -62,7 +62,7 @@ if not preprocessed:
 
     # 1. Missing value imputation
 
-    print(f"\n=== Missing Value Imputation ===")
+    print("\n=== Missing Value Imputation ===")
 
     numeric_imputer = SimpleImputer(strategy='median')
 
@@ -92,7 +92,7 @@ if not preprocessed:
 
     # 2. Log transformation
 
-    print(f"\n=== Log Transformation for Skewness Reduction ===")
+    print("\n=== Log Transformation for Skewness Reduction ===")
 
     SKEWNESS_THRESHOLD = 1.0
 
@@ -156,7 +156,7 @@ if not preprocessed:
 
     # 3. Scaling
 
-    print(f"\n=== Scaling ===")
+    print("\n=== Scaling ===")
 
     scaler = StandardScaler()
 
@@ -174,7 +174,7 @@ if not preprocessed:
 
     if FEATURE_CATEGORICAL:
 
-        print(f"\n=== Categorical Encoding ===")
+        print("\n=== Categorical Encoding ===")
 
         CATEGORICAL_MAPPINGS = {}
 
@@ -228,7 +228,7 @@ if not preprocessed:
 
         json.dump(PREPROCESSING_META, f, indent=2, default=str)
 
-    print(f"\nâœ“ Preprocessing metadata saved")
+    print("\nâœ“ Preprocessing metadata saved")
 
 
 

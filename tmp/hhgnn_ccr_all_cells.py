@@ -21,7 +21,6 @@ print('Artifact directory:', ARTIFACT_DIR.resolve())
 
 import os
 import subprocess
-import sys
 from pathlib import Path
 
 import torch
@@ -71,7 +70,8 @@ import shap
 print(f"SHAP: {shap.__version__}")
 print("All dependencies verified!")
 # ==== CELL 6 ====
-import random, math, warnings
+import random
+import warnings
 warnings.filterwarnings('ignore')
 
 import numpy as np
@@ -84,18 +84,14 @@ from sklearn.metrics import (
     accuracy_score, f1_score, roc_auc_score,
     confusion_matrix, classification_report, cohen_kappa_score
 )
-from sklearn.model_selection import GroupShuffleSplit
 from sklearn.preprocessing import LabelEncoder, label_binarize, RobustScaler
 from sklearn.metrics.pairwise import cosine_similarity as sklearn_cosine_similarity
 
 import torch
 import torch.nn as nn
 import torch.nn.functional as F
-from torch.utils.data import Dataset, DataLoader
 
-from torch_geometric.data import Data, Batch
 from torch_geometric.loader import DataLoader as PyGDataLoader
-from torch_geometric.nn import GATConv, global_mean_pool, global_max_pool
 
 import shap
 import networkx as nx
@@ -310,7 +306,7 @@ sectors_all = df['sector'].values  # (N,)
 
 print(f'Total: {len(X_all)} | Train: {len(train_idx)} | Val: {len(val_idx)} | Test: {len(test_idx)}')
 print(f'Feature dim: {X_all.shape[1]} | Node feature dim: 4 [value, pos, z_score, rank]')
-print(f'Z-scores clipped to [-3, 3], computed from training set only (no leakage)')
+print('Z-scores clipped to [-3, 3], computed from training set only (no leakage)')
 
 # ==== CELL 15 ====
 # ============================================================
@@ -533,8 +529,6 @@ print(f'Sample: x={s.x.shape}, edge_index={s.edge_index.shape}, '
 # Focal Loss + Class-0 Focus Enhancements
 # ============================================================
 import torch
-import torch.nn as nn
-import torch.nn.functional as F
 import numpy as np
 
 class FocalLoss(nn.Module):
@@ -657,7 +651,7 @@ criterion = FocalLoss(
     label_smoothing=FOCAL_LABEL_SMOOTH,
 )
 
-print(f"Loss Function: FocalLoss")
+print("Loss Function: FocalLoss")
 print(f"Class counts: {class_counts.astype(int).tolist()}")
 print(f"Class-0 weight boost: x{CLASS0_WEIGHT_BOOST}")
 print(f"Label smoothing: {FOCAL_LABEL_SMOOTH:.3f}")
@@ -795,7 +789,7 @@ trainable_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
 print('=' * 70)
 print('HHGNN-FUZZY V2  (Focal + Ordinal with Fuzzy-Gated Architecture)')
 print('=' * 70)
-print(f'  Node features : 4D [value, pos_enc, z_score, rank]')
+print('  Node features : 4D [value, pos_enc, z_score, rank]')
 print(f'  Input proj    : 4 -> {128}')
 print('  GAT layers    : 3 x GATConv(128 -> 128, heads=8, edge_dim=1)')
 print('  Residual      : TRUE (all GAT layers)')

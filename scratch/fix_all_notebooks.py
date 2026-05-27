@@ -359,7 +359,7 @@ def patch_notebook(nb_path: Path) -> int:
         
         print(f"  [OK] Applied {total_fixes} fix(es). Backup: {backup_path.name}")
     else:
-        print(f"  [INFO] No fixes needed.")
+        print("  [INFO] No fixes needed.")
     
     return total_fixes
 

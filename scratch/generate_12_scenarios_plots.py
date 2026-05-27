@@ -6,13 +6,11 @@
 #   (accuracy_comparison.png, precision_comparison.png, recall_comparison.png, f1_comparison.png, auc_comparison.png)
 #   Các trục x (Models) sẽ hiển thị tên của các kịch bản.
 
-import os
 import sys
 from pathlib import Path
 import matplotlib.pyplot as plt
 import pandas as pd
-import numpy as np
-from typing import List, Dict, Any
+from typing import List, Dict
 
 # Cấu hình encoding utf-8 cho stdout
 if hasattr(sys.stdout, 'reconfigure'):

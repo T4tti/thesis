@@ -34,9 +34,6 @@ from typing import Dict, List, Optional, Tuple, Union
 
 import numpy as np
 import pandas as pd
-import torch
-import torch.nn as nn
-import torch.nn.functional as F
 from scipy.optimize import minimize
 from sklearn.metrics import (
     accuracy_score,

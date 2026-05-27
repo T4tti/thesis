@@ -1,5 +1,4 @@
 import pandas as pd
-import os
 from pathlib import Path
 from database import create_db_and_tables, save_rating_history, get_all_rating_history
 import logging

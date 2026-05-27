@@ -119,7 +119,7 @@ for cls in sorted(samples_per_class):
         src = 'NONE !'
     print(f"{cls:>6} {rl:>7} {tg:>8} {nd:>8} {wn:>9}  {src}")
 
-print(f"\nExpected class counts after augmentation:")
+print("\nExpected class counts after augmentation:")
 print(expected_counts.sort_index())
 
 nec = expected_counts[expected_counts > 0]

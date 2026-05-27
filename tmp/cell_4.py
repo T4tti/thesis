@@ -2,11 +2,7 @@ import os
 import pandas as pd
 import numpy as np
 import matplotlib.pyplot as plt
-import seaborn as sns
-from pathlib import Path
-import json
 import warnings
-from datetime import datetime
 import torch
 
 # Reduce TensorFlow/XLA startup logs in notebook output
@@ -33,11 +29,6 @@ except Exception as e:
     TIMEGAN_IMPORT_ERROR = str(e)
 
 # Sklearn imports
-from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import StandardScaler, LabelEncoder
-from sklearn.impute import SimpleImputer
-from scipy import stats
-from scipy.spatial.distance import jensenshannon
 
 warnings.filterwarnings('ignore')
 

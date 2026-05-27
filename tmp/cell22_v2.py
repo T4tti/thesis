@@ -172,7 +172,7 @@ for cls, nw in sorted(windows_per_class.items()):
 
             sn = safe_timegan_sample(mdl, over_nw)
             if sn.shape[0] == 0:
-                print(f"  WARNING: model returned 0 windows")
+                print("  WARNING: model returned 0 windows")
             else:
                 sn = sn[:, :sl, :len(TIMEGAN_FEATURE_COLUMNS)]
                 sr = inverse_timegan_scale(sn, TIMEGAN_SCALER, TIMEGAN_FEATURE_COLUMNS)
@@ -277,7 +277,7 @@ else:
     print(f"\nTotal synthetic: {len(synthetic_df)}")
     print(f"  TimeGAN rows: {len(gen_rows)}")
     print(f"  MixUp rows:   {len(mix_rows)}")
-    print(f"\nClass distribution (synthetic):")
+    print("\nClass distribution (synthetic):")
     print(synthetic_df[tgt].value_counts().sort_index())
 
 TIMEGAN_GENERATION_LOG = gen_log

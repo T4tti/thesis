@@ -109,7 +109,6 @@ def extract_table_from_pdf(pdf_path: Path) -> Optional[pd.DataFrame]:
             txt = (page.extract_text() or "").lower()
             if any(kw in txt for kw in TABLE_HEADING_KWS):
                 target_page = page
-                target_page_num = page_num
                 print(f"[1] Bảng tìm thấy trên trang: {page_num}")
                 break
 

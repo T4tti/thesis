@@ -95,7 +95,7 @@ if CONFIG.get('target_is_encoded_label', False):
 print(f"  âœ“ Final shape: {df.shape}")
 
 # Perform train/val/test split
-print(f"\n=== Performing Stratified Split ===")
+print("\n=== Performing Stratified Split ===")
 print(f"  Train: {CONFIG['train_ratio']*100:.0f}%")
 print(f"  Val:   {CONFIG['val_ratio']*100:.0f}%")
 print(f"  Test:  {CONFIG['test_ratio']*100:.0f}%")
@@ -127,13 +127,13 @@ train, val = train_test_split(
     stratify=stratify_train_val
 )
 
-print(f"\nâœ“ Split completed:")
+print("\nâœ“ Split completed:")
 print(f"  Train: {len(train)} ({100*len(train)/len(df):.1f}%)")
 print(f"  Val:   {len(val)} ({100*len(val)/len(df):.1f}%)")
 print(f"  Test:  {len(test)} ({100*len(test)/len(df):.1f}%)")
 
 # Check class distribution
-print(f"\n=== Class Distribution ===")
+print("\n=== Class Distribution ===")
 for name, split_df in [('Train', train), ('Val', val), ('Test', test)]:
     print(f"\n{name}:")
     print(split_df[CONFIG['target_column']].value_counts().sort_index())

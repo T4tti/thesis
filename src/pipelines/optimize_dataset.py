@@ -15,7 +15,6 @@ from __future__ import annotations
 
 from pathlib import Path
 import pandas as pd
-import numpy as np
 
 ROOT_DIR = Path(__file__).resolve().parents[2]
 INPUT_PATH = ROOT_DIR / "data" / "processed" / "train_augmented_timegan.csv"

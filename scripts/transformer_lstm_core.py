@@ -1,6 +1,5 @@
 import os
 import platform
-import sys
 from pathlib import Path
 
 def detect_kaggle_runtime() -> bool:
@@ -33,8 +32,6 @@ print('Artifact directory:', ARTIFACT_DIR.resolve())
 import random
 import math
 import warnings
-import os
-from contextlib import contextmanager
 warnings.filterwarnings('ignore')
 
 import numpy as np
@@ -42,12 +39,7 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import seaborn as sns
 
-from sklearn.metrics import (
-    accuracy_score, f1_score, fbeta_score, roc_auc_score, cohen_kappa_score,
-    confusion_matrix, classification_report
-)
-from sklearn.model_selection import GroupShuffleSplit
-from sklearn.preprocessing import LabelEncoder, label_binarize, RobustScaler
+from sklearn.preprocessing import LabelEncoder, RobustScaler
 
 import torch
 import torch.nn as nn
@@ -1187,4 +1179,3 @@ print(model)
 # ============================================================
 # Lightweight Hyperparameter Search (val_f1_weighted)
 # ============================================================
-from torch.utils.data import Subset

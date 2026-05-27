@@ -56,7 +56,7 @@ if ENABLE_HYBRID_REBALANCING and len(train_augmented) > 0:
         print(f"  Imbalance ratio: {ratio:.3f}")
         print(f"  {'GOOD' if ratio > 0.3 else 'MODERATE' if ratio > 0.1 else 'STILL IMBALANCED'}")
 
-    print(f"\n  Full distribution:")
+    print("\n  Full distribution:")
     print(final_counts)
 else:
     print("\nHybrid rebalancing: SKIPPED")

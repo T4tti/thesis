@@ -1,4 +1,4 @@
-import json, copy
+import json
 
 # Load notebook
 with open('notebooks/timegan_data_preparation_kaggle.ipynb', encoding='utf-8') as f:

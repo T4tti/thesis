@@ -1,5 +1,4 @@
 import json
-from pathlib import Path
 
 for f in ['KB7_FI-TTX.ipynb','KB8_FI-PLL.ipynb','KB9_FI-TTLPXL.ipynb']:
     nb = json.load(open(f'e:/thesis/notebooks/{f}', encoding='utf-8'))

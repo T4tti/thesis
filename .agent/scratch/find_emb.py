@@ -1,5 +1,4 @@
 import nbformat
-import re
 
 nb_path = r'e:\thesis\notebooks\Transformer-BiLSTM.ipynb'
 with open(nb_path, 'r', encoding='utf-8') as f:

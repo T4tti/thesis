@@ -1,6 +1,5 @@
 import os
 import json
-import sys
 
 def extract_detailed_metrics(filepath, out_f):
     filename = os.path.basename(filepath)
@@ -11,9 +10,9 @@ def extract_detailed_metrics(filepath, out_f):
         out_f.write(f"Error reading {filepath}: {e}\n")
         return
 
-    out_f.write(f"\n=========================================\n")
+    out_f.write("\n=========================================\n")
     out_f.write(f"DETAILED METRICS FOR: {filename}\n")
-    out_f.write(f"=========================================\n")
+    out_f.write("=========================================\n")
     
     for idx, cell in enumerate(nb.get('cells', [])):
         cell_type = cell.get('cell_type')

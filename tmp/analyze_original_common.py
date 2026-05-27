@@ -1,6 +1,5 @@
 ﻿from pathlib import Path
 import pandas as pd
-import numpy as np
 
 p = Path(r'e:/thesis/data/processed/merged_credit_rating_common.csv')
 df = pd.read_csv(p)

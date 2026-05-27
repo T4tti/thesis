@@ -1,5 +1,4 @@
 import json
-import os
 
 path = 'e:/thesis/notebooks/hhgnn-ccr.ipynb'
 with open(path, 'r', encoding='utf-8') as f:

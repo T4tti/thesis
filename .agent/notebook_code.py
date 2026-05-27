@@ -29,7 +29,6 @@ import random
 import math
 import warnings
 import os
-from contextlib import contextmanager
 warnings.filterwarnings('ignore')
 
 import numpy as np
@@ -38,10 +37,9 @@ import matplotlib.pyplot as plt
 import seaborn as sns
 
 from sklearn.metrics import (
-    accuracy_score, f1_score, fbeta_score, roc_auc_score,
+    accuracy_score, f1_score, roc_auc_score,
     confusion_matrix, classification_report
 )
-from sklearn.model_selection import GroupShuffleSplit
 from sklearn.preprocessing import LabelEncoder, label_binarize, RobustScaler
 
 import torch
@@ -1958,7 +1956,6 @@ print(f'Unique pred classes:  {len(set(y_pred))}')
 # ============================================================
 # Evaluation Metrics (final test)
 # ============================================================
-from sklearn.metrics import cohen_kappa_score
 
 acc = accuracy_score(y_true, y_pred)
 f1_macro = f1_score(y_true, y_pred, average='macro', zero_division=0)
@@ -1972,7 +1969,7 @@ try:
         auc_score = roc_auc_score(y_true_bin, probs, average='weighted', multi_class='ovr')
     else:
         auc_score = roc_auc_score(y_true, y_pred)
-except ValueError as e:
+except ValueError:
     auc_score = float('nan')
 
 print('--- TEST SET EVALUATION ---')
@@ -2152,7 +2149,7 @@ for _, row in results.head(sample_n).iterrows():
           f'{int(row["y_pred_numeric"]):>15} '
           f'{match:>8}')
 
-print(f'\n=== Summary ===')
+print('\n=== Summary ===')
 print(f'Total predictions: {len(results)}')
 print(f'Correct: {(results["y_true_numeric"] == results["y_pred_numeric"]).sum()}')
 print(f'Accuracy: {acc:.4f}')

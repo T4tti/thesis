@@ -95,7 +95,7 @@ if ENABLE_HYBRID_REBALANCING and len(train_augmented) > 0:
     else:
         print("  Imbalance ratio: N/A")
 
-    print(f"\n  Full distribution after rebalancing:")
+    print("\n  Full distribution after rebalancing:")
     print(fc)
 
 else:

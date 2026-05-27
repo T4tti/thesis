@@ -1,2 +1,0 @@
-protocol,accuracy,precision_weighted,recall_weighted,f1_macro,f1_weighted,qwk,auc,n_samples,expected_test_rows,n_classes
-row_level_sequence_context,0.9204875217643644,0.9263706955299817,0.9204875217643644,0.8327338906760472,0.9225539903529998,0.8778090723726474,0.9825137869894661,1723,1723,3

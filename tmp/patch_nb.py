@@ -15,7 +15,6 @@ Optimizations:
 """
 import json
 from pathlib import Path
-import copy
 
 NB_IN  = Path("notebooks/hhgnn-ccr.ipynb")
 NB_OUT = Path("notebooks/hhgnn-ccr-v2.ipynb")
@@ -976,5 +975,5 @@ with open(NB_OUT, "w", encoding="utf-8") as f:
     json.dump(nb, f, ensure_ascii=False, indent=1)
 
 print(f"\nPatched notebook saved -> {NB_OUT}")
-print(f"   Modified cells: 5, 11, 15, 17, 19, 21, 23, 25, 27, 29")
-print(f"   + Updated markdown headers: cell 0, 18, 20")
+print("   Modified cells: 5, 11, 15, 17, 19, 21, 23, 25, 27, 29")
+print("   + Updated markdown headers: cell 0, 18, 20")

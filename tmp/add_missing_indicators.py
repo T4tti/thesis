@@ -1,6 +1,4 @@
 import pandas as pd
-import numpy as np
-from datetime import datetime
 
 # Load source data
 df_years = pd.read_csv('data/processed/processed_dataset_years.csv')
@@ -34,24 +32,24 @@ df_rating_agg = df_rating.groupby(['Symbol', 'Year']).agg({
 df_rating_agg.columns = ['Code_Cpn', 'Year', 'Gross_Profit_Margin', 'Operating_Profit_Margin', 
                          'Pretax_Profit_Margin', 'OCF_Per_Share', 'FCF_Per_Share']
 
-print(f"\nData from corporate_rating after grouping:")
+print("\nData from corporate_rating after grouping:")
 print(f'Shape: {df_rating_agg.shape}')
 print(f'Companies: {df_rating_agg["Code_Cpn"].nunique()}')
 print(f'Year range: {df_rating_agg["Year"].min()} to {df_rating_agg["Year"].max()}')
 
 # Merge with processed_dataset_years
-print(f"\nBefore merge:")
+print("\nBefore merge:")
 print(f'processed_dataset_years shape: {df_years.shape}')
 
 df_merged = df_years.merge(df_rating_agg, on=['Code_Cpn', 'Year'], how='left')
 
-print(f'\nAfter merge:')
+print('\nAfter merge:')
 print(f'Merged shape: {df_merged.shape}')
 print(f'Rows with new data: {(~df_merged["Gross_Profit_Margin"].isna()).sum()}')
 print(f'Rows with missing new data: {df_merged["Gross_Profit_Margin"].isna().sum()}')
 
 # Show sample of merged data
-print(f'\nSample of merged data (with new indicators filled):')
+print('\nSample of merged data (with new indicators filled):')
 print(df_merged[df_merged['Gross_Profit_Margin'].notna()][
     ['Year', 'Code_Cpn', 'Name_Cpn', 'Net_Profit_Margin', 'Gross_Profit_Margin', 
      'Operating_Profit_Margin', 'Pretax_Profit_Margin', 'OCF_Per_Share', 'FCF_Per_Share']

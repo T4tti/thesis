@@ -255,7 +255,7 @@ if __name__ == "__main__":
     
     # Summary
     logger.info(f"\n{'='*60}")
-    logger.info(f"EXTRACTION SUMMARY")
+    logger.info("EXTRACTION SUMMARY")
     logger.info(f"  Total processed: {len(batch)}")
     logger.info(f"  Successful: {len(results)}")
     logger.info(f"  Skipped (no text/data): {len(skipped)}")

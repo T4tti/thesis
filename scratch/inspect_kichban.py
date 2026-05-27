@@ -1,6 +1,4 @@
 import pandas as pd
-import openpyxl
-import sys
 
 def main():
     file_path = r"e:\thesis\kichban.xlsx"

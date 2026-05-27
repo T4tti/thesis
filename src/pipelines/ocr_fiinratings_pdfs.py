@@ -302,9 +302,6 @@ def extract_from_tables(tables: list) -> Dict[str, Optional[float]]:
         if not table or len(table) < 2:
             continue
 
-        # Header normalization
-        headers = [str(c).lower().strip() if c else "" for c in (table[0] or [])]
-
         for row in table[1:]:
             if not row:
                 continue
@@ -375,7 +372,7 @@ def process_single_pdf(pdf_path: Path) -> Dict[str, Any]:
 
     # Bước 2: Nếu text rỗng → thử pymupdf
     if len(full_text.strip()) < 100:
-        logger.debug(f"    pdfplumber text ngắn, thử pymupdf...")
+        logger.debug("    pdfplumber text ngắn, thử pymupdf...")
         full_text = extract_text_pymupdf(pdf_path)
 
     if len(full_text.strip()) < 50:

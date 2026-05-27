@@ -1,6 +1,5 @@
 import os
 import json
-import re
 import sys
 
 # Ensure UTF-8 stdout encoding for Windows terminal

@@ -1,9 +1,8 @@
 """
 Shared application state — holds trained models and loaded data.
 """
-from typing import Any, Dict, Optional
+from typing import Any, Dict
 import threading
-import pandas as pd
 
 MODEL_STATE: Dict[str, Any] = {
     # ── TLSTMFuzzy (PyTorch) ───────────────────────────────────────────────

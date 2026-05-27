@@ -1,4 +1,4 @@
-import json, sys
+import json
 nb = json.load(open(r'notebooks/timegan_data_preparation_kaggle.ipynb', encoding='utf-8'))
 out = []
 for i, cell in enumerate(nb['cells']):

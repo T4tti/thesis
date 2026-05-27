@@ -1,5 +1,4 @@
 import nbformat
-import sys
 
 nb_path = r'e:\thesis\notebooks\timegan_data_preparation_3groups.ipynb'
 out_path = r'e:\thesis\.agent\scratch\split_logic.txt'
