@@ -1,0 +1,2445 @@
+
+========================================
+Analyzing Transformer-LSTM.ipynb
+========================================
+Cell #11 Source Code Snippet:
+
+FINANCIAL_FEATURES = [
+    'current_ratio', 'debt_equity_ratio',
+    'gross_profit_margin', 'operating_profit_margin',
+    'ebit_margin', 'pretax_profit_margin',
+    'net_profit_margin', 'asset_turnover',
+    'roe', 'roa',
+    'operating_cashflow_ps', 'free_cashflow_ps'
+]
+
+SECTOR_COL = 'sector'
+SEC...
+Cell #11 Output:
+[P1 Fix 4 OK] Sector encoder fit on train only: 12 known + 1 unknown
+  Unknown sectors: val=0, test=0
+[P3] Entity encoders: tickers=842 + 1 unknown, companies=1514 + 1 unknown
+Rows kept after target cleanup: 8614 / 8614
+Number of classes (observed): 3
+Label range (model IDs): 0..2
+Observed label IDs: [0, 1, 2]
+Raw-to-ID mapping: {0: 0, 1: 1, 2: 2}
+Decoder classes (ID -> raw): [0, 1, 2]
+Sectors encoded: 13
+Tickers encoded: 843
+Companies encoded: 1515
+Leakage guard reference split: train
+Sample sectors: ['0', '1', '10', '11', '2', '3', '4', '5', '6', '7']
+
+Data after preprocessing: (8614, 25)
+[P1 Fix 6 OK] Added temporal features: ['delta_days']
+[OK] 13 financial features match TimeGAN metadata.
+[OK] 13 financial features are present in train_df.
+
+--------------------------------------------------
+Cell #14 Source Code Snippet:
+
+df_sorted = df.sort_values(['ticker', 'rating_date', 'row_id']).reset_index(drop=True)
+
+panel_df = df_sorted[
+    ['row_id', 'ticker', 'company_name', 'rating_date', 'rating_detail',
+     'sector_id', 'ticker_id', 'company_id', '__split__'] + FINANCIAL_FEATURES
+].copy()
+panel_df = panel_df.rename(c...
+Cell #14 Output:
+   row_id unique_id                   company_name         ds  y  sector_id  \
+0    6087        AA              Alcoa Corporation 2015-10-14  1          0   
+1    6931       AAL  American Airlines Group, Inc. 2013-11-12  1          3   
+2    2576       AAL  American Airlines Group, Inc. 2015-06-30  1          3   
+3    6727       AAP       Advance Auto Parts, Inc. 2012-06-15  2          6   
+4    7706       AAP       ADVANCE AUTO PARTS, INC. 2013-05-29  2          6   
+5    3997       AAP       ADVANCE AUTO PARTS, INC. 2013-09-25  2          6   
+6    5805       AAP       ADVANCE AUTO PARTS, INC. 2013-11-13  2          6   
+7    7217       AAP       Advance Auto Parts, Inc. 2013-11-25  2          6   
+8    6440       AAP       ADVANCE AUTO PARTS, INC. 2014-02-21  2          6   
+9    1290       AAP       ADVANCE AUTO PARTS, INC. 2014-06-18  2          6   
+
+   ticker_id  company_id __split__  current_ratio  ...  \
+0        842        1514       val      -0.690769  ...   
+1          0          92      test      -0.731203  ...   
+2          0          92     train      -0.922569  ...   
+3          1          58       val      -0.716343  ...   
+4          1          12      test      -0.463556  ...   
+5          1          12     train      -0.463556  ...   
+6          1          12     train      -0.463556  ...   
+7          1          58      test      -0.463556  ...   
+8          1          12       val      -0.228162  ...   
+9          1          12     train      -0.228162 
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+
+# Row-level temporal context builder: one sequence per row, ending at the current row.
+HORIZON = 1
+WINDOW_PADDING_MODE = 'edge'
+INPUT_SIZE_SEARCH_ENABLED = True
+INPUT_SIZE_DEFAULT = 8  # Aligned sequence length to 8 quarters (2 years)
+INPUT_SIZE_MIN = 1
+INPUT_SIZE_MAX = 12
+ENABLE_SYNTH_QC = True
+EN...
+Cell #16 Output:
+INPUT_SIZE selected: 8 (fixed_row_level_current_step)
+HORIZON (forecast): 1
+Window padding mode: edge
+ input_size  train_windows  val_windows  test_windows  total_windows  padded_windows_total  score
+          8           6029          862          1723           8614                     0    1.0
+Panel shape for row-level sequence generation: (8614, 22)
+[P0 Fix 1 OK] RobustScaler removed. Using StandardScaled values from TimeGAN.
+  MODEL_FEATURES mean (train): {'current_ratio': 0.0, 'debt_equity_ratio': -0.0, 'gross_profit_margin': -0.0, 'operating_profit_margin': 0.0, 'ebit_margin': -0.0, 'pretax_profit_margin': 0.0, 'net_profit_margin': 0.0, 'asset_turnover': -0.0, 'roe': 0.0, 'roa': -0.0, 'operating_cashflow_ps': -0.0, 'free_cashflow_ps': 0.0, 'delta_days': -0.0, 'current_ratio_delta': -0.002, 'debt_equity_ratio_delta': 0.019, 'gross_profit_margin_delta': -0.0, 'operating_profit_margin_delta': -0.021, 'ebit_margin_delta': -0.02, 'pretax_profit_margin_delta': -0.017, 'net_profit_margin_delta': -0.015, 'asset_turnover_delta': -0.01, 'roe_delta': 0.005, 'roa_delta': -0.017, 'operating_cashflow_ps_delta': -0.009, 'free_cashflow_ps_delta': 0.008, 'delta_days_delta': 0.029}
+  MODEL_FEATURES std  (train): {'current_ratio': 1.0, 'debt_equity_ratio': 1.0, 'gross_profit_margin': 1.0, 'operating_profit_margin': 1.0, 'ebit_margin': 1.0, 'pretax_profit_margin': 1.0, 'net_profit_margin': 1.0, 'asset_turnover': 1.0, 'roe': 1.0, 'roa': 1.0, 'operating_cashflow_ps': 1.0, 'free_cashflow_ps'
+--------------------------------------------------
+Cell #24 Source Code Snippet:
+# ============================================================
+# PriMO: lightweight architecture/config search for Transformer-LSTM ablations
+# ============================================================
+# PriMO keeps expert priors from the current thesis configuration, evaluates
+# cheap low-fideli...
+Cell #24 Output:
+   input_size  hidden_size   dropout  fuzzy_mfs  use_fuzzy  \
+0           8           96  0.180000          1      False   
+1           8           96  0.400000          1      False   
+2           8           48  0.283120          1      False   
+3           8           96  0.250000          1      False   
+4           8           96  0.250000          1      False   
+5           8           48  0.375363          1      False   
+6           8           48  0.277662          1      False   
+7           8           96  0.380000          1      False   
+8           8           48  0.320000          1      False   
+9           8           96  0.450000          3       True   
+
+   bidirectional_lstm  d_model  n_heads  n_layers  sector_emb_dim  ...  \
+0               False       96        8         0              16  ...   
+1               False       64        4         1              16  ...   
+2                True       96        4         2              16  ...   
+3               False       96        4         2              16  ...   
+4               False       96        4         0              16  ...   
+5               False       64        2         0               8  ...   
+6               False       96        2         1              16  ...   
+7               False       96        4         2              16  ...   
+8                True       96        4         2              16  ...   
+9               False       96        4         2              16  ...   
+
+  
+--------------------------------------------------
+Cell #27 Source Code Snippet:
+
+# ============================================================
+# Training loop with full metric tracking (Kaggle-safe Transformer-LSTM + AMP)
+# ============================================================
+MAX_EPOCHS = 100
+PATIENCE = 100
+EARLY_STOP_MIN_DELTA = 3e-4
+MAX_ACCEPTABLE_LOSS_GAP = 0.095
+EA...
+Cell #27 Output:
+[PriMO-Transformer] Using selected config without Strategy C+E+F overrides
+[Generalization] Applied dropout/weight_decay/label_smoothing floors to reduce train-val loss gap
+Training for max 100 epochs (patience=100)...
+Epoch   1/100 | TrLoss: 0.5201 | VlLoss: 0.2480 | TrAcc: 0.629 | VlAcc: 0.881 | TrF1w: 0.622 | VlF1w: 0.891 | TrQWK: 0.508 | VlQWK: 0.743 | Gap: 0.0000 | GenScore: 0.8162 | VlAUC: 0.953 | LR: 0.000365
+Epoch   2/100 | TrLoss: 0.3492 | VlLoss: 0.1979 | TrAcc: 0.767 | VlAcc: 0.905 | TrF1w: 0.766 | VlF1w: 0.906 | TrQWK: 0.728 | VlQWK: 0.831 | Gap: 0.0000 | GenScore: 0.8615 | VlAUC: 0.956 | LR: 0.000416
+Epoch   3/100 | TrLoss: 0.3237 | VlLoss: 0.1841 | TrAcc: 0.785 | VlAcc: 0.908 | TrF1w: 0.785 | VlF1w: 0.911 | TrQWK: 0.752 | VlQWK: 0.855 | Gap: 0.0000 | GenScore: 0.8720 | VlAUC: 0.955 | LR: 0.000481
+Epoch   4/100 | TrLoss: 0.2760 | VlLoss: 0.1779 | TrAcc: 0.812 | VlAcc: 0.905 | TrF1w: 0.812 | VlF1w: 0.908 | TrQWK: 0.804 | VlQWK: 0.845 | Gap: 0.0000 | GenScore: 0.8655 | VlAUC: 0.960 | LR: 0.000532
+Epoch   5/100 | TrLoss: 0.2206 | VlLoss: 0.1656 | TrAcc: 0.846 | VlAcc: 0.900 | TrF1w: 0.846 | VlF1w: 0.905 | TrQWK: 0.850 | VlQWK: 0.830 | Gap: 0.0000 | GenScore: 0.8556 | VlAUC: 0.965 | LR: 0.000552
+Epoch   6/100 | TrLoss: 0.1790 | VlLoss: 0.1654 | TrAcc: 0.873 | VlAcc: 0.890 | TrF1w: 0.873 | VlF1w: 0.896 | TrQWK: 0.885 | VlQWK: 0.803 | Gap: 0.0000 | GenScore: 0.8418 | VlAUC: 0.969 | LR: 0.000551
+Epoch   7/100 | TrLoss: 0.1586 | VlLoss: 0.1529 | TrAcc: 0.885 | VlAcc: 0.8
+--------------------------------------------------
+Cell #30 Source Code Snippet:
+# ============================================================
+# Seed Ensemble Training
+# ============================================================
+SEED_ENSEMBLE_ENABLED = True
+SEED_ENSEMBLE_TOTAL_RUNS = 3  # Set to 5 on Kaggle if runtime budget allows.
+SEED_ENSEMBLE_EPOCHS = int(globals().get('M...
+Cell #30 Output:
+[SeedEnsemble] Training member 2/3 with seed=43
+[SeedEnsemble] member=2 epoch=  1/100 train_loss=0.5160 val_acc=0.8701 val_f1w=0.8807 val_macro=0.7051 val_qwk=0.6931 best_epoch=1
+[SeedEnsemble] member=2 epoch= 10/100 train_loss=0.1286 val_acc=0.9095 val_f1w=0.9124 val_macro=0.7898 val_qwk=0.8454 best_epoch=4
+[SeedEnsemble] member=2 epoch= 20/100 train_loss=0.0965 val_acc=0.9072 val_f1w=0.9092 val_macro=0.7919 val_qwk=0.8455 best_epoch=4
+[SeedEnsemble] member=2 epoch= 30/100 train_loss=0.0864 val_acc=0.9153 val_f1w=0.9166 val_macro=0.8089 val_qwk=0.8503 best_epoch=30
+[SeedEnsemble] member=2 epoch= 40/100 train_loss=0.0739 val_acc=0.9118 val_f1w=0.9150 val_macro=0.7786 val_qwk=0.8443 best_epoch=35
+[SeedEnsemble] member=2 epoch= 50/100 train_loss=0.0702 val_acc=0.9176 val_f1w=0.9191 val_macro=0.7889 val_qwk=0.8597 best_epoch=35
+[SeedEnsemble] member=2 epoch= 60/100 train_loss=0.0652 val_acc=0.9153 val_f1w=0.9168 val_macro=0.7941 val_qwk=0.8512 best_epoch=35
+[SeedEnsemble] member=2 epoch= 70/100 train_loss=0.0594 val_acc=0.9165 val_f1w=0.9175 val_macro=0.7955 val_qwk=0.8619 best_epoch=35
+[SeedEnsemble] member=2 epoch= 80/100 train_loss=0.0597 val_acc=0.9142 val_f1w=0.9155 val_macro=0.7887 val_qwk=0.8538 best_epoch=35
+[SeedEnsemble] member=2 epoch= 90/100 train_loss=0.0584 val_acc=0.9153 val_f1w=0.9169 val_macro=0.7870 val_qwk=0.8617 best_epoch=35
+[SeedEnsemble] member=2 epoch=100/100 train_loss=0.0574 val_acc=0.9153 val_f1w=0.9169 val_macro=0.7870 val_qwk=0.8617 best_epoch=35
+[Se
+--------------------------------------------------
+Cell #30 Source Code Snippet:
+# ============================================================
+# Seed Ensemble Training
+# ============================================================
+SEED_ENSEMBLE_ENABLED = True
+SEED_ENSEMBLE_TOTAL_RUNS = 3  # Set to 5 on Kaggle if runtime budget allows.
+SEED_ENSEMBLE_EPOCHS = int(globals().get('M...
+Cell #30 Output:
+   member  seed                   source  best_epoch  selection_score  \
+0       1    42  current_best_checkpoint          22         0.891916   
+1       2    43    retrained_seed_member          35         0.893238   
+2       3    44    retrained_seed_member          38         0.898409   
+
+   val_accuracy  val_f1_macro  val_f1_weighted   val_qwk  
+0      0.918794      0.805242         0.920378  0.873165  
+1      0.921114      0.810570         0.922525  0.859920  
+2      0.922274      0.825281         0.922977  0.875854  
+--------------------------------------------------
+Cell #30 Source Code Snippet:
+# ============================================================
+# Seed Ensemble Training
+# ============================================================
+SEED_ENSEMBLE_ENABLED = True
+SEED_ENSEMBLE_TOTAL_RUNS = 3  # Set to 5 on Kaggle if runtime budget allows.
+SEED_ENSEMBLE_EPOCHS = int(globals().get('M...
+Cell #30 Output:
+     aggregation members                     weights  selection_score  \
+0   weighted_all   1,2,3  0.088802,0.137970,0.773227         0.899502   
+1       member_3       3                    1.000000         0.898409   
+2  weighted_topk     3,2           0.848584,0.151416         0.898353   
+3   uniform_topk     3,2           0.500000,0.500000         0.895098   
+4    uniform_all   1,2,3  0.333333,0.333333,0.333333         0.894410   
+5       member_2       2                    1.000000         0.893238   
+6       member_1       1                    1.000000         0.891916   
+
+   val_accuracy  val_f1_macro  val_f1_weighted   val_qwk  
+0      0.923434      0.826003         0.924001  0.877563  
+1      0.922274      0.825281         0.922977  0.875854  
+2      0.922274      0.825164         0.922886  0.875757  
+3      0.921114      0.815452         0.922112  0.869788  
+4      0.919954      0.814251         0.920941  0.873456  
+5      0.921114      0.810570         0.922525  0.859920  
+6      0.918794      0.805242         0.920378  0.873165  
+--------------------------------------------------
+Cell #32 Source Code Snippet:
+# ============================================================
+# Calibrate minority-class threshold on validation set
+# ============================================================
+USE_CALIBRATED_CLASS_THRESHOLD = True
+TARGET_CLASS_FOR_THRESHOLD = 0
+THRESHOLD_GRID = np.concatenate(([0.0], np.arange(...
+Cell #32 Output:
+Validation threshold calibration done.
+Probability source: seed_ensemble
+Target class: 0
+Base metrics: {'accuracy': 0.9234338747099768, 'f1_weighted': 0.9240012017881113, 'f1_macro': 0.8260026959618241, 'qwk': 0.8775631423996695, 'target_recall': 0.6666666666666666}
+Selected threshold: 0.00
+Selected metrics: {'accuracy': 0.9234338747099768, 'f1_weighted': 0.9240012017881113, 'f1_macro': 0.8260026959618241, 'qwk': 0.8775631423996695, 'target_recall': 0.6666666666666666}
+Threshold accepted: False
+Calibration objective score: 1.3976
+Saved threshold grid: /kaggle/working/credit_rating_artifacts/transformer_threshold_calibration.csv
+Updated metadata with calibrated threshold: /kaggle/working/credit_rating_artifacts/transformer_best_model_meta.pt
+
+--------------------------------------------------
+Cell #35 Source Code Snippet:
+
+# ============================================================
+# Evaluation Metrics (final test, row-level)
+# ============================================================
+
+acc = accuracy_score(y_true, y_pred)
+f1_macro = f1_score(y_true, y_pred, average='macro', zero_division=0)
+f1_weighted = f1_sco...
+Cell #35 Output:
+--- TEST SET EVALUATION (ROW-LEVEL TRANSFORMER) ---
+Accuracy: 0.9251
+Precision (Weighted): 0.9294
+Recall (Weighted):    0.9251
+F1-macro:             0.8363
+F1-weighted:          0.9267
+QWK (Quadratic Weighted Kappa): 0.8780
+AUC: 0.9803
+--------------------------------------------------
+
+Classification Report:
+              precision    recall  f1-score   support
+
+           0       0.57      0.78      0.66        59
+           1       0.89      0.88      0.89       559
+           2       0.97      0.96      0.96      1105
+
+    accuracy                           0.93      1723
+   macro avg       0.81      0.87      0.84      1723
+weighted avg       0.93      0.93      0.93      1723
+
+
+--------------------------------------------------
+Cell #38 Source Code Snippet:
+
+# Build row-level result table for test predictions.
+result_meta = row_level_reference[row_level_reference['__split__'].astype(str).str.lower() == 'test'].copy()
+result_meta = result_meta.rename(columns={'unique_id': 'ticker', 'company_name': 'company_name', 'ds': 'rating_date', 'y': 'y_true_numeri...
+Cell #38 Output:
+
+=== Sample Predictions ===
+Ticker     True (num)           Pred (num)    Match
+------------------------------------------------------
+CRS        2                             2        Y
+ORCL       2                             2        Y
+SYY        2                             2        Y
+AEE        2                             2        Y
+LLY        2                             2        Y
+EOG        2                             2        Y
+SYY        2                             2        Y
+MSFT       2                             2        Y
+ENR        2                             1        N
+ENR        2                             2        Y
+MHK        2                             2        Y
+ALR        1                             0        N
+NGG        2                             2        Y
+CMP        1                             1        Y
+NFG        2                             2        Y
+HLT        1                             1        Y
+VEON       1                             1        Y
+BAK        2                             2        Y
+CVS        2                             2        Y
+BWA        2                             2        Y
+CLH        1                             1        Y
+HEES       1                             1        Y
+SANM       1                             1        Y
+CHTR       1                             1        Y
+TDG        0                             0        Y
+XYL        2                             2        Y
+DLX        2 
+--------------------------------------------------
+Cell #40 Source Code Snippet:
+
+# ============================================================
+# Row-level temporal/tabular teacher on data/processed/test/test.csv
+# ============================================================
+ROW_LEVEL_TEMPORAL_TEACHER_MIN_ACCURACY = 0.9204
+ROW_LEVEL_TEACHER_ENABLED = True
+
+if ROW_LEVEL_TEACHER_...
+Cell #40 Output:
+--- ROW-LEVEL TEST EVALUATION: TEMPORAL LIGHTGBM TEACHER ---
+Train rows (train+val): 6891
+Test rows:              1723
+Feature count:          30
+Accuracy:               0.920488
+F1-macro:               0.826523
+F1-weighted:            0.920846
+QWK:                    0.872650
+Target threshold:       >= 0.9204
+Threshold status:       PASS
+------------------------------------------------------------
+              precision    recall  f1-score   support
+
+           0       0.60      0.69      0.65        59
+           1       0.89      0.86      0.88       559
+           2       0.95      0.96      0.96      1105
+
+    accuracy                           0.92      1723
+   macro avg       0.82      0.84      0.83      1723
+weighted avg       0.92      0.92      0.92      1723
+
+Row-level teacher metrics saved to: /kaggle/working/credit_rating_artifacts/row_level_temporal_teacher_metrics.csv
+Row-level teacher predictions saved to: /kaggle/working/credit_rating_artifacts/row_level_temporal_teacher_predictions.csv
+
+--------------------------------------------------
+Cell #44 Source Code Snippet:
+# ============================================================
+# Final Pipeline Sanity Check
+# ============================================================
+import numpy as np
+
+print('=' * 60)
+print('FINAL PIPELINE SANITY CHECK')
+print('=' * 60)
+
+train_mask_check = panel_df_filtered['__split__'] == '...
+Cell #44 Output:
+============================================================
+FINAL PIPELINE SANITY CHECK
+============================================================
+[OK] Scaling: max|mean|=0.0293
+[OK] Sequences: train=6029, val=862, test=1723
+[OK] Row-level test coverage: 1723 == 1723
+[OK] Entity vocab sizes: sectors=13, tickers=843, companies=1515
+[OK] Class dist: [207, 1957, 3865], imbalance=18.67x
+[OK] Sample X shape: (8, 26) = (INPUT_SIZE, n_channels)
+[OK] Architecture: use_fuzzy=False, bidirectional_lstm=False, transformer_layers=0
+[OK] Loss class weights enabled: False
+============================================================
+ALL CHECKS PASSED - Pipeline ready for Kaggle retraining
+============================================================
+
+--------------------------------------------------
+
+========================================
+Analyzing tcn-baseline.ipynb
+========================================
+Cell #4 Source Code Snippet:
+class RampedCEFocalOrdinalLoss(nn.Module):
+    """CE-anchored objective with light focal/ordinal auxiliaries ramped in after warmup."""
+    def __init__(
+        self,
+        n_classes,
+        class_weights=None,
+        label_smoothing=0.05,
+        focal_gamma=1.0,
+        focal_alpha=0.15,
+    ...
+Cell #4 Output:
+  Split  Accuracy  Macro_F1  Weighted_F1       AUC       QWK    ChgAcc  \
+0   Val  0.922274  0.835259     0.922692  0.961136  0.870041  0.014925   
+1  Test  0.923970  0.822233     0.924201  0.950575  0.873787  0.023077   
+
+   PersistenceRate  
+0         0.997680  
+1         0.995937  
+--------------------------------------------------
+Cell #5 Source Code Snippet:
+if 'history_df' not in globals():
+    raise RuntimeError('Khong tim thay history_df. Hay chay lai cell huan luyen truoc.')
+
+def _best_row(df, col, mode='min'):
+    if col not in df.columns:
+        raise RuntimeError(f'Thieu cot {col} trong history_df.')
+    idx = df[col].idxmin() if mode == 'min' e...
+Cell #5 Output:
+                Metric  BestValue  BestEpoch
+0           Train Loss   0.280008         64
+1             Val Loss   0.289599         28
+2       Train Accuracy   0.928512         72
+3         Val Accuracy   0.923434         14
+4         Val Macro_F1   0.842731         14
+5           Val ChgAcc   0.089552          1
+6       Final Loss Gap   0.006673        100
+7  Final ValLoss Drift   0.003188        100
+8  ValLoss Last10 Mean   0.292796        100
+9   ValLoss Last10 Std   0.000012        100
+--------------------------------------------------
+Cell #6 Source Code Snippet:
+if 'model' not in globals() or 'test_loader' not in globals():
+    raise RuntimeError('Khong tim thay model/test_loader. Hay chay cell huan luyen truoc.')
+
+from sklearn.metrics import confusion_matrix, classification_report
+
+model.eval()
+all_y_true, all_y_pred, all_logits = [], [], []
+
+with torch.no...
+Cell #6 Output:
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.6167    0.6271    0.6218        59
+           1     0.8796    0.8891    0.8843       559
+           2     0.9636    0.9575    0.9605      1105
+
+    accuracy                         0.9240      1723
+   macro avg     0.8200    0.8246    0.8222      1723
+weighted avg     0.9245    0.9240    0.9242      1723
+
+--- TEST SET EVALUATION ---
+Accuracy: 0.9240
+Precision (Weighted): 0.9245
+Recall (Weighted):    0.9240
+F1-macro:            0.8222
+F1-weighted:         0.9242
+QWK (Quadratic Weighted Kappa): 0.8738
+AUC: 0.9584
+---------------------------
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/tcn_test_classification_report.csv
+
+--------------------------------------------------
+Cell #9 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import sys, subprocess, os
+    from pathlib import Path
+    import num...
+Cell #9 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/deep_learning_lime_explanation_test_idx_1144.html
+LIME Local Explanation Details:
+  t-0__debt_equity_ratio > 0.50  : +0.0481
+  t-0__current_ratio <= -0.62    : -0.0246
+  t-2__debt_equity_ratio > 0.68  : +0.0208
+  t-0__net_profit_margin <= -0.45 : +0.0185
+  t-0__gross_profit_margin <= -0.40 : +0.0164
+  t-2__roa_delta <= 0.00         : -0.0114
+  t-2__current_ratio <= -0.54    : -0.0112
+  t-2__free_cashflow_ps_delta > 0.00 : +0.0109
+  t-0__operating_cashflow_ps_delta <= 0.00 : -0.0088
+  t-3__debt_equity_ratio > 0.79  : +0.0087
+
+--- Explaining instance at test index 1349 ---
+
+--------------------------------------------------
+Cell #9 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import sys, subprocess, os
+    from pathlib import Path
+    import num...
+Cell #9 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/deep_learning_lime_explanation_test_idx_1349.html
+LIME Local Explanation Details:
+  t-0__debt_equity_ratio <= -0.34 : -0.0310
+  t-0__roa > 0.39                : -0.0180
+  t-2__pretax_profit_margin > 0.39 : -0.0163
+  t-0__gross_profit_margin > 0.33 : -0.0158
+  t-2__net_profit_margin > 0.28  : -0.0139
+  t-2__roe > 0.30                : -0.0138
+  t-2__debt_equity_ratio <= -0.32 : -0.0127
+  t-0__roe > 0.42                : -0.0123
+  -0.14 < t-0__pretax_profit_margin <= 0.59 : -0.0118
+  t-1__debt_equity_ratio <= -0.34 : -0.0086
+
+--- Explaining instance at test index 1715 ---
+
+--------------------------------------------------
+Cell #9 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import sys, subprocess, os
+    from pathlib import Path
+    import num...
+Cell #9 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/deep_learning_lime_explanation_test_idx_1715.html
+LIME Local Explanation Details:
+  t-0__free_cashflow_ps <= -0.34 : +0.0626
+  t-0__pretax_profit_margin > 0.59 : -0.0278
+  t-0__roa <= -0.46              : +0.0201
+  t-0__operating_cashflow_ps_delta <= 0.00 : -0.0188
+  -0.48 < t-0__asset_turnover <= -0.04 : -0.0169
+  t-2__roe <= -0.55              : +0.0147
+  t-2__roa <= -0.58              : +0.0142
+  t-0__operating_cashflow_ps <= -0.54 : -0.0139
+  t-0__net_profit_margin_delta <= 0.00 : +0.0136
+  t-2__operating_cashflow_ps_delta <= 0.00 : -0.0114
+
+--------------------------------------------------
+
+========================================
+Analyzing lstm-baseline.ipynb
+========================================
+Cell #6 Source Code Snippet:
+LSTM_FINAL_CONFIG = dict(DEFAULT_LSTM_CONFIG)
+if 'selected_lstm_config' in globals():
+    LSTM_FINAL_CONFIG.update(selected_lstm_config)
+print('LSTM final config:', LSTM_FINAL_CONFIG)
+
+
+def build_moderate_class_weights(samples, n_classes, max_weight=2.0):
+    targets = np.array([sample[3] for sample...
+Cell #6 Output:
+  Split  Accuracy  Macro_F1  Weighted_F1       AUC       QWK    ChgAcc  \
+0   Val  0.918794  0.814685     0.918730  0.959574  0.862264  0.029851   
+1  Test  0.925131  0.832052     0.925439  0.947931  0.875955  0.046154   
+
+   PersistenceRate  
+0         0.991879  
+1         0.993616  
+--------------------------------------------------
+Cell #7 Source Code Snippet:
+if 'history_df' not in globals():
+    raise RuntimeError('Khong tim thay history_df. Hay chay lai cell huan luyen truoc.')
+
+def _best_row(df, col, mode='min'):
+    if col not in df.columns:
+        raise RuntimeError(f'Thieu cot {col} trong history_df.')
+    idx = df[col].idxmin() if mode == 'min' e...
+Cell #7 Output:
+                Metric  BestValue  BestEpoch
+0           Train Loss   0.289831         99
+1             Val Loss   0.287106         91
+2       Train Accuracy   0.925029        100
+3         Val Accuracy   0.922274          2
+4         Val Macro_F1   0.838668         32
+5           Val ChgAcc   0.029851         32
+6       Final Loss Gap  -0.006830        100
+7  Final ValLoss Drift   0.000337        100
+8  ValLoss Last10 Mean   0.287493        100
+9   ValLoss Last10 Std   0.000172        100
+--------------------------------------------------
+Cell #8 Source Code Snippet:
+if 'model' not in globals() or 'test_loader' not in globals():
+    raise RuntimeError('Khong tim thay model/test_loader. Hay chay cell huan luyen truoc.')
+
+from sklearn.metrics import confusion_matrix, classification_report
+
+model.eval()
+all_y_true, all_y_pred, all_logits = [], [], []
+
+with torch.no...
+Cell #8 Output:
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.6393    0.6610    0.6500        59
+           1     0.8814    0.8909    0.8861       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9251      1723
+   macro avg     0.8281    0.8362    0.8321      1723
+weighted avg     0.9258    0.9251    0.9254      1723
+
+Saved: /kaggle/working/credit_rating_artifacts/lstm_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/lstm_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/lstm_test_classification_report.csv
+
+--------------------------------------------------
+Cell #9 Source Code Snippet:
+# ============================================================
+# xAI SHAP Interpretation - Financial Feature Surrogate
+# ============================================================
+SHAP_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lstm'
+XAI_MODEL_LABEL = 'LSTM'
+XAI_SURROGATE_VIEW = 'sequence_window'
+S...
+Cell #9 Output:
+[INFO] Financial-feature surrogate fitted for LSTM using sequence_window.
+[INFO] Features (24): ['current_ratio', 'debt_equity_ratio', 'gross_profit_margin', 'operating_profit_margin', 'ebit_margin', 'pretax_profit_margin', 'net_profit_margin', 'asset_turnover', 'roe', 'roa', 'operating_cashflow_ps', 'free_cashflow_ps', 'current_ratio_delta', 'debt_equity_ratio_delta', 'gross_profit_margin_delta', 'operating_profit_margin_delta', 'ebit_margin_delta', 'pretax_profit_margin_delta', 'net_profit_margin_delta', 'asset_turnover_delta', 'roe_delta', 'roa_delta', 'operating_cashflow_ps_delta', 'free_cashflow_ps_delta']
+[INFO] Surrogate fidelity vs model | Train acc=0.9396, mse=0.019335 | Test acc=0.8578, mse=0.038289
+[WARN] LIME/SHAP explain this financial-feature surrogate, not the full internal model directly.
+Initializing SHAP KernelExplainer on financial-feature surrogate...
+Background rows=80, explained test rows=80
+
+--------------------------------------------------
+Cell #9 Source Code Snippet:
+# ============================================================
+# xAI SHAP Interpretation - Financial Feature Surrogate
+# ============================================================
+SHAP_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lstm'
+XAI_MODEL_LABEL = 'LSTM'
+XAI_SURROGATE_VIEW = 'sequence_window'
+S...
+Cell #9 Output:
+
+[SHAP Local Decision] test_index=744 | predicted_class=1 | proba=0.8613
+  Supports predicted class:
+    + pretax_profit_margin=-0.7247 | shap=+0.14224
+    + debt_equity_ratio=1.3629 | shap=+0.12633
+    + roe=-1.1982 | shap=+0.05907
+    + net_profit_margin=-0.8362 | shap=+0.04714
+    + roa=-1.0163 | shap=+0.03294
+  Opposes predicted class:
+
+[SHAP Local Decision] test_index=669 | predicted_class=2 | proba=0.9557
+  Supports predicted class:
+    + pretax_profit_margin=1.6571 | shap=+0.16871
+    + net_profit_margin=1.6998 | shap=+0.11376
+    + debt_equity_ratio=-0.9511 | shap=+0.07987
+    + roe=-0.1539 | shap=+0.03237
+    + free_cashflow_ps_delta=0.0833 | shap=+0.01563
+  Opposes predicted class:
+    - current_ratio=2.0627 | shap=-0.11965
+
+[SHAP Local Decision] test_index=198 | predicted_class=2 | proba=0.9433
+  Supports predicted class:
+    + pretax_profit_margin=1.3134 | shap=+0.10617
+    + debt_equity_ratio=-0.5568 | shap=+0.07868
+    + net_profit_margin=0.8760 | shap=+0.06001
+    + gross_profit_margin=0.8906 | shap=+0.03058
+    + roe=1.1751 | shap=+0.03026
+  Opposes predicted class:
+    - debt_equity_ratio_delta=-0.0336 | shap=-0.02473
+    - asset_turnover_delta=-0.0830 | shap=-0.01333
+    - current_ratio=0.2211 | shap=-0.00785
+
+[SHAP Local Decision] test_index=1619 | predicted_class=1 | proba=0.9489
+  Supports predicted class:
+    + roe=-4.2930 | shap=+0.15718
+    + pretax_profit_margin=-0.2532 | shap=+0.11382
+    + current_ratio=0.9928 | shap=+0.04670
+    + net_profit_margin
+--------------------------------------------------
+Cell #11 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lstm'
+XAI_MODEL_LABEL = 'LSTM'
+XAI_SURROGATE_VIEW = 'sequence_window'
+L...
+Cell #11 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/lstm_financial_lime_test_idx_1127.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  opposes predicted class   | debt_equity_ratio > 0.46                      | weight=-0.0876
+  supports predicted class  | -0.42 < current_ratio <= -0.00                | weight=+0.0387
+  supports predicted class  | -0.01 < roe <= 0.53                           | weight=+0.0367
+  opposes predicted class   | -0.46 < pretax_profit_margin <= 0.00          | weight=-0.0314
+  opposes predicted class   | -0.43 < net_profit_margin <= -0.00            | weight=-0.0219
+  opposes predicted class   | debt_equity_ratio_delta > 0.01                | weight=-0.0199
+  opposes predicted class   | -0.45 < gross_profit_margin <= 0.00           | weight=-0.0154
+  supports predicted class  | -0.45 < ebit_margin <= -0.00                  | weight=+0.0131
+  opposes predicted class   | net_profit_margin_delta <= -0.00              | weight=-0.0109
+  supports predicted class  | -0.45 < operating_profit_margin <= -0.00      | weight=+0.0078
+
+--- Test index 153 | LSTM predicted class=2 ---
+
+--------------------------------------------------
+Cell #11 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lstm'
+XAI_MODEL_LABEL = 'LSTM'
+XAI_SURROGATE_VIEW = 'sequence_window'
+L...
+Cell #11 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/lstm_financial_lime_test_idx_153.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  supports predicted class  | pretax_profit_margin > 0.51                   | weight=+0.1185
+  supports predicted class  | roe > 0.53                                    | weight=+0.0486
+  supports predicted class  | net_profit_margin > 0.53                      | weight=+0.0479
+  opposes predicted class   | -0.00 < current_ratio <= 0.55                 | weight=-0.0279
+  opposes predicted class   | ebit_margin > 0.53                            | weight=-0.0255
+  opposes predicted class   | operating_profit_margin > 0.53                | weight=-0.0201
+  supports predicted class  | -0.03 < debt_equity_ratio <= 0.46             | weight=+0.0200
+  supports predicted class  | -0.00 < debt_equity_ratio_delta <= 0.00       | weight=+0.0195
+  opposes predicted class   | -0.07 < operating_cashflow_ps_delta <= 0.00   | weight=-0.0091
+  supports predicted class  | -0.01 < roe_delta <= 0.00                     | weight=+0.0089
+
+--- Test index 1332 | LSTM predicted class=1 ---
+
+--------------------------------------------------
+Cell #11 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lstm'
+XAI_MODEL_LABEL = 'LSTM'
+XAI_SURROGATE_VIEW = 'sequence_window'
+L...
+Cell #11 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/lstm_financial_lime_test_idx_1332.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  supports predicted class  | pretax_profit_margin <= -0.46                 | weight=+0.1326
+  supports predicted class  | -0.00 < current_ratio <= 0.55                 | weight=+0.0281
+  supports predicted class  | -0.43 < net_profit_margin <= -0.00            | weight=+0.0225
+  opposes predicted class   | debt_equity_ratio <= -0.51                    | weight=-0.0215
+  opposes predicted class   | operating_profit_margin <= -0.45              | weight=-0.0196
+  opposes predicted class   | roe > 0.53                                    | weight=-0.0195
+  opposes predicted class   | roa > 0.57                                    | weight=-0.0153
+  supports predicted class  | free_cashflow_ps <= -0.37                     | weight=+0.0134
+  supports predicted class  | gross_profit_margin <= -0.45                  | weight=+0.0113
+  supports predicted class  | operating_cashflow_ps <= -0.38                | weight=+0.0103
+Saved local LIME decision explanations to: /kaggle/working/credit_rating_artifacts/lstm_financial_lime_local_decisions.csv
+
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# [AUTO] EXPORT OOF PROBABILITIES + DMF CSV CONTRACT
+# Luu xac suat val/test cho Ensemble va file CSV co row_id de dung trong DMF/DCS.
+# Chay cell nay SAU KHI notebook da huan luyen xong.
+
+import numpy as np
+import torch
+
+_MODEL_KEY = 'lstm'
+
+
+def _as_list(values):
+    if values is None:
+        ret...
+Cell #15 Output:
+[AUTO] Trich xuat du lieu tren thiet bi: cpu...
+[AUTO] Trich xuat thanh cong val_proba, y_val, test_proba, y_test va metadata!
+[OK] Saved val_proba  -> /kaggle/working/credit_rating_artifacts/lstm_val_proba.npy
+[OK] Saved test_proba -> /kaggle/working/credit_rating_artifacts/lstm_test_proba.npy
+[OK] Saved y_val      -> /kaggle/working/credit_rating_artifacts/lstm_y_val.npy
+[OK] Saved y_test     -> /kaggle/working/credit_rating_artifacts/lstm_y_test.npy
+[OK] Saved DMF val CSV  -> /kaggle/working/credit_rating_artifacts/dmf_gat_lstm/lstm_val_predictions.csv
+[OK] Saved DMF test CSV -> /kaggle/working/credit_rating_artifacts/dmf_gat_lstm/lstm_test_predictions.csv
+  split       row_id ticker rating_date  true_label true_label_name  \
+0  test  test_000040    AAL  2013-11-12           1               1   
+1  test  test_000815    AAP  2013-05-29           2               2   
+2  test  test_000326    AAP  2013-11-25           2               2   
+3  test  test_000813   AAPL  2015-05-28           2               2   
+4  test  test_000387   AAPL  2016-06-03           2               2   
+
+   pred_label pred_label_name  confidence    prob_0    prob_1    prob_2  
+0           1               1    0.919339  0.078579  0.919339  0.002081  
+1           2               2    0.936195  0.038305  0.025500  0.936195  
+2           2               2    0.951895  0.031017  0.017088  0.951895  
+3           2               2    0.945485  0.034519  0.019996  0.945485  
+4           2               2    0.
+--------------------------------------------------
+
+========================================
+Analyzing patchtst-baseline.ipynb
+========================================
+Cell #9 Source Code Snippet:
+class RampedCEFocalOrdinalLoss(nn.Module):
+    """CE-anchored objective with light focal/ordinal auxiliaries ramped in after warmup."""
+    def __init__(
+        self,
+        n_classes,
+        class_weights=None,
+        label_smoothing=0.05,
+        focal_gamma=1.0,
+        focal_alpha=0.15,
+    ...
+Cell #9 Output:
+  Split  Accuracy  Macro_F1  Weighted_F1       AUC       QWK    ChgAcc  \
+0   Val  0.921114  0.831117     0.921677  0.958197  0.868723  0.000000   
+1  Test  0.923970  0.834478     0.924165  0.952839  0.876405  0.007692   
+
+   PersistenceRate  
+0         0.998840  
+1         0.997678  
+--------------------------------------------------
+Cell #11 Source Code Snippet:
+if 'history_df' not in globals():
+    raise RuntimeError('Khong tim thay history_df. Hay chay lai cell huan luyen truoc.')
+
+def _best_row(df, col, mode='min'):
+    if col not in df.columns:
+        raise RuntimeError(f'Thieu cot {col} trong history_df.')
+    idx = df[col].idxmin() if mode == 'min' e...
+Cell #11 Output:
+                Metric  BestValue  BestEpoch
+0           Train Loss   0.273557         60
+1             Val Loss   0.283095          6
+2       Train Accuracy   0.928015         84
+3         Val Accuracy   0.924594         11
+4         Val Macro_F1   0.840492         11
+5           Val ChgAcc   0.223881          1
+6       Final Loss Gap   0.020916        100
+7  Final ValLoss Drift   0.012692        100
+8  ValLoss Last10 Mean   0.295814        100
+9   ValLoss Last10 Std   0.000030        100
+--------------------------------------------------
+Cell #13 Source Code Snippet:
+if 'model' not in globals() or 'test_loader' not in globals():
+    raise RuntimeError('Khong tim thay model/test_loader. Hay chay cell huan luyen truoc.')
+
+from sklearn.metrics import confusion_matrix, classification_report
+
+model.eval()
+all_y_true, all_y_pred, all_logits = [], [], []
+
+with torch.no...
+Cell #13 Output:
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.6610    0.6610    0.6610        59
+           1     0.8768    0.8909    0.8838       559
+           2     0.9626    0.9548    0.9587      1105
+
+    accuracy                         0.9240      1723
+   macro avg     0.8335    0.8355    0.8345      1723
+weighted avg     0.9244    0.9240    0.9242      1723
+
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/patchtst_test_classification_report.csv
+
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# ============================================================
+# xAI SHAP Interpretation - Financial Feature Surrogate
+# ============================================================
+SHAP_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'patchtst'
+XAI_MODEL_LABEL = 'PatchTST'
+XAI_SURROGATE_VIEW = 'sequence_w...
+Cell #15 Output:
+[INFO] Financial-feature surrogate fitted for PatchTST using sequence_window.
+[INFO] Features (24): ['current_ratio', 'debt_equity_ratio', 'gross_profit_margin', 'operating_profit_margin', 'ebit_margin', 'pretax_profit_margin', 'net_profit_margin', 'asset_turnover', 'roe', 'roa', 'operating_cashflow_ps', 'free_cashflow_ps', 'current_ratio_delta', 'debt_equity_ratio_delta', 'gross_profit_margin_delta', 'operating_profit_margin_delta', 'ebit_margin_delta', 'pretax_profit_margin_delta', 'net_profit_margin_delta', 'asset_turnover_delta', 'roe_delta', 'roa_delta', 'operating_cashflow_ps_delta', 'free_cashflow_ps_delta']
+[INFO] Surrogate fidelity vs model | Train acc=0.9423, mse=0.017484 | Test acc=0.8770, mse=0.035587
+[WARN] LIME/SHAP explain this financial-feature surrogate, not the full internal model directly.
+Initializing SHAP KernelExplainer on financial-feature surrogate...
+Background rows=80, explained test rows=80
+
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# ============================================================
+# xAI SHAP Interpretation - Financial Feature Surrogate
+# ============================================================
+SHAP_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'patchtst'
+XAI_MODEL_LABEL = 'PatchTST'
+XAI_SURROGATE_VIEW = 'sequence_w...
+Cell #15 Output:
+
+[SHAP Local Decision] test_index=744 | predicted_class=1 | proba=0.9494
+  Supports predicted class:
+    + pretax_profit_margin=-0.9524 | shap=+0.13065
+    + roe=-2.0098 | shap=+0.12345
+    + debt_equity_ratio=1.0501 | shap=+0.12261
+    + net_profit_margin=-1.1080 | shap=+0.03888
+    + roa=-1.5816 | shap=+0.03499
+  Opposes predicted class:
+
+[SHAP Local Decision] test_index=669 | predicted_class=2 | proba=0.9462
+  Supports predicted class:
+    + pretax_profit_margin=1.4994 | shap=+0.17044
+    + net_profit_margin=1.6032 | shap=+0.07980
+    + debt_equity_ratio=-0.9476 | shap=+0.06656
+    + roe=-0.2126 | shap=+0.02686
+    + asset_turnover=-0.6926 | shap=+0.02307
+  Opposes predicted class:
+    - current_ratio=2.0850 | shap=-0.15494
+
+[SHAP Local Decision] test_index=198 | predicted_class=2 | proba=0.9316
+  Supports predicted class:
+    + pretax_profit_margin=1.4568 | shap=+0.12797
+    + debt_equity_ratio=-0.5295 | shap=+0.07500
+    + net_profit_margin=0.9148 | shap=+0.05676
+    + roe=1.1860 | shap=+0.04435
+    + gross_profit_margin=0.8851 | shap=+0.02888
+  Opposes predicted class:
+
+[SHAP Local Decision] test_index=1619 | predicted_class=1 | proba=0.9230
+  Supports predicted class:
+    + roe=-8.3965 | shap=+0.13429
+    + pretax_profit_margin=-0.3226 | shap=+0.07795
+    + current_ratio=0.9130 | shap=+0.04356
+    + net_profit_margin=-0.3337 | shap=+0.03919
+    + debt_equity_ratio_delta=0.0682 | shap=+0.02504
+  Opposes predicted class:
+
+[SHAP Local Decision] test_index=277 | predicted_
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'patchtst'
+XAI_MODEL_LABEL = 'PatchTST'
+XAI_SURROGATE_VIEW = 'sequence_w...
+Cell #17 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/patchtst_financial_lime_test_idx_1127.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  opposes predicted class   | debt_equity_ratio > 0.45                      | weight=-0.0634
+  supports predicted class  | -0.02 < roe <= 0.53                           | weight=+0.0463
+  opposes predicted class   | -0.46 < pretax_profit_margin <= 0.00          | weight=-0.0390
+  supports predicted class  | -0.42 < current_ratio <= -0.00                | weight=+0.0321
+  opposes predicted class   | debt_equity_ratio_delta > 0.01                | weight=-0.0221
+  supports predicted class  | -0.44 < ebit_margin <= -0.00                  | weight=+0.0159
+  opposes predicted class   | -0.45 < gross_profit_margin <= 0.00           | weight=-0.0159
+  supports predicted class  | 0.00 < gross_profit_margin_delta <= 0.00      | weight=+0.0138
+  opposes predicted class   | -0.43 < net_profit_margin <= -0.00            | weight=-0.0132
+  supports predicted class  | -0.44 < operating_profit_margin <= 0.00       | weight=+0.0127
+
+--- Test index 153 | PatchTST predicted class=2 ---
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'patchtst'
+XAI_MODEL_LABEL = 'PatchTST'
+XAI_SURROGATE_VIEW = 'sequence_w...
+Cell #17 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/patchtst_financial_lime_test_idx_153.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  supports predicted class  | pretax_profit_margin > 0.50                   | weight=+0.1229
+  supports predicted class  | roe > 0.53                                    | weight=+0.0506
+  supports predicted class  | net_profit_margin > 0.52                      | weight=+0.0471
+  opposes predicted class   | ebit_margin > 0.52                            | weight=-0.0297
+  opposes predicted class   | operating_profit_margin > 0.53                | weight=-0.0216
+  supports predicted class  | -0.05 < debt_equity_ratio <= 0.45             | weight=+0.0212
+  opposes predicted class   | -0.00 < current_ratio <= 0.56                 | weight=-0.0194
+  supports predicted class  | roa > 0.56                                    | weight=+0.0189
+  supports predicted class  | -0.01 < debt_equity_ratio_delta <= 0.00       | weight=+0.0182
+  supports predicted class  | gross_profit_margin > 0.55                    | weight=+0.0120
+
+--- Test index 1332 | PatchTST predicted class=1 ---
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'patchtst'
+XAI_MODEL_LABEL = 'PatchTST'
+XAI_SURROGATE_VIEW = 'sequence_w...
+Cell #17 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/patchtst_financial_lime_test_idx_1332.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  supports predicted class  | pretax_profit_margin <= -0.46                 | weight=+0.1439
+  opposes predicted class   | -0.53 < debt_equity_ratio <= -0.05            | weight=-0.0521
+  opposes predicted class   | -0.02 < roe <= 0.53                           | weight=-0.0327
+  opposes predicted class   | operating_profit_margin <= -0.44              | weight=-0.0249
+  opposes predicted class   | ebit_margin <= -0.44                          | weight=-0.0215
+  supports predicted class  | -0.43 < net_profit_margin <= -0.00            | weight=+0.0191
+  supports predicted class  | -0.00 < current_ratio <= 0.56                 | weight=+0.0157
+  supports predicted class  | -0.32 < operating_cashflow_ps <= -0.01        | weight=+0.0089
+  opposes predicted class   | -0.00 < gross_profit_margin_delta <= 0.00     | weight=-0.0083
+  opposes predicted class   | roe_delta > 0.01                              | weight=-0.0077
+Saved local LIME decision explanations to: /kaggle/working/credit_rating_artifacts/patchtst_financial_lime_local_decisions.csv
+
+--------------------------------------------------
+
+========================================
+Analyzing xgboost-baseline.ipynb
+========================================
+Cell #7 Source Code Snippet:
+def compute_metrics(y_true, y_pred, proba, n_cls):
+    acc = accuracy_score(y_true, y_pred)
+    f1m = f1_score(y_true, y_pred, average='macro', zero_division=0)
+    f1w = f1_score(y_true, y_pred, average='weighted', zero_division=0)
+    prec = precision_score(y_true, y_pred, average='weighted', zero...
+Cell #7 Output:
+  Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1  \
+0   Val  0.919954            0.918255         0.919954  0.793214     0.917675   
+1  Test  0.919907            0.918411         0.919907  0.789460     0.918528   
+
+        AUC       QWK  
+0  0.955495  0.857616  
+1  0.962333  0.862428  
+--------------------------------------------------
+Cell #9 Source Code Snippet:
+if 'history_df' not in globals():
+    raise RuntimeError('Khong tim thay history_df. Hay chay lai cell huan luyen truoc.')
+
+def _best_row(df, col, mode='min'):
+    if col not in df.columns:
+        raise RuntimeError(f'Thieu cot {col} trong history_df.')
+    idx = df[col].idxmin() if mode == 'min' e...
+Cell #9 Output:
+           Metric  BestValue  BestEpoch
+0      Train Loss   0.177162        100
+1        Val Loss   0.267952        100
+2  Train Accuracy   0.940123         97
+3    Val Accuracy   0.922274         44
+--------------------------------------------------
+Cell #11 Source Code Snippet:
+id_to_raw_local = {v: k for k, v in raw_to_id.items()} if 'raw_to_id' in globals() else {i: i for i in range(n_classes)}
+class_labels = [str(id_to_raw_local.get(i, i)) for i in range(n_classes)]
+
+cm = confusion_matrix(y_test, test_pred, labels=label_ids)
+cm_df = pd.DataFrame(cm, index=class_labels, ...
+Cell #11 Output:
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.6279    0.4576    0.5294        59
+           1     0.8601    0.9016    0.8803       559
+           2     0.9634    0.9538    0.9586      1105
+
+    accuracy                         0.9199      1723
+   macro avg     0.8171    0.7710    0.7895      1723
+weighted avg     0.9184    0.9199    0.9185      1723
+
+--- TEST SET EVALUATION ---
+Accuracy: 0.9199
+Precision (Weighted): 0.9184
+Recall (Weighted):    0.9199
+F1-macro:            0.7895
+F1-weighted:         0.9185
+QWK (Quadratic Weighted Kappa): 0.8624
+AUC: 0.9641
+---------------------------
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/xgboost_test_classification_report.csv
+
+--------------------------------------------------
+Cell #13 Source Code Snippet:
+# ============================================================
+# xAI SHAP Interpretation - Financial Feature Surrogate
+# ============================================================
+SHAP_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'xgboost'
+XAI_MODEL_LABEL = 'XGBoost'
+XAI_SURROGATE_VIEW = 'tabular_wind...
+Cell #13 Output:
+[INFO] Financial-feature surrogate fitted for XGBoost using tabular_window.
+[INFO] Features (24): ['current_ratio', 'debt_equity_ratio', 'gross_profit_margin', 'operating_profit_margin', 'ebit_margin', 'pretax_profit_margin', 'net_profit_margin', 'asset_turnover', 'roe', 'roa', 'operating_cashflow_ps', 'free_cashflow_ps', 'current_ratio_delta', 'debt_equity_ratio_delta', 'gross_profit_margin_delta', 'operating_profit_margin_delta', 'ebit_margin_delta', 'pretax_profit_margin_delta', 'net_profit_margin_delta', 'asset_turnover_delta', 'roe_delta', 'roa_delta', 'operating_cashflow_ps_delta', 'free_cashflow_ps_delta']
+[INFO] Surrogate fidelity vs model | Train acc=0.9361, mse=0.016860 | Test acc=0.8659, mse=0.033333
+[WARN] LIME/SHAP explain this financial-feature surrogate, not the full internal model directly.
+Initializing SHAP KernelExplainer on financial-feature surrogate...
+Background rows=80, explained test rows=80
+
+--------------------------------------------------
+Cell #13 Source Code Snippet:
+# ============================================================
+# xAI SHAP Interpretation - Financial Feature Surrogate
+# ============================================================
+SHAP_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'xgboost'
+XAI_MODEL_LABEL = 'XGBoost'
+XAI_SURROGATE_VIEW = 'tabular_wind...
+Cell #13 Output:
+
+[SHAP Local Decision] test_index=744 | predicted_class=1 | proba=0.8959
+  Supports predicted class:
+    + pretax_profit_margin=-0.7247 | shap=+0.16440
+    + debt_equity_ratio=1.3629 | shap=+0.13182
+    + roe=-1.1982 | shap=+0.06656
+    + net_profit_margin=-0.8362 | shap=+0.04952
+    + roa=-1.0163 | shap=+0.03769
+  Opposes predicted class:
+
+[SHAP Local Decision] test_index=669 | predicted_class=2 | proba=0.9638
+  Supports predicted class:
+    + pretax_profit_margin=1.6571 | shap=+0.14517
+    + net_profit_margin=1.6998 | shap=+0.07674
+    + debt_equity_ratio=-0.9511 | shap=+0.07428
+    + roe=-0.1539 | shap=+0.02911
+    + free_cashflow_ps_delta=0.0833 | shap=+0.01306
+  Opposes predicted class:
+    - current_ratio=2.0627 | shap=-0.10661
+
+[SHAP Local Decision] test_index=198 | predicted_class=2 | proba=0.9676
+  Supports predicted class:
+    + pretax_profit_margin=1.3134 | shap=+0.11350
+    + debt_equity_ratio=-0.5568 | shap=+0.07378
+    + net_profit_margin=0.8760 | shap=+0.04037
+    + gross_profit_margin=0.8906 | shap=+0.02981
+    + roe=1.1751 | shap=+0.02492
+  Opposes predicted class:
+    - debt_equity_ratio_delta=-0.0336 | shap=-0.02029
+
+[SHAP Local Decision] test_index=1619 | predicted_class=1 | proba=0.8960
+  Supports predicted class:
+    + roe=-4.2930 | shap=+0.16200
+    + pretax_profit_margin=-0.2532 | shap=+0.09614
+    + current_ratio=0.9928 | shap=+0.04743
+    + net_profit_margin=-0.3279 | shap=+0.03120
+    + gross_profit_margin=-0.4364 | shap=+0.03049
+  Opposes predicted
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'xgboost'
+XAI_MODEL_LABEL = 'XGBoost'
+XAI_SURROGATE_VIEW = 'tabular_wind...
+Cell #15 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/xgboost_financial_lime_test_idx_1127.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  opposes predicted class   | debt_equity_ratio > 0.46                      | weight=-0.0747
+  supports predicted class  | -0.01 < roe <= 0.53                           | weight=+0.0413
+  supports predicted class  | -0.42 < current_ratio <= -0.00                | weight=+0.0267
+  opposes predicted class   | -0.46 < pretax_profit_margin <= 0.00          | weight=-0.0258
+  opposes predicted class   | debt_equity_ratio_delta > 0.01                | weight=-0.0175
+  opposes predicted class   | -0.45 < gross_profit_margin <= 0.00           | weight=-0.0169
+  opposes predicted class   | -0.43 < net_profit_margin <= -0.00            | weight=-0.0132
+  supports predicted class  | -0.45 < ebit_margin <= -0.00                  | weight=+0.0111
+  opposes predicted class   | pretax_profit_margin_delta <= -0.01           | weight=-0.0101
+  supports predicted class  | 0.00 < current_ratio_delta <= 0.01            | weight=+0.0101
+
+--- Test index 153 | XGBoost predicted class=2 ---
+
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'xgboost'
+XAI_MODEL_LABEL = 'XGBoost'
+XAI_SURROGATE_VIEW = 'tabular_wind...
+Cell #15 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/xgboost_financial_lime_test_idx_153.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  supports predicted class  | pretax_profit_margin > 0.51                   | weight=+0.1160
+  supports predicted class  | roe > 0.53                                    | weight=+0.0439
+  supports predicted class  | net_profit_margin > 0.53                      | weight=+0.0339
+  opposes predicted class   | -0.00 < current_ratio <= 0.55                 | weight=-0.0309
+  opposes predicted class   | ebit_margin > 0.53                            | weight=-0.0238
+  supports predicted class  | -0.00 < debt_equity_ratio_delta <= 0.00       | weight=+0.0172
+  opposes predicted class   | operating_profit_margin > 0.53                | weight=-0.0159
+  supports predicted class  | roa > 0.57                                    | weight=+0.0149
+  opposes predicted class   | -0.07 < operating_cashflow_ps_delta <= 0.00   | weight=-0.0090
+  supports predicted class  | -0.00 < free_cashflow_ps <= 0.47              | weight=+0.0084
+
+--- Test index 1332 | XGBoost predicted class=1 ---
+
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'xgboost'
+XAI_MODEL_LABEL = 'XGBoost'
+XAI_SURROGATE_VIEW = 'tabular_wind...
+Cell #15 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/xgboost_financial_lime_test_idx_1332.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  supports predicted class  | pretax_profit_margin <= -0.46                 | weight=+0.1483
+  supports predicted class  | -0.00 < current_ratio <= 0.55                 | weight=+0.0320
+  opposes predicted class   | debt_equity_ratio <= -0.51                    | weight=-0.0243
+  opposes predicted class   | roe > 0.53                                    | weight=-0.0212
+  opposes predicted class   | roa > 0.57                                    | weight=-0.0184
+  opposes predicted class   | operating_profit_margin <= -0.45              | weight=-0.0154
+  supports predicted class  | -0.43 < net_profit_margin <= -0.00            | weight=+0.0146
+  supports predicted class  | free_cashflow_ps <= -0.37                     | weight=+0.0117
+  opposes predicted class   | ebit_margin <= -0.45                          | weight=-0.0110
+  supports predicted class  | gross_profit_margin <= -0.45                  | weight=+0.0102
+Saved local LIME decision explanations to: /kaggle/working/credit_rating_artifacts/xgboost_financial_lime_local_decisions.csv
+
+--------------------------------------------------
+Cell #19 Source Code Snippet:
+metric_sources = [
+    ('LSTM', ARTIFACT_DIR / 'lstm_metrics.csv'),
+    ('LightGBM', ARTIFACT_DIR / 'lightgbm_metrics.csv'),
+    ('XGBoost', ARTIFACT_DIR / 'xgboost_metrics.csv'),
+]
+
+frames = []
+for model_name, path in metric_sources:
+    if path.exists():
+        cur = pd.read_csv(path)
+        cur...
+Cell #19 Output:
+     Model Split  Accuracy  Macro_F1       AUC       QWK
+0  XGBoost  Test  0.919907  0.789460  0.962333  0.862428
+1  XGBoost   Val  0.919954  0.793214  0.955495  0.857616
+--------------------------------------------------
+Cell #19 Source Code Snippet:
+metric_sources = [
+    ('LSTM', ARTIFACT_DIR / 'lstm_metrics.csv'),
+    ('LightGBM', ARTIFACT_DIR / 'lightgbm_metrics.csv'),
+    ('XGBoost', ARTIFACT_DIR / 'xgboost_metrics.csv'),
+]
+
+frames = []
+for model_name, path in metric_sources:
+    if path.exists():
+        cur = pd.read_csv(path)
+        cur...
+Cell #19 Output:
+Saved: /kaggle/working/credit_rating_artifacts/benchmark_model_comparison.csv
+Best Val by Macro_F1: XGBoost (0.7932)
+Best Test by Macro_F1: XGBoost (0.7895)
+
+--------------------------------------------------
+
+========================================
+Analyzing lightgbm-baseline.ipynb
+========================================
+Cell #7 Source Code Snippet:
+def compute_metrics(y_true, y_pred, proba, n_cls):
+    acc = accuracy_score(y_true, y_pred)
+    f1m = f1_score(y_true, y_pred, average='macro', zero_division=0)
+    f1w = f1_score(y_true, y_pred, average='weighted', zero_division=0)
+    prec = precision_score(y_true, y_pred, average='weighted', zero...
+Cell #7 Output:
+[LightGBM] [Info] Auto-choosing col-wise multi-threading, the overhead of testing was 0.005307 seconds.
+You can set `force_col_wise=true` to remove the overhead.
+[LightGBM] [Info] Total Bins 24492
+[LightGBM] [Info] Number of data points in the train set: 6029, number of used features: 98
+[LightGBM] [Info] Start training from score -3.371618
+[LightGBM] [Info] Start training from score -1.125168
+[LightGBM] [Info] Start training from score -0.444619
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+Training until validation scores don't improve for 80 rounds
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [Warning] No further splits with positive gain, best gain: -inf
+[LightGBM] [W
+--------------------------------------------------
+Cell #7 Source Code Snippet:
+def compute_metrics(y_true, y_pred, proba, n_cls):
+    acc = accuracy_score(y_true, y_pred)
+    f1m = f1_score(y_true, y_pred, average='macro', zero_division=0)
+    f1w = f1_score(y_true, y_pred, average='weighted', zero_division=0)
+    prec = precision_score(y_true, y_pred, average='weighted', zero...
+Cell #7 Output:
+  Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1  \
+0   Val  0.919954            0.918283         0.919954  0.799187     0.918178   
+1  Test  0.918746            0.917803         0.918746  0.797017     0.918020   
+
+        AUC       QWK  
+0  0.956322  0.858850  
+1  0.963067  0.862205  
+--------------------------------------------------
+Cell #9 Source Code Snippet:
+if 'history_df' not in globals():
+    raise RuntimeError('Khong tim thay history_df. Hay chay lai cell huan luyen truoc.')
+
+def _best_row(df, col, mode='min'):
+    if col not in df.columns:
+        raise RuntimeError(f'Thieu cot {col} trong history_df.')
+    idx = df[col].idxmin() if mode == 'min' e...
+Cell #9 Output:
+           Metric  BestValue  BestEpoch
+0      Train Loss   0.123161         92
+1        Val Loss   0.266462         92
+2  Train Accuracy   0.961519         92
+3    Val Accuracy   0.922274         51
+--------------------------------------------------
+Cell #11 Source Code Snippet:
+id_to_raw_local = {v: k for k, v in raw_to_id.items()} if 'raw_to_id' in globals() else {i: i for i in range(n_classes)}
+class_labels = [str(id_to_raw_local.get(i, i)) for i in range(n_classes)]
+
+cm = confusion_matrix(y_test, test_pred, labels=label_ids)
+cm_df = pd.DataFrame(cm, index=class_labels, ...
+Cell #11 Output:
+Classification report (test set):
+              precision    recall  f1-score   support
+
+           0     0.6122    0.5085    0.5556        59
+           1     0.8633    0.8927    0.8777       559
+           2     0.9617    0.9538    0.9577      1105
+
+    accuracy                         0.9187      1723
+   macro avg     0.8124    0.7850    0.7970      1723
+weighted avg     0.9178    0.9187    0.9180      1723
+
+--- TEST SET EVALUATION ---
+Accuracy: 0.9187
+Precision (Weighted): 0.9178
+Recall (Weighted):    0.9187
+F1-macro:            0.7970
+F1-weighted:         0.9180
+QWK (Quadratic Weighted Kappa): 0.8622
+AUC: 0.9654
+---------------------------
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_confusion_matrix.png
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_confusion_matrix.csv
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_classification_report.csv
+Saved: /kaggle/working/credit_rating_artifacts/lightgbm_test_classification_report.csv
+
+--------------------------------------------------
+Cell #13 Source Code Snippet:
+# ============================================================
+# xAI SHAP Interpretation - Financial Feature Surrogate
+# ============================================================
+SHAP_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lightgbm'
+XAI_MODEL_LABEL = 'LightGBM'
+XAI_SURROGATE_VIEW = 'tabular_wi...
+Cell #13 Output:
+[INFO] Financial-feature surrogate fitted for LightGBM using tabular_window.
+[INFO] Features (24): ['current_ratio', 'debt_equity_ratio', 'gross_profit_margin', 'operating_profit_margin', 'ebit_margin', 'pretax_profit_margin', 'net_profit_margin', 'asset_turnover', 'roe', 'roa', 'operating_cashflow_ps', 'free_cashflow_ps', 'current_ratio_delta', 'debt_equity_ratio_delta', 'gross_profit_margin_delta', 'operating_profit_margin_delta', 'ebit_margin_delta', 'pretax_profit_margin_delta', 'net_profit_margin_delta', 'asset_turnover_delta', 'roe_delta', 'roa_delta', 'operating_cashflow_ps_delta', 'free_cashflow_ps_delta']
+[INFO] Surrogate fidelity vs model | Train acc=0.9376, mse=0.018128 | Test acc=0.8683, mse=0.035945
+[WARN] LIME/SHAP explain this financial-feature surrogate, not the full internal model directly.
+Initializing SHAP KernelExplainer on financial-feature surrogate...
+Background rows=80, explained test rows=80
+
+--------------------------------------------------
+Cell #13 Source Code Snippet:
+# ============================================================
+# xAI SHAP Interpretation - Financial Feature Surrogate
+# ============================================================
+SHAP_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lightgbm'
+XAI_MODEL_LABEL = 'LightGBM'
+XAI_SURROGATE_VIEW = 'tabular_wi...
+Cell #13 Output:
+
+[SHAP Local Decision] test_index=744 | predicted_class=1 | proba=0.8959
+  Supports predicted class:
+    + pretax_profit_margin=-0.7247 | shap=+0.16208
+    + debt_equity_ratio=1.3629 | shap=+0.13273
+    + roe=-1.1982 | shap=+0.06689
+    + net_profit_margin=-0.8362 | shap=+0.05994
+    + roa=-1.0163 | shap=+0.03197
+  Opposes predicted class:
+
+[SHAP Local Decision] test_index=669 | predicted_class=2 | proba=0.9769
+  Supports predicted class:
+    + pretax_profit_margin=1.6571 | shap=+0.16787
+    + net_profit_margin=1.6998 | shap=+0.08219
+    + debt_equity_ratio=-0.9511 | shap=+0.07334
+    + roe=-0.1539 | shap=+0.02943
+    + free_cashflow_ps_delta=0.0833 | shap=+0.01407
+  Opposes predicted class:
+    - current_ratio=2.0627 | shap=-0.11040
+
+[SHAP Local Decision] test_index=198 | predicted_class=2 | proba=0.9779
+  Supports predicted class:
+    + pretax_profit_margin=1.3134 | shap=+0.12106
+    + debt_equity_ratio=-0.5568 | shap=+0.07721
+    + net_profit_margin=0.8760 | shap=+0.03400
+    + gross_profit_margin=0.8906 | shap=+0.02997
+    + roe=1.1751 | shap=+0.02893
+  Opposes predicted class:
+    - debt_equity_ratio_delta=-0.0336 | shap=-0.02019
+
+[SHAP Local Decision] test_index=1619 | predicted_class=1 | proba=0.9423
+  Supports predicted class:
+    + roe=-4.2930 | shap=+0.16746
+    + pretax_profit_margin=-0.2532 | shap=+0.10256
+    + current_ratio=0.9928 | shap=+0.05235
+    + net_profit_margin=-0.3279 | shap=+0.03378
+    + gross_profit_margin=-0.4364 | shap=+0.03254
+  Opposes predicted
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lightgbm'
+XAI_MODEL_LABEL = 'LightGBM'
+XAI_SURROGATE_VIEW = 'tabular_wi...
+Cell #15 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/lightgbm_financial_lime_test_idx_1127.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  opposes predicted class   | debt_equity_ratio > 0.46                      | weight=-0.0781
+  supports predicted class  | -0.01 < roe <= 0.53                           | weight=+0.0400
+  supports predicted class  | -0.42 < current_ratio <= -0.00                | weight=+0.0312
+  opposes predicted class   | -0.46 < pretax_profit_margin <= 0.00          | weight=-0.0302
+  opposes predicted class   | debt_equity_ratio_delta > 0.01                | weight=-0.0194
+  opposes predicted class   | -0.45 < gross_profit_margin <= 0.00           | weight=-0.0156
+  opposes predicted class   | -0.43 < net_profit_margin <= -0.00            | weight=-0.0145
+  opposes predicted class   | net_profit_margin_delta <= -0.00              | weight=-0.0127
+  supports predicted class  | -0.45 < ebit_margin <= -0.00                  | weight=+0.0116
+  supports predicted class  | 0.00 < current_ratio_delta <= 0.01            | weight=+0.0093
+
+--- Test index 153 | LightGBM predicted class=2 ---
+
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lightgbm'
+XAI_MODEL_LABEL = 'LightGBM'
+XAI_SURROGATE_VIEW = 'tabular_wi...
+Cell #15 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/lightgbm_financial_lime_test_idx_153.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  supports predicted class  | pretax_profit_margin > 0.51                   | weight=+0.1207
+  supports predicted class  | roe > 0.53                                    | weight=+0.0476
+  supports predicted class  | net_profit_margin > 0.53                      | weight=+0.0339
+  opposes predicted class   | -0.00 < current_ratio <= 0.55                 | weight=-0.0313
+  opposes predicted class   | ebit_margin > 0.53                            | weight=-0.0266
+  supports predicted class  | -0.00 < debt_equity_ratio_delta <= 0.00       | weight=+0.0194
+  opposes predicted class   | operating_profit_margin > 0.53                | weight=-0.0176
+  supports predicted class  | roa > 0.57                                    | weight=+0.0135
+  supports predicted class  | -0.03 < debt_equity_ratio <= 0.46             | weight=+0.0096
+  supports predicted class  | -0.45 < asset_turnover <= 0.02                | weight=+0.0088
+
+--- Test index 1332 | LightGBM predicted class=1 ---
+
+--------------------------------------------------
+Cell #15 Source Code Snippet:
+# ============================================================
+# xAI LIME Interpretation - Financial Feature Surrogate
+# ============================================================
+LIME_FINANCIAL_ENABLED = True
+XAI_MODEL_KEY = 'lightgbm'
+XAI_MODEL_LABEL = 'LightGBM'
+XAI_SURROGATE_VIEW = 'tabular_wi...
+Cell #15 Output:
+Saved financial LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/lightgbm_financial_lime_test_idx_1332.html
+LIME Financial Feature Explanation Details:
+Why this class?
+  supports predicted class  | pretax_profit_margin <= -0.46                 | weight=+0.1455
+  supports predicted class  | -0.00 < current_ratio <= 0.55                 | weight=+0.0316
+  opposes predicted class   | roe > 0.53                                    | weight=-0.0230
+  opposes predicted class   | debt_equity_ratio <= -0.51                    | weight=-0.0208
+  opposes predicted class   | operating_profit_margin <= -0.45              | weight=-0.0181
+  opposes predicted class   | roa > 0.57                                    | weight=-0.0180
+  supports predicted class  | -0.43 < net_profit_margin <= -0.00            | weight=+0.0161
+  supports predicted class  | free_cashflow_ps <= -0.37                     | weight=+0.0132
+  supports predicted class  | gross_profit_margin <= -0.45                  | weight=+0.0113
+  opposes predicted class   | ebit_margin <= -0.45                          | weight=-0.0105
+Saved local LIME decision explanations to: /kaggle/working/credit_rating_artifacts/lightgbm_financial_lime_local_decisions.csv
+
+--------------------------------------------------
+Cell #19 Source Code Snippet:
+metric_sources = [
+    ('LSTM', ARTIFACT_DIR / 'lstm_metrics.csv'),
+    ('LightGBM', ARTIFACT_DIR / 'lightgbm_metrics.csv'),
+    ('XGBoost', ARTIFACT_DIR / 'xgboost_metrics.csv'),
+]
+
+frames = []
+for model_name, path in metric_sources:
+    if path.exists():
+        cur = pd.read_csv(path)
+        cur...
+Cell #19 Output:
+      Model Split  Accuracy  Macro_F1       AUC       QWK
+0  LightGBM  Test  0.918746  0.797017  0.963067  0.862205
+1  LightGBM   Val  0.919954  0.799187  0.956322  0.858850
+--------------------------------------------------
+Cell #19 Source Code Snippet:
+metric_sources = [
+    ('LSTM', ARTIFACT_DIR / 'lstm_metrics.csv'),
+    ('LightGBM', ARTIFACT_DIR / 'lightgbm_metrics.csv'),
+    ('XGBoost', ARTIFACT_DIR / 'xgboost_metrics.csv'),
+]
+
+frames = []
+for model_name, path in metric_sources:
+    if path.exists():
+        cur = pd.read_csv(path)
+        cur...
+Cell #19 Output:
+Saved: /kaggle/working/credit_rating_artifacts/benchmark_model_comparison.csv
+Best Val by Macro_F1: LightGBM (0.7992)
+Best Test by Macro_F1: LightGBM (0.7970)
+
+--------------------------------------------------
+
+========================================
+Analyzing kb7-fi-ttx.ipynb
+========================================
+Cell #13 Source Code Snippet:
+import time
+from sklearn.metrics import roc_curve, auc
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"...
+Cell #13 Output:
+Test Inference/Evaluation Time: 0.037142 seconds
+
+[Val] Acc=0.9234  MacroF1=0.8284  WtF1=0.9229  AUC=0.9581  QWK=0.8681
+
+[Test] Acc=0.9228  MacroF1=0.8060  WtF1=0.9221  AUC=0.9602  QWK=0.8689
+
+--------------------------------------------------
+Cell #13 Source Code Snippet:
+import time
+from sklearn.metrics import roc_curve, auc
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"...
+Cell #13 Output:
+
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6327    0.5254    0.5741        59
+           1     0.8700    0.8980    0.8838       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9228      1723
+   macro avg     0.8221    0.7933    0.8060      1723
+weighted avg     0.9219    0.9228    0.9221      1723
+
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_1127.html
+LIME Local Explanation Details:
+  0.03 < XGBoost__1 <= 0.06      : -0.1024
+  0.12 < Transformer-BiLSTM__1 <= 0.17 : -0.0233
+  0.94 < XGBoost__2 <= 0.96      : -0.0227
+  0.04 < TCN__0 <= 0.04          : +0.0181
+  0.06 < TCN__1 <= 0.84          : +0.0177
+  0.07 < TCN__2 <= 0.90          : +0.0158
+  0.83 < Transformer-BiLSTM__2 <= 0.88 : +0.0013
+  0.00 < XGBoost__0 <= 0.00      : +0.0006
+  Transformer-BiLSTM__0 <= 0.00  : +0.0002
+
+--- Explaining ensemble prediction at test index 153 ---
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_153.html
+LIME Local Explanation Details:
+  TCN__1 <= 0.04                 : -0.1134
+  XGBoost__1 <= 0.03             : -0.1072
+  XGBoost__2 > 0.96              : -0.0392
+  TCN__2 > 0.93                  : -0.0347
+  0.12 < Transformer-BiLSTM__1 <= 0.17 : -0.0230
+  TCN__0 <= 0.03                 : +0.0224
+  0.83 < Transformer-BiLSTM__2 <= 0.88 : -0.0058
+  XGBoost__0 <= 0.00             : +0.0047
+  0.00 < Transformer-BiLSTM__0 <= 0.00 : -0.0025
+
+--- Explaining ensemble prediction at test index 1332 ---
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_1332.html
+LIME Local Explanation Details:
+  TCN__1 > 0.84                  : +0.1798
+  XGBoost__1 > 0.83              : +0.1773
+  TCN__2 <= 0.07                 : +0.0424
+  XGBoost__0 > 0.01              : -0.0330
+  TCN__0 <= 0.03                 : +0.0221
+  0.13 < XGBoost__2 <= 0.94      : +0.0188
+  0.17 < Transformer-BiLSTM__1 <= 0.41 : -0.0036
+  Transformer-BiLSTM__0 <= 0.00  : +0.0003
+  0.59 < Transformer-BiLSTM__2 <= 0.83 : +0.0001
+
+--------------------------------------------------
+Cell #21 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'mu_vec': ens.mu.to_vec().tolist(), 'shapley': ens.get_shapley()}
+with open(ARTIFACT_DIR/'fi_ttx_ensemble.pkl','wb') as _f: ...
+Cell #21 Output:
+    Model Split  Accuracy  Macro_F1  Weighted_F1       AUC       QWK
+0  FI_TTX  Test  0.922809  0.805971     0.922087  0.960217  0.868923
+1  FI_TTX   Val  0.923434  0.828401     0.922914  0.958115  0.868107
+--------------------------------------------------
+Cell #21 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'mu_vec': ens.mu.to_vec().tolist(), 'shapley': ens.get_shapley()}
+with open(ARTIFACT_DIR/'fi_ttx_ensemble.pkl','wb') as _f: ...
+Cell #21 Output:
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FI_TTX
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.923434            0.922670         0.923434  0.828401     0.922914 0.958115 0.868107
+ Test  0.922809            0.921866         0.922809  0.805971     0.922087 0.960217 0.868923
+
+--------------------------------------------------
+
+========================================
+Analyzing kb8-fi-pll.ipynb
+========================================
+Cell #13 Source Code Snippet:
+import time
+from sklearn.metrics import roc_curve, auc
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"...
+Cell #13 Output:
+Test Inference/Evaluation Time: 0.038688 seconds
+
+[Val] Acc=0.9200  MacroF1=0.8064  WtF1=0.9191  AUC=0.9588  QWK=0.8618
+
+[Test] Acc=0.9240  MacroF1=0.8174  WtF1=0.9237  AUC=0.9658  QWK=0.8719
+
+--------------------------------------------------
+Cell #13 Source Code Snippet:
+import time
+from sklearn.metrics import roc_curve, auc
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"...
+Cell #13 Output:
+
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6415    0.5763    0.6071        59
+           1     0.8743    0.8962    0.8852       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9240      1723
+   macro avg     0.8265    0.8097    0.8174      1723
+weighted avg     0.9236    0.9240    0.9237      1723
+
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_1127.html
+LIME Local Explanation Details:
+  0.02 < LightGBM__1 <= 0.04     : -0.0804
+  0.06 < PatchTST__1 <= 0.85     : +0.0154
+  0.06 < LSTM__1 <= 0.82         : +0.0147
+  0.95 < LightGBM__2 <= 0.98     : -0.0146
+  0.03 < LSTM__0 <= 0.04         : +0.0141
+  0.06 < PatchTST__2 <= 0.91     : +0.0107
+  0.07 < LSTM__2 <= 0.91         : +0.0095
+  0.03 < PatchTST__0 <= 0.05     : +0.0071
+  0.00 < LightGBM__0 <= 0.00     : +0.0006
+
+--- Explaining ensemble prediction at test index 153 ---
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_153.html
+LIME Local Explanation Details:
+  LSTM__1 <= 0.03                : -0.0851
+  PatchTST__1 <= 0.03            : -0.0828
+  LightGBM__1 <= 0.02            : -0.0794
+  PatchTST__2 > 0.94             : -0.0269
+  LightGBM__2 > 0.98             : -0.0267
+  LSTM__2 > 0.93                 : -0.0240
+  LSTM__0 <= 0.03                : +0.0202
+  PatchTST__0 <= 0.03            : +0.0120
+  LightGBM__0 <= 0.00            : +0.0026
+
+--- Explaining ensemble prediction at test index 1332 ---
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_1332.html
+LIME Local Explanation Details:
+  LightGBM__1 > 0.86             : +0.1332
+  PatchTST__1 > 0.85             : +0.1307
+  LSTM__1 > 0.82                 : +0.1263
+  LightGBM__0 > 0.01             : -0.0283
+  0.03 < PatchTST__0 <= 0.05     : +0.0201
+  LSTM__0 <= 0.03                : +0.0187
+  0.09 < LightGBM__2 <= 0.95     : +0.0169
+  0.06 < PatchTST__2 <= 0.91     : +0.0117
+  0.07 < LSTM__2 <= 0.91         : +0.0104
+
+--------------------------------------------------
+Cell #21 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'mu_vec': ens.mu.to_vec().tolist(), 'shapley': ens.get_shapley()}
+with open(ARTIFACT_DIR/'fi_pll_ensemble.pkl','wb') as _f: ...
+Cell #21 Output:
+    Model Split  Accuracy  Macro_F1  Weighted_F1       AUC       QWK
+0  FI_PLL  Test  0.923970  0.817446     0.923660  0.965804  0.871944
+1  FI_PLL   Val  0.919954  0.806355     0.919134  0.958838  0.861789
+--------------------------------------------------
+Cell #21 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'mu_vec': ens.mu.to_vec().tolist(), 'shapley': ens.get_shapley()}
+with open(ARTIFACT_DIR/'fi_pll_ensemble.pkl','wb') as _f: ...
+Cell #21 Output:
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FI_PLL
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.919954            0.918717         0.919954  0.806355     0.919134 0.958838 0.861789
+ Test  0.923970            0.923573         0.923970  0.817446     0.923660 0.965804 0.871944
+
+--------------------------------------------------
+
+========================================
+Analyzing kb9-fi-ttlpxl.ipynb
+========================================
+Cell #13 Source Code Snippet:
+import time
+from sklearn.metrics import roc_curve, auc
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"...
+Cell #13 Output:
+Test Inference/Evaluation Time: 0.162647 seconds
+
+[Val] Acc=0.9200  MacroF1=0.8064  WtF1=0.9191  AUC=0.9591  QWK=0.8618
+
+[Test] Acc=0.9216  MacroF1=0.7937  WtF1=0.9204  AUC=0.9612  QWK=0.8659
+
+--------------------------------------------------
+Cell #13 Source Code Snippet:
+import time
+from sklearn.metrics import roc_curve, auc
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"...
+Cell #13 Output:
+
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6222    0.4746    0.5385        59
+           1     0.8657    0.8998    0.8825       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9216      1723
+   macro avg     0.8172    0.7770    0.7937      1723
+weighted avg     0.9201    0.9216    0.9204      1723
+
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_1127.html
+LIME Local Explanation Details:
+  0.02 < LightGBM__1 <= 0.04     : -0.0700
+  0.03 < XGBoost__1 <= 0.06      : -0.0424
+  0.12 < Transformer-BiLSTM__1 <= 0.17 : -0.0419
+  0.94 < XGBoost__2 <= 0.96      : -0.0159
+  0.95 < LightGBM__2 <= 0.98     : -0.0155
+  0.06 < LSTM__1 <= 0.82         : +0.0143
+  0.07 < LSTM__2 <= 0.91         : +0.0142
+  0.00 < LightGBM__0 <= 0.00     : +0.0110
+  0.83 < Transformer-BiLSTM__2 <= 0.88 : -0.0097
+  0.06 < TCN__1 <= 0.84          : +0.0078
+
+--- Explaining ensemble prediction at test index 153 ---
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_153.html
+LIME Local Explanation Details:
+  LightGBM__1 <= 0.02            : -0.0687
+  LSTM__1 <= 0.03                : -0.0563
+  0.12 < Transformer-BiLSTM__1 <= 0.17 : -0.0455
+  XGBoost__1 <= 0.03             : -0.0445
+  TCN__1 <= 0.04                 : -0.0381
+  PatchTST__1 <= 0.03            : -0.0244
+  LSTM__2 > 0.93                 : -0.0213
+  0.83 < Transformer-BiLSTM__2 <= 0.88 : -0.0197
+  LightGBM__2 > 0.98             : -0.0172
+  LightGBM__0 <= 0.00            : +0.0096
+
+--- Explaining ensemble prediction at test index 1332 ---
+
+--------------------------------------------------
+Cell #17 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        import lime
+        import lime.li...
+Cell #17 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/ensemble_lime_explanation_test_idx_1332.html
+LIME Local Explanation Details:
+  LightGBM__1 > 0.86             : +0.1399
+  LSTM__1 > 0.82                 : +0.0986
+  XGBoost__1 > 0.83              : +0.0782
+  TCN__1 > 0.84                  : +0.0627
+  PatchTST__1 > 0.85             : +0.0319
+  LightGBM__0 > 0.01             : -0.0193
+  TCN__2 <= 0.07                 : +0.0146
+  XGBoost__0 > 0.01              : -0.0131
+  0.07 < LSTM__2 <= 0.91         : +0.0112
+  0.09 < LightGBM__2 <= 0.95     : +0.0069
+
+--------------------------------------------------
+
+========================================
+Analyzing kb10-fr-ttx.ipynb
+========================================
+Cell #12 Source Code Snippet:
+import time
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Test Inference/Evaluation Time: {elapsed_ti...
+Cell #12 Output:
+Test Inference/Evaluation Time: 0.086536 seconds
+
+[Val] Acc=0.9211  MacroF1=0.8055  WtF1=0.9197  AUC=0.9574  QWK=0.8620
+
+[Test] Acc=0.9193  MacroF1=0.7696  WtF1=0.9171  AUC=0.9592  QWK=0.8601
+
+--------------------------------------------------
+Cell #12 Source Code Snippet:
+import time
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Test Inference/Evaluation Time: {elapsed_ti...
+Cell #12 Output:
+
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.5897    0.3898    0.4694        59
+           1     0.8598    0.8998    0.8794       559
+           2     0.9627    0.9575    0.9601      1105
+
+    accuracy                         0.9193      1723
+   macro avg     0.8041    0.7490    0.7696      1723
+weighted avg     0.9165    0.9193    0.9171      1723
+
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_ttx_lime_explanation_test_idx_1127.html
+LIME Local Explanation Details:
+  0.03 < XGBoost__1 <= 0.06      : -0.0895
+  0.12 < Transformer-BiLSTM__1 <= 0.17 : -0.0460
+  0.94 < XGBoost__2 <= 0.96      : -0.0235
+  0.06 < TCN__1 <= 0.84          : +0.0167
+  0.07 < TCN__2 <= 0.90          : +0.0156
+  0.83 < Transformer-BiLSTM__2 <= 0.88 : -0.0145
+  0.04 < TCN__0 <= 0.04          : +0.0129
+  0.00 < XGBoost__0 <= 0.00      : +0.0026
+  Transformer-BiLSTM__0 <= 0.00  : +0.0005
+
+--- Explaining ensemble prediction at test index 153 ---
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_ttx_lime_explanation_test_idx_153.html
+LIME Local Explanation Details:
+  TCN__1 <= 0.04                 : -0.0970
+  XGBoost__1 <= 0.03             : -0.0913
+  0.12 < Transformer-BiLSTM__1 <= 0.17 : -0.0478
+  TCN__2 > 0.93                  : -0.0373
+  XGBoost__2 > 0.96              : -0.0356
+  0.83 < Transformer-BiLSTM__2 <= 0.88 : -0.0205
+  TCN__0 <= 0.03                 : +0.0148
+  XGBoost__0 <= 0.00             : +0.0045
+  0.00 < Transformer-BiLSTM__0 <= 0.00 : -0.0013
+
+--- Explaining ensemble prediction at test index 1332 ---
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_ttx_lime_explanation_test_idx_1332.html
+LIME Local Explanation Details:
+  TCN__1 > 0.84                  : +0.1599
+  XGBoost__1 > 0.83              : +0.1561
+  TCN__2 <= 0.07                 : +0.0483
+  XGBoost__0 > 0.01              : -0.0301
+  TCN__0 <= 0.03                 : +0.0188
+  0.13 < XGBoost__2 <= 0.94      : +0.0172
+  0.59 < Transformer-BiLSTM__2 <= 0.83 : -0.0059
+  0.17 < Transformer-BiLSTM__1 <= 0.41 : -0.0026
+  Transformer-BiLSTM__0 <= 0.00  : +0.0012
+
+--------------------------------------------------
+Cell #20 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'b': ens.b, 'c': ens.c, 'importance': ens.get_importance()}
+with open(ARTIFACT_DIR/'fr_ttx_ensemble.pkl','wb') as _f: pickle...
+Cell #20 Output:
+    Model Split  Accuracy  Macro_F1  Weighted_F1       AUC       QWK
+0  FR_TTX  Test  0.919327  0.769610     0.917088  0.959230  0.860097
+1  FR_TTX   Val  0.921114  0.805521     0.919740  0.957438  0.861951
+--------------------------------------------------
+Cell #20 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'b': ens.b, 'c': ens.c, 'importance': ens.get_importance()}
+with open(ARTIFACT_DIR/'fr_ttx_ensemble.pkl','wb') as _f: pickle...
+Cell #20 Output:
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FR_TTX
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.921114            0.919485         0.921114  0.805521     0.919740 0.957438 0.861951
+ Test  0.919327            0.916550         0.919327  0.769610     0.917088 0.959230 0.860097
+
+--------------------------------------------------
+
+========================================
+Analyzing kb11-fr-pll.ipynb
+========================================
+Cell #12 Source Code Snippet:
+import time
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Test Inference/Evaluation Time: {elapsed_ti...
+Cell #12 Output:
+Test Inference/Evaluation Time: 0.078702 seconds
+
+[Val] Acc=0.9200  MacroF1=0.8064  WtF1=0.9191  AUC=0.9588  QWK=0.8618
+
+[Test] Acc=0.9240  MacroF1=0.8174  WtF1=0.9237  AUC=0.9658  QWK=0.8719
+
+--------------------------------------------------
+Cell #12 Source Code Snippet:
+import time
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Test Inference/Evaluation Time: {elapsed_ti...
+Cell #12 Output:
+
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6415    0.5763    0.6071        59
+           1     0.8743    0.8962    0.8852       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9240      1723
+   macro avg     0.8265    0.8097    0.8174      1723
+weighted avg     0.9236    0.9240    0.9237      1723
+
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_pll_lime_explanation_test_idx_1127.html
+LIME Local Explanation Details:
+  0.02 < LightGBM__1 <= 0.04     : -0.0804
+  0.06 < PatchTST__1 <= 0.85     : +0.0154
+  0.06 < LSTM__1 <= 0.82         : +0.0147
+  0.95 < LightGBM__2 <= 0.98     : -0.0146
+  0.03 < LSTM__0 <= 0.04         : +0.0141
+  0.06 < PatchTST__2 <= 0.91     : +0.0107
+  0.07 < LSTM__2 <= 0.91         : +0.0095
+  0.03 < PatchTST__0 <= 0.05     : +0.0071
+  0.00 < LightGBM__0 <= 0.00     : +0.0006
+
+--- Explaining ensemble prediction at test index 153 ---
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_pll_lime_explanation_test_idx_153.html
+LIME Local Explanation Details:
+  LSTM__1 <= 0.03                : -0.0851
+  PatchTST__1 <= 0.03            : -0.0828
+  LightGBM__1 <= 0.02            : -0.0794
+  PatchTST__2 > 0.94             : -0.0268
+  LightGBM__2 > 0.98             : -0.0267
+  LSTM__2 > 0.93                 : -0.0240
+  LSTM__0 <= 0.03                : +0.0202
+  PatchTST__0 <= 0.03            : +0.0120
+  LightGBM__0 <= 0.00            : +0.0026
+
+--- Explaining ensemble prediction at test index 1332 ---
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_pll_lime_explanation_test_idx_1332.html
+LIME Local Explanation Details:
+  LightGBM__1 > 0.86             : +0.1332
+  PatchTST__1 > 0.85             : +0.1307
+  LSTM__1 > 0.82                 : +0.1263
+  LightGBM__0 > 0.01             : -0.0283
+  0.03 < PatchTST__0 <= 0.05     : +0.0201
+  LSTM__0 <= 0.03                : +0.0187
+  0.09 < LightGBM__2 <= 0.95     : +0.0169
+  0.06 < PatchTST__2 <= 0.91     : +0.0117
+  0.07 < LSTM__2 <= 0.91         : +0.0104
+
+--------------------------------------------------
+Cell #20 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'b': ens.b, 'c': ens.c, 'importance': ens.get_importance()}
+with open(ARTIFACT_DIR/'fr_pll_ensemble.pkl','wb') as _f: pickle...
+Cell #20 Output:
+    Model Split  Accuracy  Macro_F1  Weighted_F1       AUC       QWK
+0  FR_PLL  Test  0.923970  0.817446     0.923660  0.965804  0.871944
+1  FR_PLL   Val  0.919954  0.806355     0.919134  0.958838  0.861789
+--------------------------------------------------
+Cell #20 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'b': ens.b, 'c': ens.c, 'importance': ens.get_importance()}
+with open(ARTIFACT_DIR/'fr_pll_ensemble.pkl','wb') as _f: pickle...
+Cell #20 Output:
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FR_PLL
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.919954            0.918717         0.919954  0.806355     0.919134 0.958838 0.861789
+ Test  0.923970            0.923573         0.923970  0.817446     0.923660 0.965804 0.871944
+
+--------------------------------------------------
+
+========================================
+Analyzing kb12-fr-ttlpxl.ipynb
+========================================
+Cell #12 Source Code Snippet:
+import time
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Test Inference/Evaluation Time: {elapsed_ti...
+Cell #12 Output:
+Test Inference/Evaluation Time: 0.092746 seconds
+
+[Val] Acc=0.9223  MacroF1=0.8197  WtF1=0.9215  AUC=0.9584  QWK=0.8656
+
+[Test] Acc=0.9222  MacroF1=0.8013  WtF1=0.9214  AUC=0.9615  QWK=0.8677
+
+--------------------------------------------------
+Cell #12 Source Code Snippet:
+import time
+
+# ── Inference Time Measurement ───────────────────────────────────────────────
+start_time = time.time()
+fp     = ens.predict_proba(test_probas)
+y_pred = np.argmax(fp, axis=1)
+end_time = time.time()
+elapsed_time = end_time - start_time
+print(f"Test Inference/Evaluation Time: {elapsed_ti...
+Cell #12 Output:
+
+Classification Report (Test):
+              precision    recall  f1-score   support
+
+           0     0.6250    0.5085    0.5607        59
+           1     0.8685    0.8980    0.8830       559
+           2     0.9635    0.9566    0.9600      1105
+
+    accuracy                         0.9222      1723
+   macro avg     0.8190    0.7877    0.8013      1723
+weighted avg     0.9211    0.9222    0.9214      1723
+
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_ttlpxl_lime_explanation_test_idx_1127.html
+LIME Local Explanation Details:
+  0.03 < XGBoost__1 <= 0.06      : -0.0393
+  0.02 < LightGBM__1 <= 0.04     : -0.0361
+  0.12 < Transformer-BiLSTM__1 <= 0.17 : -0.0235
+  0.94 < XGBoost__2 <= 0.96      : -0.0127
+  0.00 < LightGBM__0 <= 0.00     : +0.0117
+  0.07 < TCN__2 <= 0.90          : +0.0088
+  0.07 < LSTM__2 <= 0.91         : +0.0074
+  0.95 < LightGBM__2 <= 0.98     : -0.0054
+  0.04 < TCN__0 <= 0.04          : +0.0049
+  0.03 < LSTM__0 <= 0.04         : +0.0046
+
+--- Explaining ensemble prediction at test index 153 ---
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_ttlpxl_lime_explanation_test_idx_153.html
+LIME Local Explanation Details:
+  PatchTST__1 <= 0.03            : -0.0438
+  LSTM__1 <= 0.03                : -0.0417
+  TCN__1 <= 0.04                 : -0.0395
+  XGBoost__1 <= 0.03             : -0.0379
+  LightGBM__1 <= 0.02            : -0.0357
+  0.12 < Transformer-BiLSTM__1 <= 0.17 : -0.0254
+  LSTM__2 > 0.93                 : -0.0103
+  PatchTST__2 > 0.94             : -0.0102
+  XGBoost__2 > 0.96              : -0.0099
+  LightGBM__2 > 0.98             : -0.0083
+
+--- Explaining ensemble prediction at test index 1332 ---
+
+--------------------------------------------------
+Cell #16 Source Code Snippet:
+# ==============================================================================
+# xAI LIME Explainability — Gompertz Fuzzy Ranking Ensemble
+# ==============================================================================
+LIME_ENABLED = True
+
+if LIME_ENABLED:
+    import subprocess
+
+    try:
+        ...
+Cell #16 Output:
+Saved LIME explanation HTML to: /kaggle/working/credit_rating_artifacts/fr_ttlpxl_lime_explanation_test_idx_1332.html
+LIME Local Explanation Details:
+  LightGBM__1 > 0.86             : +0.0754
+  LSTM__1 > 0.82                 : +0.0750
+  TCN__1 > 0.84                  : +0.0742
+  PatchTST__1 > 0.85             : +0.0724
+  XGBoost__1 > 0.83              : +0.0685
+  XGBoost__0 > 0.01              : -0.0145
+  TCN__2 <= 0.07                 : +0.0138
+  LightGBM__0 > 0.01             : -0.0134
+  0.13 < XGBoost__2 <= 0.94      : +0.0074
+  LSTM__0 <= 0.03                : +0.0073
+
+--------------------------------------------------
+Cell #20 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'b': ens.b, 'c': ens.c, 'importance': ens.get_importance()}
+with open(ARTIFACT_DIR/'fr_ttlpxl_ensemble.pkl','wb') as _f: pic...
+Cell #20 Output:
+       Model Split  Accuracy  Macro_F1  Weighted_F1       AUC       QWK
+0  FR_TTLPXL  Test  0.922229  0.801270     0.921379  0.961548  0.867677
+1  FR_TTLPXL   Val  0.922274  0.819654     0.921548  0.958425  0.865628
+--------------------------------------------------
+Cell #20 Source Code Snippet:
+import pickle
+
+# ── Lưu ensemble model ───────────────────────────────────────────────────────
+_state = {'model_names': ens.model_names, 'n_classes': ens.n_classes,
+           'b': ens.b, 'c': ens.c, 'importance': ens.get_importance()}
+with open(ARTIFACT_DIR/'fr_ttlpxl_ensemble.pkl','wb') as _f: pic...
+Cell #20 Output:
+Benchmark saved.
+
+=================================================================
+HOÀN THÀNH: FR_TTLPXL
+=================================================================
+Split  Accuracy  Precision_Weighted  Recall_Weighted  Macro_F1  Weighted_F1      AUC      QWK
+  Val  0.922274            0.921245         0.922274  0.819654     0.921548 0.958425 0.865628
+ Test  0.922229            0.921115         0.922229  0.801270     0.921379 0.961548 0.867677
+
+--------------------------------------------------

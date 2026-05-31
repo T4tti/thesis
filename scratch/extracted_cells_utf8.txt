@@ -1,0 +1,2347 @@
+
+================================================================================
+CELL 11 (code)
+================================================================================
+
+FINANCIAL_FEATURES = [
+    'current_ratio', 'debt_equity_ratio',
+    'gross_profit_margin', 'operating_profit_margin',
+    'ebit_margin', 'pretax_profit_margin',
+    'net_profit_margin', 'asset_turnover',
+    'roe', 'roa',
+    'operating_cashflow_ps', 'free_cashflow_ps'
+]
+
+SECTOR_COL = 'sector'
+SECTOR_UNKNOWN = 'UNKNOWN'
+TICKER_COL = 'ticker'
+COMPANY_COL = 'company_name'
+TARGET_COL = 'rating_detail'
+
+# If labels are strings, keep this risk order when available.
+TARGET_ORDERED_LABELS = ['Distressed', 'HY', 'IG']
+
+before_rows = len(df)
+df = df.dropna(subset=[TARGET_COL]).copy().reset_index(drop=True)
+df['row_id'] = np.arange(len(df), dtype=int)
+
+target_as_num = pd.to_numeric(df[TARGET_COL], errors='coerce')
+if target_as_num.notna().all():
+    df[TARGET_COL] = target_as_num.astype(int)
+    observed_classes_raw = sorted(df[TARGET_COL].unique().tolist())
+    raw_to_id = {int(raw): idx for idx, raw in enumerate(observed_classes_raw)}
+    id_to_raw = {idx: int(raw) for raw, idx in raw_to_id.items()}
+    df[TARGET_COL] = df[TARGET_COL].map(raw_to_id).astype(int)
+else:
+    target_as_str = df[TARGET_COL].astype(str).str.strip()
+    observed_str = sorted(target_as_str.unique().tolist())
+    if set(observed_str).issubset(set(TARGET_ORDERED_LABELS)):
+        ordered_present = [c for c in TARGET_ORDERED_LABELS if c in observed_str]
+    else:
+        ordered_present = observed_str
+    raw_to_id = {raw: idx for idx, raw in enumerate(ordered_present)}
+    id_to_raw = {idx: raw for raw, idx in raw_to_id.items()}
+    df[TARGET_COL] = target_as_str.map(raw_to_id).astype(int)
+
+EXPECTED_CLASSES = sorted(df[TARGET_COL].unique().tolist())
+if EXPECTED_CLASSES != list(range(len(EXPECTED_CLASSES))):
+    raise ValueError(f'Label IDs must be contiguous from 0. Got: {EXPECTED_CLASSES}')
+
+n_classes = len(EXPECTED_CLASSES)
+TARGET_MIN, TARGET_MAX = 0, n_classes - 1
+
+class _StaticLabelEncoder:
+    def __init__(self, classes):
+        self.classes_ = np.array(classes, dtype=object)
+
+le = _StaticLabelEncoder(classes=[id_to_raw[i] for i in range(n_classes)])
+
+df['rating_date'] = pd.to_datetime(df['rating_date'], format='mixed')
+df[TICKER_COL] = df[TICKER_COL].fillna('UNKNOWN_TICKER').astype(str).str.strip()
+df[COMPANY_COL] = df[COMPANY_COL].fillna('UNKNOWN_COMPANY').astype(str).str.strip()
+
+if SECTOR_COL not in df.columns:
+    df[SECTOR_COL] = SECTOR_UNKNOWN
+df[SECTOR_COL] = df[SECTOR_COL].fillna(SECTOR_UNKNOWN).astype(str).str.strip()
+df.loc[df[SECTOR_COL] == '', SECTOR_COL] = SECTOR_UNKNOWN
+
+split_series = df['__split__'].astype(str).str.lower()
+train_mask_raw = split_series == 'train'
+has_train_rows = bool(train_mask_raw.any())
+stats_ref = df.loc[train_mask_raw].copy() if has_train_rows else df.copy()
+
+sector_encoder = LabelEncoder()
+sector_encoder.fit(stats_ref[SECTOR_COL])
+SECTOR_CLASSES = sector_encoder.classes_.tolist()
+_UNKNOWN_SECTOR_ID = len(SECTOR_CLASSES)
+
+def _encode_from_classes(val, classes, encoder, unknown_id):
+    return int(encoder.transform([val])[0]) if val in classes else int(unknown_id)
+
+df['sector_id'] = df[SECTOR_COL].apply(
+    lambda val: _encode_from_classes(val, sector_encoder.classes_, sector_encoder, _UNKNOWN_SECTOR_ID)
+)
+n_sectors = len(SECTOR_CLASSES) + 1
+
+ticker_encoder = LabelEncoder()
+ticker_encoder.fit(stats_ref[TICKER_COL])
+TICKER_CLASSES = ticker_encoder.classes_.tolist()
+_UNKNOWN_TICKER_ID = len(TICKER_CLASSES)
+df['ticker_id'] = df[TICKER_COL].apply(
+    lambda val: _encode_from_classes(val, ticker_encoder.classes_, ticker_encoder, _UNKNOWN_TICKER_ID)
+)
+n_tickers = len(TICKER_CLASSES) + 1
+
+company_encoder = LabelEncoder()
+company_encoder.fit(stats_ref[COMPANY_COL])
+COMPANY_CLASSES = company_encoder.classes_.tolist()
+_UNKNOWN_COMPANY_ID = len(COMPANY_CLASSES)
+df['company_id'] = df[COMPANY_COL].apply(
+    lambda val: _encode_from_classes(val, company_encoder.classes_, company_encoder, _UNKNOWN_COMPANY_ID)
+)
+n_companies = len(COMPANY_CLASSES) + 1
+
+print(f'[P1 Fix 4 OK] Sector encoder fit on train only: {len(SECTOR_CLASSES)} known + 1 unknown')
+val_unknown = (df.loc[df['__split__'] == 'val', 'sector_id'] == _UNKNOWN_SECTOR_ID).sum()
+test_unknown = (df.loc[df['__split__'] == 'test', 'sector_id'] == _UNKNOWN_SECTOR_ID).sum()
+print(f'  Unknown sectors: val={val_unknown}, test={test_unknown}')
+print(f'[P3] Entity encoders: tickers={len(TICKER_CLASSES)} + 1 unknown, companies={len(COMPANY_CLASSES)} + 1 unknown')
+
+for col in FINANCIAL_FEATURES:
+    med = stats_ref[col].median() if stats_ref[col].notna().any() else df[col].median()
+    if pd.isna(med):
+        med = 0.0
+    if df[col].isna().any():
+        df[col] = df[col].fillna(float(med))
+
+for col in FINANCIAL_FEATURES:
+    lower = stats_ref[col].quantile(0.01)
+    upper = stats_ref[col].quantile(0.99)
+    if pd.isna(lower) or pd.isna(upper):
+        lower = df[col].quantile(0.01)
+        upper = df[col].quantile(0.99)
+    if pd.isna(lower) or pd.isna(upper):
+        continue
+    df[col] = df[col].clip(float(lower), float(upper))
+
+print(f'Rows kept after target cleanup: {len(df)} / {before_rows}')
+print(f'Number of classes (observed): {n_classes}')
+print(f'Label range (model IDs): {TARGET_MIN}..{TARGET_MAX}')
+print('Observed label IDs:', sorted(df[TARGET_COL].unique().tolist()))
+print('Raw-to-ID mapping:', raw_to_id)
+print('Decoder classes (ID -> raw):', le.classes_.tolist())
+print(f'Sectors encoded: {n_sectors}')
+print(f'Tickers encoded: {n_tickers}')
+print(f'Companies encoded: {n_companies}')
+print(f"Leakage guard reference split: {'train' if has_train_rows else 'all_data_fallback'}")
+print('Sample sectors:', SECTOR_CLASSES[:10])
+print(f'\nData after preprocessing: {df.shape}')
+
+_TEMPORAL_FEATURES = ['delta_days']
+_available_temporal = [f for f in _TEMPORAL_FEATURES if f in df.columns]
+if _available_temporal:
+    FINANCIAL_FEATURES = FINANCIAL_FEATURES + _available_temporal
+    print(f'[P1 Fix 6 OK] Added temporal features: {_available_temporal}')
+else:
+    print('[P1 Fix 6 INFO] delta_days not in data, skipping.')
+
+if 'validate_feature_alignment_with_metadata' in globals():
+    validate_feature_alignment_with_metadata()
+
+
+
+================================================================================
+CELL 16 (code)
+================================================================================
+
+# Row-level temporal context builder: one sequence per row, ending at the current row.
+HORIZON = 1
+WINDOW_PADDING_MODE = 'edge'
+INPUT_SIZE_SEARCH_ENABLED = True
+INPUT_SIZE_DEFAULT = 4  # Strategy A: increased from 1 to activate temporal modeling
+INPUT_SIZE_MIN = 1
+INPUT_SIZE_MAX = 12
+ENABLE_SYNTH_QC = True
+ENABLE_WEIGHTED_SAMPLER = True
+SAMPLER_WEIGHT_POWER = 0.85
+
+INPUT_SIZE = int(np.clip(INPUT_SIZE_DEFAULT, INPUT_SIZE_MIN, INPUT_SIZE_MAX))
+input_size_reason = 'fixed_row_level_current_step'
+INPUT_SIZE_SEARCH_REPORT = pd.DataFrame([{
+    'input_size': int(INPUT_SIZE),
+    'train_windows': int((panel_df['__split__'] == 'train').sum()),
+    'val_windows': int((panel_df['__split__'] == 'val').sum()),
+    'test_windows': int((panel_df['__split__'] == 'test').sum()),
+    'total_windows': int(len(panel_df)),
+    'padded_windows_total': int(0),
+    'score': 1.0,
+}])
+
+print(f'INPUT_SIZE selected: {INPUT_SIZE} ({input_size_reason})')
+print(f'HORIZON (forecast): {HORIZON}')
+print(f'Window padding mode: {WINDOW_PADDING_MODE}')
+print(INPUT_SIZE_SEARCH_REPORT.to_string(index=False))
+
+panel_df_filtered = panel_df.sort_values(['unique_id', 'ds', 'row_id']).reset_index(drop=True)
+print(f'Panel shape for row-level sequence generation: {panel_df_filtered.shape}')
+
+DELTA_FEATURES = []
+for col in FINANCIAL_FEATURES:
+    dcol = f'{col}_delta'
+    panel_df_filtered[dcol] = panel_df_filtered.groupby('unique_id')[col].diff().fillna(0.0)
+    DELTA_FEATURES.append(dcol)
+
+MODEL_FEATURES = FINANCIAL_FEATURES + DELTA_FEATURES
+train_mask_clip = panel_df_filtered['__split__'] == 'train'
+for col in MODEL_FEATURES:
+    col_vals = panel_df_filtered.loc[train_mask_clip, col]
+    lo = col_vals.quantile(0.001)
+    hi = col_vals.quantile(0.999)
+    panel_df_filtered[col] = panel_df_filtered[col].clip(lo, hi)
+
+print('[P0 Fix 1 OK] RobustScaler removed. Using StandardScaled values from TimeGAN.')
+print(f"  MODEL_FEATURES mean (train): {panel_df_filtered.loc[train_mask_clip, MODEL_FEATURES].mean().round(3).to_dict()}")
+print(f"  MODEL_FEATURES std  (train): {panel_df_filtered.loc[train_mask_clip, MODEL_FEATURES].std().round(3).to_dict()}")
+
+SEQ_X_IDX = 0
+SEQ_LAST_Y_IDX = 1
+SEQ_SECTOR_IDX = 2
+SEQ_TICKER_IDX = 3
+SEQ_COMPANY_IDX = 4
+SEQ_TARGET_IDX = 5
+SEQ_ROW_ID_IDX = 6
+
+class CreditRatingDataset(Dataset):
+    """Row-level dataset with temporal context ending at the current row."""
+    def __init__(self, sequences, augment=False, noise_std=0.0, feature_dropout_prob=0.0):
+        self.sequences = sequences
+        self.augment = augment
+        self.noise_std = float(noise_std)
+        self.feature_dropout_prob = float(feature_dropout_prob)
+
+    def __len__(self):
+        return len(self.sequences)
+
+    def __getitem__(self, idx):
+        X, last_y, sector_id, ticker_id, company_id, y_target, row_id = self.sequences[idx]
+        X = np.asarray(X, dtype=np.float32).copy()
+
+        if self.augment:
+            if self.noise_std > 0:
+                X += np.random.normal(0.0, self.noise_std, size=X.shape).astype(np.float32)
+            if self.feature_dropout_prob > 0:
+                drop_mask = np.random.rand(X.shape[1]) < self.feature_dropout_prob
+                if drop_mask.any():
+                    X[:, drop_mask] = 0.0
+
+        return (
+            torch.tensor(X, dtype=torch.float32),
+            torch.tensor(last_y, dtype=torch.long),
+            torch.tensor(sector_id, dtype=torch.long),
+            torch.tensor(ticker_id, dtype=torch.long),
+            torch.tensor(company_id, dtype=torch.long),
+            torch.tensor(y_target, dtype=torch.long),
+            torch.tensor(row_id, dtype=torch.long),
+        )
+
+def build_context_window(values, target_idx, input_size, mode='edge'):
+    start_idx = max(0, target_idx - input_size + 1)
+    X_raw = values[start_idx:target_idx + 1]
+    if X_raw.shape[0] >= input_size:
+        return X_raw[-input_size:]
+
+    pad_len = input_size - X_raw.shape[0]
+    if mode == 'zero':
+        pad_block = np.zeros((pad_len, X_raw.shape[1]), dtype=X_raw.dtype)
+    else:
+        pad_block = np.repeat(X_raw[[0]], pad_len, axis=0)
+    return np.concatenate([pad_block, X_raw], axis=0)
+
+feature_cols = MODEL_FEATURES
+n_channels = len(feature_cols)
+
+train_seqs = []
+val_seqs = []
+test_seqs = []
+test_seq_tickers = []
+test_seq_row_ids = []
+train_seq_is_synth = []
+train_seq_is_change = []
+has_synth_col = 'is_synthetic' in panel_df_filtered.columns
+padded_window_count = 0
+
+for uid, grp in panel_df_filtered.groupby('unique_id'):
+    grp = grp.sort_values('ds').reset_index(drop=True)
+    values = grp[feature_cols].values
+    n = len(values)
+    if n == 0:
+        continue
+
+    for target_idx in range(n):
+        X = build_context_window(values, target_idx=target_idx, input_size=INPUT_SIZE, mode=WINDOW_PADDING_MODE)
+        if X is None or X.shape[0] != INPUT_SIZE:
+            continue
+
+        if target_idx < INPUT_SIZE - 1:
+            padded_window_count += 1
+
+        last_y_idx = max(0, target_idx - 1)
+        sample = (
+            X,
+            int(grp['y'].iloc[last_y_idx]),
+            int(grp['sector_id'].iloc[target_idx]),
+            int(grp['ticker_id'].iloc[target_idx]),
+            int(grp['company_id'].iloc[target_idx]),
+            int(grp['y'].iloc[target_idx]),
+            int(grp['row_id'].iloc[target_idx]),
+        )
+        split_label = str(grp['__split__'].iloc[target_idx]).lower()
+
+        if split_label == 'test':
+            test_seqs.append(sample)
+            test_seq_tickers.append(uid)
+            test_seq_row_ids.append(int(grp['row_id'].iloc[target_idx]))
+        elif split_label == 'val':
+            val_seqs.append(sample)
+        else:
+            train_seqs.append(sample)
+            train_seq_is_change.append(int(grp['y'].iloc[target_idx] != grp['y'].iloc[last_y_idx]))
+            if has_synth_col:
+                train_seq_is_synth.append(int(grp['is_synthetic'].iloc[target_idx]))
+            else:
+                train_seq_is_synth.append(0)
+
+if len(train_seqs) == 0 or len(val_seqs) == 0 or len(test_seqs) == 0:
+    raise ValueError(
+        f'Empty split sequences found: train={len(train_seqs)}, val={len(val_seqs)}, test={len(test_seqs)}.'
+    )
+
+test_seq_tickers = np.array(test_seq_tickers, dtype=object)
+test_seq_row_ids = np.array(test_seq_row_ids, dtype=int)
+train_seq_is_synth = np.array(train_seq_is_synth, dtype=int)
+train_seq_is_change = np.array(train_seq_is_change, dtype=int)
+
+SYNTH_MAX_ABS_FEATURE = 6.0
+SYNTH_MAX_RATIO = 0.45
+train_seqs_before_synth_qc = len(train_seqs)
+if ENABLE_SYNTH_QC and has_synth_col and len(train_seqs) > 0:
+    seq_max_abs = np.array([float(np.max(np.abs(s[SEQ_X_IDX]))) for s in train_seqs], dtype=np.float32)
+    keep_mask = np.ones(len(train_seqs), dtype=bool)
+    synth_mask = train_seq_is_synth == 1
+    keep_mask[synth_mask & (seq_max_abs > SYNTH_MAX_ABS_FEATURE)] = False
+
+    kept_synth_idx = np.where(keep_mask & synth_mask)[0]
+    kept_real_idx = np.where(keep_mask & (~synth_mask))[0]
+    max_synth_keep = int(len(kept_real_idx) * SYNTH_MAX_RATIO / max(1e-9, 1.0 - SYNTH_MAX_RATIO))
+    if len(kept_synth_idx) > max_synth_keep > 0:
+        rng_seq = np.random.default_rng(SEED)
+        drop_idx = rng_seq.choice(
+            kept_synth_idx,
+            size=len(kept_synth_idx) - max_synth_keep,
+            replace=False,
+        )
+        keep_mask[drop_idx] = False
+
+    if not keep_mask.all():
+        train_seqs = [s for s, k in zip(train_seqs, keep_mask) if k]
+        train_seq_is_synth = train_seq_is_synth[keep_mask]
+        train_seq_is_change = train_seq_is_change[keep_mask]
+train_seqs_after_synth_qc = len(train_seqs)
+
+TRAIN_WINDOW_NOISE_STD = 0.02
+TRAIN_FEATURE_DROPOUT = 0.10
+
+train_ds = CreditRatingDataset(train_seqs, augment=True, noise_std=TRAIN_WINDOW_NOISE_STD, feature_dropout_prob=TRAIN_FEATURE_DROPOUT)
+val_ds = CreditRatingDataset(val_seqs, augment=False)
+test_ds = CreditRatingDataset(test_seqs, augment=False)
+
+train_labels = np.array([s[SEQ_TARGET_IDX] for s in train_seqs], dtype=int)
+class_freq_raw = np.bincount(train_labels, minlength=n_classes).astype(float)
+non_zero_freq = class_freq_raw[class_freq_raw > 0]
+imbalance_ratio = float(class_freq_raw.max() / non_zero_freq.min()) if len(non_zero_freq) > 0 else 1.0
+synthetic_ratio_train = float(train_seq_is_synth.mean()) if len(train_seq_is_synth) > 0 else 0.0
+transition_ratio_train = float(train_seq_is_change.mean()) if len(train_seq_is_change) > 0 else 0.0
+
+weighted_sampler = None
+if ENABLE_WEIGHTED_SAMPLER and len(train_labels) > 0:
+    class_weights = np.zeros_like(class_freq_raw, dtype=np.float64)
+    non_zero_mask = class_freq_raw > 0
+    class_weights[non_zero_mask] = class_freq_raw[non_zero_mask].sum() / class_freq_raw[non_zero_mask]
+    sample_weights = np.power(class_weights[train_labels], SAMPLER_WEIGHT_POWER)
+    weighted_sampler = torch.utils.data.WeightedRandomSampler(
+        weights=torch.as_tensor(sample_weights, dtype=torch.double),
+        num_samples=len(sample_weights),
+        replacement=True,
+    )
+
+BATCH_SIZE = 64
+NUM_WORKERS = 4 if IN_KAGGLE else 0
+PIN_MEMORY = (device.type == 'cuda')
+
+train_loader = DataLoader(
+    train_ds,
+    batch_size=BATCH_SIZE,
+    shuffle=(weighted_sampler is None),
+    sampler=weighted_sampler,
+    drop_last=False,
+    num_workers=NUM_WORKERS,
+    pin_memory=PIN_MEMORY,
+)
+val_loader = DataLoader(
+    val_ds,
+    batch_size=BATCH_SIZE,
+    shuffle=False,
+    num_workers=NUM_WORKERS,
+    pin_memory=PIN_MEMORY,
+)
+test_loader = DataLoader(
+    test_ds,
+    batch_size=BATCH_SIZE,
+    shuffle=False,
+    num_workers=NUM_WORKERS,
+    pin_memory=PIN_MEMORY,
+)
+
+print(f'\nChannels: {n_channels}')
+print(f'Base features: {len(FINANCIAL_FEATURES)} | Delta features: {len(DELTA_FEATURES)}')
+print(f'Train samples: {len(train_ds)}')
+print(f'Val samples:   {len(val_ds)}')
+print(f'Test samples:  {len(test_ds)}')
+print(f'Test ticker refs: {len(test_seq_tickers)} | row ids: {len(test_seq_row_ids)}')
+print(f'Padded row-level windows: {padded_window_count}')
+print(f'Synth QC enabled: {ENABLE_SYNTH_QC} | removed windows: {train_seqs_before_synth_qc - train_seqs_after_synth_qc}')
+print(f'Train synthetic ratio (rows): {synthetic_ratio_train:.3f}')
+print(f'Train transition ratio (y_t != y_t-1): {transition_ratio_train:.3f}')
+print(f'Train class freq min/max: {class_freq_raw.min():.0f}/{class_freq_raw.max():.0f}')
+print(f'Imbalance ratio (max/min non-zero): {imbalance_ratio:.2f}')
+print(f'Weighted sampler enabled: {weighted_sampler is not None}')
+print(f'Sampler weight power: {SAMPLER_WEIGHT_POWER}')
+print(f'Train window noise std: {TRAIN_WINDOW_NOISE_STD}')
+print(f'Train feature dropout prob: {TRAIN_FEATURE_DROPOUT}')
+
+sample_X, sample_last_y, sample_sector_id, sample_ticker_id, sample_company_id, sample_y, sample_row_id = train_ds[0]
+print(f'\nSample X shape: {sample_X.shape}  (T, C)')
+print(f'Sample last_y: {sample_last_y}')
+print(f'Sample sector_id: {sample_sector_id}')
+print(f'Sample ticker_id: {sample_ticker_id}')
+print(f'Sample company_id: {sample_company_id}')
+print(f'Sample y: {sample_y} | row_id: {sample_row_id}')
+
+
+
+================================================================================
+CELL 21 (code)
+================================================================================
+def build_effective_num_class_weights(class_counts, beta=0.995):
+    """Effective-number reweighting (Cui et al.) with mean=1 normalization."""
+    counts = np.asarray(class_counts, dtype=np.float64)
+    counts = np.maximum(counts, 0.0)
+    weights = np.zeros_like(counts, dtype=np.float64)
+
+    valid = counts > 0
+    if valid.any():
+        effective_num = 1.0 - np.power(float(beta), counts[valid])
+        weights[valid] = (1.0 - float(beta)) / np.maximum(effective_num, 1e-12)
+        weights[valid] = weights[valid] / np.mean(weights[valid])
+    else:
+        weights[:] = 1.0
+    return weights
+
+
+class FocalLoss(nn.Module):
+    """Pure focal term + ordinal regularization with optional class-balance weights."""
+    def __init__(self, n_classes, gamma=1.5, ordinal_alpha=0.04, label_smoothing=0.0, class_weights=None):
+        super().__init__()
+        self.n_classes = int(n_classes)
+        self.gamma = float(gamma)
+        self.ordinal_alpha = float(ordinal_alpha)
+        self.label_smoothing = float(label_smoothing)
+        if class_weights is None:
+            self.class_weights = None
+        else:
+            cw = torch.tensor(class_weights, dtype=torch.float32)
+            self.register_buffer('class_weights', cw)
+
+    def forward(self, logits, targets):
+        logits_for_loss = logits.float()
+        log_probs = F.log_softmax(logits_for_loss, dim=1)
+        probs = log_probs.exp()
+
+        if self.label_smoothing > 0.0 and self.n_classes > 1:
+            smooth = self.label_smoothing
+            smooth_targets = torch.full_like(
+                log_probs,
+                fill_value=smooth / max(1, self.n_classes - 1),
+            )
+            smooth_targets.scatter_(1, targets.unsqueeze(1), 1.0 - smooth)
+            pt = (probs * smooth_targets).sum(dim=1).clamp(min=1e-8, max=1.0 - 1e-8)
+        else:
+            pt = probs.gather(1, targets.unsqueeze(1)).squeeze(1).clamp(min=1e-8, max=1.0 - 1e-8)
+
+        focal_loss = -((1.0 - pt) ** self.gamma) * torch.log(pt)
+
+        if self.class_weights is not None:
+            weight = self.class_weights.to(device=logits.device, dtype=torch.float32)
+            focal_loss = focal_loss * weight[targets]
+
+        focal_term = focal_loss.mean()
+
+        if self.ordinal_alpha <= 0.0:
+            return focal_term
+
+        class_positions = torch.arange(self.n_classes, device=logits.device, dtype=probs.dtype)
+        expected_rank = (probs * class_positions.unsqueeze(0)).sum(dim=1)
+        target_rank = targets.to(dtype=probs.dtype)
+        denom = max(1.0, float(self.n_classes - 1))
+        ordinal_loss = ((expected_rank - target_rank) / denom).pow(2).mean()
+
+        # Unimodality penalty: cumulative probs must be monotone
+        cumprobs = torch.cumsum(probs, dim=1)
+        cum_violation = F.relu(-(cumprobs[:, 1:] - cumprobs[:, :-1])).sum(dim=1).mean()
+        return focal_term + self.ordinal_alpha * ordinal_loss + 0.05 * cum_violation
+
+
+CLASS_BALANCE_BETA = 0.995
+class_weights_effective = build_effective_num_class_weights(
+    class_freq_raw if 'class_freq_raw' in globals() else np.ones(n_classes),
+    beta=CLASS_BALANCE_BETA,
+ )
+
+criterion_settings = {
+    'loss_name': 'focal_ordinal_sampler_balanced',
+    'focal_gamma': 1.5,
+    'label_smoothing': 0.00,  # Audit Fix F7: 0.0 (no smoothing with focal)
+    'ordinal_alpha': 0.12,  # Audit Fix F4: was 0.04
+    'class_balance_beta': CLASS_BALANCE_BETA,
+}
+
+# Audit Fix F1: WeightedSampler already re-balances; class_weights=None
+#               avoids double imbalance correction (EffectiveNum Ă¢â€°Ë† no-op at 1.81x ratio).
+criterion = FocalLoss(
+    n_classes=n_classes,
+    gamma=criterion_settings['focal_gamma'],
+    ordinal_alpha=criterion_settings['ordinal_alpha'],
+    label_smoothing=criterion_settings['label_smoothing'],
+    class_weights=None,  # Audit Fix F1: sampler handles imbalance
+).to(device)
+
+FOCAL_GAMMA = criterion_settings['focal_gamma']
+print(
+    f"Loss: {criterion_settings['loss_name']} | "
+    f"gamma={criterion_settings['focal_gamma']} | "
+    f"smoothing={criterion_settings['label_smoothing']} | "
+    f"ordinal_alpha={criterion_settings['ordinal_alpha']} | "
+    f"beta={criterion_settings['class_balance_beta']}"
+ )
+print('Effective class weights:', np.round(class_weights_effective, 4).tolist())
+
+
+================================================================================
+CELL 23 (code)
+================================================================================
+
+class FuzzyLayer(nn.Module):
+    """Gaussian fuzzy membership expansion with configurable MFs per feature."""
+    def __init__(self, input_features, n_mfs=5, init_sigma=1.0):
+        super().__init__()
+        self.input_features = input_features
+        self.n_mfs = n_mfs
+        self.centers = nn.Parameter(torch.linspace(-1.0, 1.0, n_mfs).repeat(input_features, 1))
+        self.log_sigma = nn.Parameter(torch.full((input_features, n_mfs), math.log(init_sigma)))
+
+    def forward(self, x):
+        x_exp = x.unsqueeze(-1)
+        centers = self.centers.unsqueeze(0).unsqueeze(0)
+        sigma = torch.exp(self.log_sigma).unsqueeze(0).unsqueeze(0).clamp(min=1e-3)
+        memberships = torch.exp(-0.5 * ((x_exp - centers) / sigma) ** 2)
+        return memberships.reshape(x.shape[0], x.shape[1], self.input_features * self.n_mfs)
+
+
+class TemporalSelfAttentionBlock(nn.Module):
+    """Pre-norm Transformer block with learnable relative positional bias."""
+    def __init__(self, d_model=128, n_heads=4, dropout=0.1, max_relative_position=32):
+        super().__init__()
+        self.norm1 = nn.LayerNorm(d_model)
+        self.norm2 = nn.LayerNorm(d_model)
+        self.attn = nn.MultiheadAttention(embed_dim=d_model, num_heads=n_heads, dropout=dropout, batch_first=True)
+        self.dropout = nn.Dropout(dropout)
+        self.ffn = nn.Sequential(
+            nn.Linear(d_model, 4 * d_model),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(4 * d_model, d_model),
+        )
+        self.max_relative_position = int(max_relative_position)
+        self.relative_bias = nn.Parameter(torch.zeros(2 * self.max_relative_position + 1))
+
+    def _relative_bias_matrix(self, seq_len, device, dtype):
+        pos = torch.arange(seq_len, device=device)
+        rel = pos[None, :] - pos[:, None]
+        rel = rel.clamp(-self.max_relative_position, self.max_relative_position)
+        rel = rel + self.max_relative_position
+        return self.relative_bias[rel].to(dtype=dtype)
+
+    def forward(self, x):
+        x_norm = self.norm1(x)
+        attn_bias = self._relative_bias_matrix(x.size(1), x.device, x.dtype)
+        attn_out, _ = self.attn(x_norm, x_norm, x_norm, attn_mask=attn_bias, need_weights=False)
+        x = x + self.dropout(attn_out)
+        x = x + self.dropout(self.ffn(self.norm2(x)))
+        return x
+
+
+class AttentivePool(nn.Module):
+    def __init__(self, dim):
+        super().__init__()
+        self.score = nn.Sequential(
+            nn.Linear(dim, dim),
+            nn.Tanh(),
+            nn.Linear(dim, 1),
+        )
+
+    def forward(self, x):
+        w = torch.softmax(self.score(x), dim=1)
+        ctx = (w * x).sum(dim=1)
+        return ctx, w
+
+
+class TLSTMFuzzyClassifier(nn.Module):
+    """Configurable Transformer-LSTM classifier with optional fuzzy expansion and bidirectionality."""
+    def __init__(
+        self,
+        n_channels,
+        n_classes,
+        n_sectors,
+        n_tickers,
+        n_companies,
+        hidden_size=64,
+        dropout=0.25,
+        n_mfs=1,
+        d_model=64,
+        n_heads=4,
+        n_layers=1,
+        sector_emb_dim=16,
+        ticker_emb_dim=4,
+        company_emb_dim=4,
+        max_relative_position=8,
+        use_fuzzy=False,
+        bidirectional_lstm=False,
+    ):
+        super().__init__()
+        self.use_fuzzy = bool(use_fuzzy)
+        self.bidirectional_lstm = bool(bidirectional_lstm)
+        self.n_layers = int(n_layers)
+
+        if self.use_fuzzy:
+            self.fuzzy = FuzzyLayer(n_channels, n_mfs=n_mfs)
+            input_proj_dim = n_channels * n_mfs
+        else:
+            self.fuzzy = nn.Identity()
+            input_proj_dim = n_channels
+
+        self.input_norm = nn.LayerNorm(input_proj_dim)
+        self.input_proj = nn.Sequential(
+            nn.Linear(input_proj_dim, d_model),
+            nn.GELU(),
+            nn.Dropout(dropout * 0.5),
+        )
+        self.blocks = nn.ModuleList([
+            TemporalSelfAttentionBlock(
+                d_model=d_model,
+                n_heads=n_heads,
+                dropout=dropout,
+                max_relative_position=max_relative_position,
+            )
+            for _ in range(self.n_layers)
+        ])
+        self.pre_lstm_norm = nn.LayerNorm(d_model)
+        self.lstm = nn.LSTM(
+            input_size=d_model,
+            hidden_size=hidden_size,
+            batch_first=True,
+            bidirectional=self.bidirectional_lstm,
+        )
+        self.lstm_out_dim = hidden_size * (2 if self.bidirectional_lstm else 1)
+        self.attn_pool = AttentivePool(self.lstm_out_dim)
+        self.last_y_embed = nn.Embedding(n_classes, hidden_size)
+        self.sector_embed = nn.Embedding(n_sectors, sector_emb_dim)
+        self.ticker_embed = nn.Embedding(n_tickers, ticker_emb_dim)
+        self.company_embed = nn.Embedding(n_companies, company_emb_dim)
+
+        transition_in_dim = self.lstm_out_dim + sector_emb_dim + ticker_emb_dim + company_emb_dim
+        self.transition_head = nn.Sequential(
+            nn.Linear(transition_in_dim, hidden_size),
+            nn.GELU(),
+            nn.Dropout(dropout),
+            nn.Linear(hidden_size, 1),
+        )
+
+        head_in_dim = self.lstm_out_dim + hidden_size + sector_emb_dim + ticker_emb_dim + company_emb_dim
+        self.head = nn.Sequential(
+            nn.Dropout(dropout),
+            nn.Linear(head_in_dim, hidden_size * 2),
+            nn.GELU(),
+            nn.Dropout(dropout * 0.8),
+            nn.Linear(hidden_size * 2, n_classes),
+        )
+        self._init_weights()
+
+    def _init_weights(self):
+        for m in self.modules():
+            if isinstance(m, nn.Linear):
+                nn.init.xavier_uniform_(m.weight)
+                if m.bias is not None:
+                    nn.init.zeros_(m.bias)
+            elif isinstance(m, nn.Embedding):
+                nn.init.normal_(m.weight, mean=0.0, std=0.02)
+
+    def forward(self, x, last_y, sector_id, ticker_id=None, company_id=None, return_aux=False):
+        x_features = self.input_norm(self.fuzzy(x))
+        x_embed = self.input_proj(x_features)
+        for blk in self.blocks:
+            x_embed = blk(x_embed)
+        x_embed = self.pre_lstm_norm(x_embed)
+        lstm_out, _ = self.lstm(x_embed)
+        seq_ctx, _ = self.attn_pool(lstm_out)
+
+        batch_size = x.size(0)
+        if ticker_id is None:
+            ticker_id = torch.zeros(batch_size, dtype=torch.long, device=x.device)
+        if company_id is None:
+            company_id = torch.zeros(batch_size, dtype=torch.long, device=x.device)
+
+        last_y_emb = self.last_y_embed(last_y)
+        sector_emb = self.sector_embed(sector_id)
+        ticker_emb = self.ticker_embed(ticker_id)
+        company_emb = self.company_embed(company_id)
+        aux_context = torch.cat([seq_ctx, sector_emb, ticker_emb, company_emb], dim=-1)
+        transition_logits = self.transition_head(aux_context).squeeze(-1)
+
+        out = torch.cat([seq_ctx, last_y_emb, sector_emb, ticker_emb, company_emb], dim=-1)
+        logits = self.head(out)
+        if return_aux:
+            return logits, transition_logits
+        return logits
+
+
+USE_FUZZY_LAYER = False
+BIDIRECTIONAL_LSTM = False
+FUZZY_MFS = 1
+MODEL_D_MODEL = 64
+TRANSFORMER_HEADS = 4
+TRANSFORMER_LAYERS = 1
+LSTM_HIDDEN = 64
+SECTOR_EMB_DIM = 16
+TICKER_EMB_DIM = 4
+COMPANY_EMB_DIM = 4
+TLSTM_DROPOUT = 0.30
+MAX_RELATIVE_POSITION = 8
+
+model = TLSTMFuzzyClassifier(
+    n_channels=n_channels,
+    n_classes=n_classes,
+    n_sectors=n_sectors,
+    n_tickers=n_tickers,
+    n_companies=n_companies,
+    hidden_size=LSTM_HIDDEN,
+    dropout=TLSTM_DROPOUT,
+    n_mfs=FUZZY_MFS,
+    d_model=MODEL_D_MODEL,
+    n_heads=TRANSFORMER_HEADS,
+    n_layers=TRANSFORMER_LAYERS,
+    sector_emb_dim=SECTOR_EMB_DIM,
+    ticker_emb_dim=TICKER_EMB_DIM,
+    company_emb_dim=COMPANY_EMB_DIM,
+    max_relative_position=MAX_RELATIVE_POSITION,
+    use_fuzzy=USE_FUZZY_LAYER,
+    bidirectional_lstm=BIDIRECTIONAL_LSTM,
+).to(device)
+
+n_params = sum(p.numel() for p in model.parameters() if p.requires_grad)
+print(f'Optional fuzzy layer enabled: {USE_FUZZY_LAYER} | MFs per feature: {FUZZY_MFS}')
+print(f'Projected d_model: {MODEL_D_MODEL}')
+print(f'Transformer layers/heads: {TRANSFORMER_LAYERS}/{TRANSFORMER_HEADS}')
+print(f'Relative position window: +/-{MAX_RELATIVE_POSITION}')
+print(f'LSTM hidden size: {LSTM_HIDDEN} | bidirectional_lstm={BIDIRECTIONAL_LSTM}')
+print(f'Sector embedding dim: {SECTOR_EMB_DIM}')
+print(f'Ticker embedding dim: {TICKER_EMB_DIM}')
+print(f'Company embedding dim: {COMPANY_EMB_DIM}')
+print(f'Channels: {n_channels} (base + delta features)')
+print(f'Sectors: {n_sectors} | Tickers: {n_tickers} | Companies: {n_companies}')
+print(f'Model parameters: {n_params:,}')
+print('\nSimplified Transformer-LSTM model created successfully!')
+print(model)
+
+
+
+================================================================================
+CELL 24 (code)
+================================================================================
+# ============================================================
+# PriMO: lightweight architecture/config search for Transformer-LSTM ablations
+# ============================================================
+# PriMO keeps expert priors from the current thesis configuration, evaluates
+# cheap low-fidelity trials, stores a Pareto archive, and passes the selected
+# config to the final simplified Transformer-LSTM training loop through BEST_TUNED_CONFIG.
+from torch.utils.data import Subset
+import json
+import math
+
+
+def build_training_criterion(config, n_classes):
+    beta = float(config.get('class_balance_beta', globals().get('CLASS_BALANCE_BETA', 0.995)))
+    use_class_weights = bool(config.get('use_class_weights', False))
+    counts = globals().get('class_freq_raw', np.ones(n_classes, dtype=float))
+    class_weights = build_effective_num_class_weights(counts, beta=beta) if use_class_weights else None
+    return FocalLoss(
+        n_classes=n_classes,
+        gamma=float(config.get('focal_gamma', 1.5)),
+        ordinal_alpha=float(config.get('ordinal_alpha', 0.02)),
+        label_smoothing=float(config.get('label_smoothing', 0.0)),
+        class_weights=class_weights,
+    )
+
+
+TRANSFORMER_PRIMO_DEFAULT_CONFIG = {
+    'hidden_size': 64,
+    'dropout': 0.30,
+    'fuzzy_mfs': 1,
+    'use_fuzzy': False,
+    'bidirectional_lstm': False,
+    'd_model': 64,
+    'n_heads': 4,
+    'n_layers': 1,
+    'sector_emb_dim': 16,
+    'ticker_emb_dim': 4,
+    'company_emb_dim': 4,
+    'max_relative_position': 8,
+    'lr': 2.5e-4,
+    'max_lr': 4.0e-4,
+    'weight_decay': 6e-3,
+    'focal_gamma': 1.5,
+    'ordinal_alpha': 0.08,
+    'label_smoothing': 0.02,
+    'class_balance_beta': 0.995,
+    'use_class_weights': False,
+}
+
+TRANSFORMER_PRIMO_PRIORS = [
+    {**TRANSFORMER_PRIMO_DEFAULT_CONFIG, 'prior_name': 'simplified_lstm_no_fuzzy'},
+    {**TRANSFORMER_PRIMO_DEFAULT_CONFIG, 'n_layers': 0, 'dropout': 0.25, 'max_lr': 3.5e-4, 'prior_name': 'lstm_entity_only'},
+    {**TRANSFORMER_PRIMO_DEFAULT_CONFIG, 'hidden_size': 96, 'd_model': 96, 'dropout': 0.25, 'weight_decay': 4e-3, 'prior_name': 'moderate_capacity_no_fuzzy'},
+    {**TRANSFORMER_PRIMO_DEFAULT_CONFIG, 'use_fuzzy': True, 'fuzzy_mfs': 3, 'dropout': 0.30, 'ordinal_alpha': 0.10, 'prior_name': 'fuzzy_ablation_light'},
+    {**TRANSFORMER_PRIMO_DEFAULT_CONFIG, 'bidirectional_lstm': True, 'hidden_size': 48, 'dropout': 0.32, 'prior_name': 'bilstm_ablation_small'},
+]
+
+TRANSFORMER_PRIMO_SPACE = {
+    'hidden_size': [48, 64, 96],
+    'dropout': (0.18, 0.40),
+    'fuzzy_mfs': [1, 3, 5],
+    'use_fuzzy': [False, True],
+    'bidirectional_lstm': [False, True],
+    'd_model': [48, 64, 96],
+    'n_heads': [2, 4, 8],
+    'n_layers': [0, 1, 2],
+    'sector_emb_dim': [8, 16],
+    'ticker_emb_dim': [2, 4, 8],
+    'company_emb_dim': [2, 4, 8],
+    'max_relative_position': [4, 8, 16],
+    'lr': (1e-4, 6e-4),
+    'max_lr': (2.5e-4, 1.0e-3),
+    'weight_decay': (2e-3, 1.0e-2),
+    'focal_gamma': (1.0, 2.0),
+    'ordinal_alpha': (0.02, 0.14),
+    'label_smoothing': (0.0, 0.05),
+    'class_balance_beta': [0.995, 0.999],
+    'use_class_weights': [False],
+}
+
+PRIMO_ENABLED = True
+PRIMO_TRIALS = 12
+PRIMO_FIDELITY_EPOCHS = 8
+PRIMO_PATIENCE = 3
+PRIMO_BATCH_SIZE = 64
+PRIMO_TRAIN_FRACTION = 0.50
+PRIMO_VAL_FRACTION = 1.00
+PRIMO_RANDOM_STATE = SEED if 'SEED' in globals() else 42
+
+# Accuracy-first objective with minority-class guardrail metrics kept for monitoring.
+# ChgAcc remains in the trial table/Pareto front, but the scalar selector now follows
+# the thesis target: test accuracy without ignoring weighted-F1, macro-F1, and QWK.
+PRIMO_OBJECTIVE_WEIGHTS = {
+    'val_accuracy': 0.45,
+    'val_weighted_f1': 0.25,
+    'val_macro_f1': 0.20,
+    'val_qwk': 0.10,
+}
+PRIMO_LOSS_PENALTY_WEIGHT = 0.00
+PRIMO_LOSS_GAP_PENALTY_WEIGHT = 0.03
+PRIMO_PARAM_PENALTY = 1e-7
+
+
+def transformer_primo_selection_score(metrics, params=0):
+    score = 0.0
+    for key, weight in PRIMO_OBJECTIVE_WEIGHTS.items():
+        value = float(metrics.get(key, 0.0))
+        if not np.isfinite(value):
+            value = 0.0
+        score += float(weight) * value
+    val_loss = float(metrics.get('val_loss', 0.0))
+    if not np.isfinite(val_loss):
+        val_loss = 1.0
+    loss_gap = float(metrics.get('loss_gap', metrics.get('val_loss_gap', 0.0)))
+    if not np.isfinite(loss_gap):
+        loss_gap = 0.0
+    score -= float(PRIMO_LOSS_PENALTY_WEIGHT) * val_loss
+    score -= float(PRIMO_LOSS_GAP_PENALTY_WEIGHT) * max(0.0, loss_gap)
+    score -= float(PRIMO_PARAM_PENALTY) * float(params)
+    return float(score)
+
+
+
+def _clip_float(x, bounds):
+    lo, hi = bounds
+    return float(min(max(float(x), lo), hi))
+
+
+def _sample_log_uniform(rng, lo, hi):
+    return float(math.exp(rng.uniform(math.log(lo), math.log(hi))))
+
+
+def _nearest_choice(values, target):
+    arr = np.asarray(values)
+    return arr[np.argmin(np.abs(arr.astype(float) - float(target)))].item()
+
+
+def sample_transformer_primo_config(trial_idx, rng):
+    if trial_idx < len(TRANSFORMER_PRIMO_PRIORS):
+        cfg = dict(TRANSFORMER_PRIMO_PRIORS[trial_idx])
+    else:
+        base = dict(TRANSFORMER_PRIMO_PRIORS[int(rng.integers(0, len(TRANSFORMER_PRIMO_PRIORS)))])
+        cfg = dict(base)
+        if rng.random() < 0.75:
+            cfg['hidden_size'] = int(_nearest_choice(TRANSFORMER_PRIMO_SPACE['hidden_size'], int(base['hidden_size']) + rng.normal(0, 28)))
+            cfg['d_model'] = int(_nearest_choice(TRANSFORMER_PRIMO_SPACE['d_model'], int(base['d_model']) + rng.normal(0, 30)))
+            valid_heads = [h for h in TRANSFORMER_PRIMO_SPACE['n_heads'] if cfg['d_model'] % h == 0]
+            cfg['n_heads'] = int(rng.choice(valid_heads)) if rng.random() < 0.35 else int(base['n_heads'])
+            if cfg['d_model'] % cfg['n_heads'] != 0:
+                cfg['n_heads'] = int(valid_heads[0])
+            cfg['n_layers'] = int(rng.choice(TRANSFORMER_PRIMO_SPACE['n_layers'])) if rng.random() < 0.35 else int(base['n_layers'])
+            cfg['dropout'] = _clip_float(rng.normal(float(base['dropout']), 0.07), TRANSFORMER_PRIMO_SPACE['dropout'])
+            cfg['use_fuzzy'] = bool(rng.choice(TRANSFORMER_PRIMO_SPACE['use_fuzzy'])) if rng.random() < 0.25 else bool(base.get('use_fuzzy', False))
+            cfg['bidirectional_lstm'] = bool(rng.choice(TRANSFORMER_PRIMO_SPACE['bidirectional_lstm'])) if rng.random() < 0.20 else bool(base.get('bidirectional_lstm', False))
+            cfg['fuzzy_mfs'] = int(rng.choice(TRANSFORMER_PRIMO_SPACE['fuzzy_mfs'])) if cfg['use_fuzzy'] and rng.random() < 0.35 else int(base.get('fuzzy_mfs', 1))
+            if not cfg['use_fuzzy']:
+                cfg['fuzzy_mfs'] = 1
+            cfg['sector_emb_dim'] = int(rng.choice(TRANSFORMER_PRIMO_SPACE['sector_emb_dim'])) if rng.random() < 0.30 else int(base['sector_emb_dim'])
+            cfg['ticker_emb_dim'] = int(rng.choice(TRANSFORMER_PRIMO_SPACE['ticker_emb_dim'])) if rng.random() < 0.40 else int(base['ticker_emb_dim'])
+            cfg['company_emb_dim'] = int(rng.choice(TRANSFORMER_PRIMO_SPACE['company_emb_dim'])) if rng.random() < 0.40 else int(base['company_emb_dim'])
+            cfg['max_relative_position'] = int(rng.choice(TRANSFORMER_PRIMO_SPACE['max_relative_position'])) if rng.random() < 0.35 else int(base['max_relative_position'])
+            cfg['lr'] = _clip_float(math.exp(math.log(float(base['lr'])) + rng.normal(0, 0.45)), TRANSFORMER_PRIMO_SPACE['lr'])
+            cfg['max_lr'] = _clip_float(math.exp(math.log(float(base['max_lr'])) + rng.normal(0, 0.45)), TRANSFORMER_PRIMO_SPACE['max_lr'])
+            if cfg['max_lr'] <= cfg['lr']:
+                cfg['max_lr'] = min(float(TRANSFORMER_PRIMO_SPACE['max_lr'][1]), float(cfg['lr']) * 1.6)
+            cfg['weight_decay'] = _clip_float(math.exp(math.log(float(base['weight_decay'])) + rng.normal(0, 0.5)), TRANSFORMER_PRIMO_SPACE['weight_decay'])
+            cfg['focal_gamma'] = _clip_float(rng.normal(float(base['focal_gamma']), 0.22), TRANSFORMER_PRIMO_SPACE['focal_gamma'])
+            cfg['ordinal_alpha'] = _clip_float(rng.normal(float(base['ordinal_alpha']), 0.035), TRANSFORMER_PRIMO_SPACE['ordinal_alpha'])
+            cfg['label_smoothing'] = _clip_float(rng.normal(float(base['label_smoothing']), 0.02), TRANSFORMER_PRIMO_SPACE['label_smoothing'])
+            cfg['class_balance_beta'] = float(rng.choice(TRANSFORMER_PRIMO_SPACE['class_balance_beta'])) if rng.random() < 0.30 else float(base['class_balance_beta'])
+            cfg['prior_name'] = f"mutated_{base.get('prior_name', 'prior')}"
+        else:
+            cfg = {
+                'hidden_size': int(rng.choice(TRANSFORMER_PRIMO_SPACE['hidden_size'])),
+                'dropout': float(rng.uniform(*TRANSFORMER_PRIMO_SPACE['dropout'])),
+                'use_fuzzy': bool(rng.choice(TRANSFORMER_PRIMO_SPACE['use_fuzzy'])),
+                'bidirectional_lstm': bool(rng.choice(TRANSFORMER_PRIMO_SPACE['bidirectional_lstm'])),
+                'fuzzy_mfs': int(rng.choice(TRANSFORMER_PRIMO_SPACE['fuzzy_mfs'])),
+                'd_model': int(rng.choice(TRANSFORMER_PRIMO_SPACE['d_model'])),
+                'n_heads': int(rng.choice(TRANSFORMER_PRIMO_SPACE['n_heads'])),
+                'n_layers': int(rng.choice(TRANSFORMER_PRIMO_SPACE['n_layers'])),
+                'sector_emb_dim': int(rng.choice(TRANSFORMER_PRIMO_SPACE['sector_emb_dim'])),
+                'ticker_emb_dim': int(rng.choice(TRANSFORMER_PRIMO_SPACE['ticker_emb_dim'])),
+                'company_emb_dim': int(rng.choice(TRANSFORMER_PRIMO_SPACE['company_emb_dim'])),
+                'max_relative_position': int(rng.choice(TRANSFORMER_PRIMO_SPACE['max_relative_position'])),
+                'lr': _sample_log_uniform(rng, *TRANSFORMER_PRIMO_SPACE['lr']),
+                'max_lr': _sample_log_uniform(rng, *TRANSFORMER_PRIMO_SPACE['max_lr']),
+                'weight_decay': _sample_log_uniform(rng, *TRANSFORMER_PRIMO_SPACE['weight_decay']),
+                'focal_gamma': float(rng.uniform(*TRANSFORMER_PRIMO_SPACE['focal_gamma'])),
+                'ordinal_alpha': float(rng.uniform(*TRANSFORMER_PRIMO_SPACE['ordinal_alpha'])),
+                'label_smoothing': float(rng.uniform(*TRANSFORMER_PRIMO_SPACE['label_smoothing'])),
+                'class_balance_beta': float(rng.choice(TRANSFORMER_PRIMO_SPACE['class_balance_beta'])),
+                'use_class_weights': False,
+                'prior_name': 'global_exploration',
+            }
+            valid_heads = [h for h in TRANSFORMER_PRIMO_SPACE['n_heads'] if cfg['d_model'] % h == 0]
+            cfg['n_heads'] = int(cfg['n_heads'] if cfg['n_heads'] in valid_heads else valid_heads[0])
+            if cfg['max_lr'] <= cfg['lr']:
+                cfg['max_lr'] = min(float(TRANSFORMER_PRIMO_SPACE['max_lr'][1]), float(cfg['lr']) * 1.6)
+    cfg['use_class_weights'] = False
+    if not bool(cfg.get('use_fuzzy', False)):
+        cfg['fuzzy_mfs'] = 1
+    return cfg
+
+
+def count_trainable_params(model_obj):
+    return int(sum(p.numel() for p in model_obj.parameters() if p.requires_grad))
+
+
+def change_accuracy(y_true, y_pred, last_y):
+    y_true = np.asarray(y_true, dtype=int)
+    y_pred = np.asarray(y_pred, dtype=int)
+    last_y = np.asarray(last_y, dtype=int)
+    changed = y_true != last_y
+    if not np.any(changed):
+        return float('nan')
+    return float(np.mean(y_pred[changed] == y_true[changed]))
+
+
+def build_primo_model(config):
+    return TLSTMFuzzyClassifier(
+        n_channels=n_channels,
+        n_classes=n_classes,
+        n_sectors=n_sectors,
+        n_tickers=n_tickers,
+        n_companies=n_companies,
+        hidden_size=int(config['hidden_size']),
+        dropout=float(config['dropout']),
+        n_mfs=int(config['fuzzy_mfs']),
+        d_model=int(config['d_model']),
+        n_heads=int(config['n_heads']),
+        n_layers=int(config['n_layers']),
+        sector_emb_dim=int(config.get('sector_emb_dim', 16)),
+        ticker_emb_dim=int(config.get('ticker_emb_dim', 4)),
+        company_emb_dim=int(config.get('company_emb_dim', 4)),
+        max_relative_position=int(config.get('max_relative_position', 8)),
+        use_fuzzy=bool(config.get('use_fuzzy', False)),
+        bidirectional_lstm=bool(config.get('bidirectional_lstm', False)),
+    ).to(device)
+
+
+def evaluate_transformer_primo_config(config, trial_idx, train_subset_loader, val_subset_loader):
+    torch.manual_seed(PRIMO_RANDOM_STATE + int(trial_idx))
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(PRIMO_RANDOM_STATE + int(trial_idx))
+
+    trial_model = build_primo_model(config)
+    trial_criterion = build_training_criterion(config, n_classes=n_classes).to(device)
+    trial_optimizer = torch.optim.AdamW(
+        trial_model.parameters(),
+        lr=float(config['lr']),
+        weight_decay=float(config['weight_decay']),
+    )
+    trial_scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        trial_optimizer,
+        max_lr=float(config['max_lr']),
+        steps_per_epoch=max(1, len(train_subset_loader)),
+        epochs=int(PRIMO_FIDELITY_EPOCHS),
+        pct_start=0.2,
+        anneal_strategy='cos',
+        div_factor=max(float(config['max_lr']) / max(float(config['lr']), 1e-9), 1.0),
+        final_div_factor=100.0,
+    )
+
+    amp_enabled_local = (device.type == 'cuda')
+    amp_device_local = 'cuda' if amp_enabled_local else 'cpu'
+    scaler_local = torch.amp.GradScaler(amp_device_local, enabled=amp_enabled_local)
+
+    best_score = -np.inf
+    best_snapshot = None
+    no_improve = 0
+
+    for epoch in range(1, int(PRIMO_FIDELITY_EPOCHS) + 1):
+        trial_model.train()
+        train_epoch_losses = []
+        for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in train_subset_loader:
+            X_batch = X_batch.to(device)
+            last_y_batch = last_y_batch.to(device)
+            sector_batch = sector_batch.to(device)
+            ticker_batch = ticker_batch.to(device)
+            company_batch = company_batch.to(device)
+            y_batch = y_batch.to(device)
+
+            trial_optimizer.zero_grad(set_to_none=True)
+            with torch.amp.autocast(device_type=amp_device_local, enabled=amp_enabled_local):
+                logits = trial_model(X_batch, last_y_batch, sector_batch, ticker_batch, company_batch)
+                loss = trial_criterion(logits, y_batch)
+            if not torch.isfinite(loss):
+                continue
+            scaler_local.scale(loss).backward()
+            scaler_local.unscale_(trial_optimizer)
+            torch.nn.utils.clip_grad_norm_(trial_model.parameters(), 1.0)
+            scaler_local.step(trial_optimizer)
+            scaler_local.update()
+            train_epoch_losses.append(float(loss.item()))
+            try:
+                trial_scheduler.step()
+            except ValueError:
+                pass
+
+        trial_model.eval()
+        val_losses, val_true, val_pred, val_last_y, val_probs = [], [], [], [], []
+        with torch.no_grad():
+            for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in val_subset_loader:
+                X_batch = X_batch.to(device)
+                last_y_batch_device = last_y_batch.to(device)
+                sector_batch = sector_batch.to(device)
+                ticker_batch = ticker_batch.to(device)
+                company_batch = company_batch.to(device)
+                y_batch_device = y_batch.to(device)
+                with torch.amp.autocast(device_type=amp_device_local, enabled=amp_enabled_local):
+                    logits = trial_model(X_batch, last_y_batch_device, sector_batch, ticker_batch, company_batch)
+                    loss = trial_criterion(logits, y_batch_device)
+                probs = torch.softmax(logits.float(), dim=1).detach().cpu().numpy()
+                val_losses.append(float(loss.item()))
+                val_probs.append(probs)
+                val_pred.extend(probs.argmax(axis=1).tolist())
+                val_true.extend(y_batch.detach().cpu().numpy().tolist())
+                val_last_y.extend(last_y_batch.detach().cpu().numpy().tolist())
+
+        val_true_arr = np.asarray(val_true, dtype=int)
+        val_pred_arr = np.asarray(val_pred, dtype=int)
+        val_probs_arr = np.vstack(val_probs) if val_probs else np.zeros((0, n_classes), dtype=float)
+        train_loss_epoch = float(np.mean(train_epoch_losses)) if train_epoch_losses else float('nan')
+        val_loss = float(np.mean(val_losses)) if val_losses else float('nan')
+        loss_gap = max(0.0, val_loss - train_loss_epoch) if np.isfinite(val_loss) and np.isfinite(train_loss_epoch) else 0.0
+        val_macro_f1 = float(f1_score(val_true_arr, val_pred_arr, average='macro', zero_division=0)) if len(val_true_arr) else 0.0
+        val_weighted_f1 = float(f1_score(val_true_arr, val_pred_arr, average='weighted', zero_division=0)) if len(val_true_arr) else 0.0
+        val_accuracy = float(accuracy_score(val_true_arr, val_pred_arr)) if len(val_true_arr) else 0.0
+        try:
+            val_qwk = float(cohen_kappa_score(val_true_arr, val_pred_arr, weights='quadratic'))
+            if not np.isfinite(val_qwk):
+                val_qwk = 0.0
+        except Exception:
+            val_qwk = 0.0
+        val_chgacc = change_accuracy(val_true_arr, val_pred_arr, np.asarray(val_last_y, dtype=int))
+        try:
+            y_bin = label_binarize(val_true_arr, classes=list(range(n_classes)))
+            val_auc = float(roc_auc_score(y_bin, val_probs_arr, average='weighted', multi_class='ovr'))
+        except Exception:
+            val_auc = float('nan')
+
+        current_score = transformer_primo_selection_score(
+            {
+                'val_accuracy': val_accuracy,
+                'val_weighted_f1': val_weighted_f1,
+                'val_macro_f1': val_macro_f1,
+                'val_qwk': val_qwk,
+                'val_loss': val_loss,
+                'loss_gap': loss_gap,
+            },
+            params=0,
+        )
+        if current_score > best_score + 1e-4:
+            best_score = current_score
+            best_snapshot = {
+                'fidelity_epochs': int(epoch),
+                'train_loss': train_loss_epoch,
+                'val_loss': val_loss,
+                'loss_gap': loss_gap,
+                'val_accuracy': val_accuracy,
+                'val_macro_f1': val_macro_f1,
+                'val_weighted_f1': val_weighted_f1,
+                'val_qwk': val_qwk,
+                'val_chgacc': float(val_chgacc),
+                'val_auc': val_auc,
+            }
+            no_improve = 0
+        else:
+            no_improve += 1
+            if no_improve >= int(PRIMO_PATIENCE):
+                break
+
+    if best_snapshot is None:
+        best_snapshot = {
+            'fidelity_epochs': int(PRIMO_FIDELITY_EPOCHS),
+            'train_loss': float('nan'),
+            'val_loss': float('nan'),
+            'loss_gap': 0.0,
+            'val_accuracy': 0.0,
+            'val_macro_f1': 0.0,
+            'val_weighted_f1': 0.0,
+            'val_qwk': 0.0,
+            'val_chgacc': float('nan'),
+            'val_auc': float('nan'),
+        }
+    params = count_trainable_params(trial_model)
+    result = dict(config)
+    result.update(best_snapshot)
+    result['trial'] = int(trial_idx)
+    result['params'] = int(params)
+    result['selection_score'] = transformer_primo_selection_score(result, params=params)
+    del trial_model, trial_criterion, trial_optimizer
+    if torch.cuda.is_available():
+        torch.cuda.empty_cache()
+    return result
+
+
+def pareto_front(df_trials, objectives):
+    if df_trials.empty:
+        return df_trials.copy()
+    values = df_trials[[name for name, _ in objectives]].to_numpy(dtype=float)
+    values = np.nan_to_num(values, nan=-1e9, posinf=1e9, neginf=-1e9)
+    directions = np.asarray([1.0 if direction == 'max' else -1.0 for _, direction in objectives], dtype=float)
+    score_values = values * directions
+    keep = []
+    for i in range(len(df_trials)):
+        dominated = False
+        for j in range(len(df_trials)):
+            if i == j:
+                continue
+            if np.all(score_values[j] >= score_values[i]) and np.any(score_values[j] > score_values[i]):
+                dominated = True
+                break
+        keep.append(not dominated)
+    return df_trials.loc[keep].copy()
+
+
+if PRIMO_ENABLED:
+    train_size = len(train_ds)
+    val_size = len(val_ds)
+    n_train_sub = max(256, int(train_size * PRIMO_TRAIN_FRACTION))
+    n_val_sub = max(256, int(val_size * PRIMO_VAL_FRACTION))
+
+    rng = np.random.default_rng(PRIMO_RANDOM_STATE)
+    train_idx = rng.choice(train_size, size=min(train_size, n_train_sub), replace=False)
+    val_idx = rng.choice(val_size, size=min(val_size, n_val_sub), replace=False)
+
+    train_sub_ds = Subset(train_ds, train_idx.tolist())
+    val_sub_ds = Subset(val_ds, val_idx.tolist())
+    train_sub_loader = DataLoader(
+        train_sub_ds,
+        batch_size=PRIMO_BATCH_SIZE,
+        shuffle=True,
+        num_workers=0,
+        pin_memory=(device.type == 'cuda'),
+    )
+    val_sub_loader = DataLoader(
+        val_sub_ds,
+        batch_size=PRIMO_BATCH_SIZE,
+        shuffle=False,
+        num_workers=0,
+        pin_memory=(device.type == 'cuda'),
+    )
+
+    primo_results = []
+    print(f'[PriMO-Transformer] Running {PRIMO_TRIALS} trials on train={len(train_sub_ds)} val={len(val_sub_ds)}')
+    for trial_idx in range(int(PRIMO_TRIALS)):
+        cfg = sample_transformer_primo_config(trial_idx, rng)
+        print(f"[PriMO-Transformer] Trial {trial_idx + 1}/{PRIMO_TRIALS}: {cfg}")
+        result = evaluate_transformer_primo_config(cfg, trial_idx, train_sub_loader, val_sub_loader)
+        primo_results.append(result)
+        print(
+            f"  val_acc={result['val_accuracy']:.4f} | val_macro_f1={result['val_macro_f1']:.4f} | "
+            f"val_f1w={result['val_weighted_f1']:.4f} | val_macro={result['val_macro_f1']:.4f} | val_qwk={result['val_qwk']:.4f} | "
+            f"val_chgacc={result['val_chgacc']:.4f} | loss_gap={result['loss_gap']:.4f} | params={result['params']} | score={result['selection_score']:.4f}"
+        )
+
+    transformer_primo_trials = pd.DataFrame(primo_results).sort_values('selection_score', ascending=False).reset_index(drop=True)
+    transformer_primo_pareto = pareto_front(
+        transformer_primo_trials,
+        objectives=[
+            ('val_accuracy', 'max'),
+            ('val_macro_f1', 'max'),
+            ('val_weighted_f1', 'max'),
+            ('val_qwk', 'max'),
+            ('val_chgacc', 'max'),
+            ('val_loss', 'min'),
+            ('loss_gap', 'min'),
+            ('params', 'min'),
+        ],
+    ).sort_values('selection_score', ascending=False).reset_index(drop=True)
+
+    selected_transformer_config = {
+        k: transformer_primo_trials.loc[0, k].item() if hasattr(transformer_primo_trials.loc[0, k], 'item') else transformer_primo_trials.loc[0, k]
+        for k in TRANSFORMER_PRIMO_DEFAULT_CONFIG.keys()
+    }
+    BEST_TUNED_CONFIG = dict(selected_transformer_config)
+    TRANSFORMER_PRIMO_ENABLED = True
+
+    trials_path = ARTIFACT_DIR / 'transformer_primo_trials.csv'
+    pareto_path = ARTIFACT_DIR / 'transformer_primo_pareto.csv'
+    config_path = ARTIFACT_DIR / 'transformer_primo_selected_config.json'
+    transformer_primo_trials.to_csv(trials_path, index=False)
+    transformer_primo_pareto.to_csv(pareto_path, index=False)
+    with open(config_path, 'w', encoding='utf-8') as f:
+        json.dump(selected_transformer_config, f, indent=2)
+
+    print('[PriMO-Transformer] Selected config:')
+    print(BEST_TUNED_CONFIG)
+    print('Saved:', trials_path)
+    print('Saved:', pareto_path)
+    print('Saved:', config_path)
+    display(transformer_primo_trials.head(10))
+else:
+    BEST_TUNED_CONFIG = dict(TRANSFORMER_PRIMO_DEFAULT_CONFIG)
+    TRANSFORMER_PRIMO_ENABLED = False
+    print('[PriMO-Transformer] Disabled; using TRANSFORMER_PRIMO_DEFAULT_CONFIG.')
+    print(BEST_TUNED_CONFIG)
+
+
+
+
+================================================================================
+CELL 25 (code)
+================================================================================
+# Ensure training uses class-balanced focal criterion even when config is overridden later.
+def build_training_criterion(config, n_classes):
+    beta = float(config.get('class_balance_beta', globals().get('CLASS_BALANCE_BETA', 0.995)))
+    use_class_weights = bool(config.get('use_class_weights', False))
+    counts = globals().get('class_freq_raw', np.ones(n_classes, dtype=float))
+    class_weights = build_effective_num_class_weights(counts, beta=beta) if use_class_weights else None
+    return FocalLoss(
+        n_classes=n_classes,
+        gamma=float(config.get('focal_gamma', 1.5)),
+        ordinal_alpha=float(config.get('ordinal_alpha', 0.02)),
+        label_smoothing=float(config.get('label_smoothing', 0.0)),
+        class_weights=class_weights,
+    )
+
+if 'BEST_TUNED_CONFIG' in globals() and isinstance(BEST_TUNED_CONFIG, dict):
+    BEST_TUNED_CONFIG.setdefault('class_balance_beta', float(globals().get('CLASS_BALANCE_BETA', 0.995)))
+    BEST_TUNED_CONFIG.setdefault('use_class_weights', False)
+print('build_training_criterion overridden; class weights are disabled by default because WeightedSampler handles imbalance.')
+
+
+
+================================================================================
+CELL 27 (code)
+================================================================================
+
+# ============================================================
+# Training loop with full metric tracking (Kaggle-safe Transformer-LSTM + AMP)
+# ============================================================
+MAX_EPOCHS = 100
+PATIENCE = 100
+EARLY_STOP_MIN_DELTA = 3e-4
+EARLY_STOP_METRIC = 'val_f1_weighted_gap_guarded'
+LOSS_GAP_PENALTY_WEIGHT = 0.06
+GENERALIZATION_REGULARIZATION_ENABLED = True
+MIN_DROPOUT_FOR_GENERALIZATION = 0.30
+MIN_WEIGHT_DECAY_FOR_GENERALIZATION = 6e-3
+MIN_LABEL_SMOOTHING_FOR_GENERALIZATION = 0.02
+TRAIN_INPUT_NOISE_STD = 0.005
+TRAIN_CHANNEL_DROPOUT_PROB = 0.015
+TRAIN_TIMESTEP_DROPOUT_PROB = 0.015
+MAX_ACCEPTABLE_LOSS_GAP = 0.055
+GAP_EXCESS_PENALTY_WEIGHT = 0.08
+
+default_train_config = {
+    'hidden_size': 64,
+    'dropout': 0.30,
+    'fuzzy_mfs': 1,
+    'use_fuzzy': False,
+    'bidirectional_lstm': False,
+    'd_model': 64,
+    'n_heads': 4,
+    'n_layers': 1,
+    'sector_emb_dim': 16,
+    'ticker_emb_dim': 4,
+    'company_emb_dim': 4,
+    'max_relative_position': 8,
+    'lr': 2.5e-4,
+    'max_lr': 4.0e-4,
+    'weight_decay': 6e-3,
+    'focal_gamma': 1.5,
+    'ordinal_alpha': 0.08,
+    'label_smoothing': 0.02,
+    'class_balance_beta': 0.995,
+    'use_class_weights': False,
+}
+
+train_config = dict(globals().get('BEST_TUNED_CONFIG', {}))
+for k, v in default_train_config.items():
+    train_config.setdefault(k, v)
+
+# Strategy C+E+F overrides are kept as fallback only. When PriMO is enabled,
+# its selected configuration is the final training configuration.
+_strategy_overrides = {
+    'hidden_size': 64,
+    'd_model': 64,
+    'n_layers': 1,
+    'dropout': 0.30,
+    'use_fuzzy': False,
+    'bidirectional_lstm': False,
+    'fuzzy_mfs': 1,
+    'ticker_emb_dim': 4,
+    'company_emb_dim': 4,
+    'ordinal_alpha': 0.08,
+    'weight_decay': 6e-3,
+    'label_smoothing': 0.02,
+    'focal_gamma': 1.5,
+    'use_class_weights': False,
+}
+if globals().get('TRANSFORMER_PRIMO_ENABLED', False):
+    print('[PriMO-Transformer] Using selected config without Strategy C+E+F overrides')
+else:
+    train_config.update(_strategy_overrides)
+    print(f"[Strategy C+E+F] Applied {len(_strategy_overrides)} config overrides over BEST_TUNED_CONFIG")
+
+if GENERALIZATION_REGULARIZATION_ENABLED:
+    train_config['dropout'] = max(float(train_config.get('dropout', 0.0)), float(MIN_DROPOUT_FOR_GENERALIZATION))
+    train_config['weight_decay'] = max(float(train_config.get('weight_decay', 0.0)), float(MIN_WEIGHT_DECAY_FOR_GENERALIZATION))
+    train_config['label_smoothing'] = max(float(train_config.get('label_smoothing', 0.0)), float(MIN_LABEL_SMOOTHING_FOR_GENERALIZATION))
+    print('[Generalization] Applied mild dropout/weight_decay/label_smoothing floors; loss gap is a guardrail, not the primary objective')
+
+USE_FUZZY_LAYER = bool(train_config.get('use_fuzzy', False))
+BIDIRECTIONAL_LSTM = bool(train_config.get('bidirectional_lstm', False))
+FUZZY_MFS = int(train_config.get('fuzzy_mfs', 1))
+if not USE_FUZZY_LAYER:
+    FUZZY_MFS = 1
+MODEL_D_MODEL = int(train_config.get('d_model', 64))
+TRANSFORMER_HEADS = int(train_config.get('n_heads', 4))
+TRANSFORMER_LAYERS = int(train_config.get('n_layers', 2))
+SECTOR_EMB_DIM = int(train_config.get('sector_emb_dim', 16))
+TICKER_EMB_DIM = int(train_config.get('ticker_emb_dim', 4))
+COMPANY_EMB_DIM = int(train_config.get('company_emb_dim', 4))
+MAX_RELATIVE_POSITION = int(train_config.get('max_relative_position', 8))
+LSTM_HIDDEN = int(train_config['hidden_size'])
+TLSTM_DROPOUT = float(train_config['dropout'])
+LR = float(train_config['lr'])
+MAX_LR = float(train_config['max_lr'])
+WEIGHT_DECAY = float(train_config['weight_decay'])
+USE_CLASS_WEIGHTS = bool(train_config.get('use_class_weights', False))
+CONTEXT_DROPOUT_PROB = 0.20
+
+model = TLSTMFuzzyClassifier(
+    n_channels=n_channels,
+    n_classes=n_classes,
+    n_sectors=n_sectors,
+    n_tickers=n_tickers,
+    n_companies=n_companies,
+    hidden_size=LSTM_HIDDEN,
+    dropout=TLSTM_DROPOUT,
+    n_mfs=FUZZY_MFS,
+    d_model=MODEL_D_MODEL,
+    n_heads=TRANSFORMER_HEADS,
+    n_layers=TRANSFORMER_LAYERS,
+    sector_emb_dim=SECTOR_EMB_DIM,
+    ticker_emb_dim=TICKER_EMB_DIM,
+    company_emb_dim=COMPANY_EMB_DIM,
+    max_relative_position=MAX_RELATIVE_POSITION,
+    use_fuzzy=USE_FUZZY_LAYER,
+    bidirectional_lstm=BIDIRECTIONAL_LSTM,
+).to(device)
+
+criterion = build_training_criterion(train_config, n_classes=n_classes).to(device)
+BEST_MODEL_PATH = ARTIFACT_DIR / 'transformer_best_model.pt'
+BEST_META_PATH = ARTIFACT_DIR / 'transformer_best_model_meta.pt'
+optimizer = torch.optim.AdamW(model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+
+# Strategy B: OneCycleLR to match hyperparameter search config
+# Previously used SequentialLR which ignored MAX_LR entirely.
+# OneCycleLR uses both LR (base) and MAX_LR (peak), matching search assumptions.
+WARMUP_EPOCHS = 5
+scheduler = torch.optim.lr_scheduler.OneCycleLR(
+    optimizer,
+    max_lr=MAX_LR,
+    steps_per_epoch=max(1, len(train_loader)),
+    epochs=MAX_EPOCHS,
+    pct_start=float(WARMUP_EPOCHS) / max(MAX_EPOCHS, 1),
+    anneal_strategy='cos',
+    div_factor=max(MAX_LR / max(LR, 1e-9), 1.0),
+    final_div_factor=100.0,
+)
+SCHEDULER_IS_PER_BATCH = True  # OneCycleLR steps per batch, not per epoch
+
+AMP_ENABLED = (device.type == 'cuda')
+AMP_DEVICE = 'cuda' if AMP_ENABLED else 'cpu'
+scaler_amp = torch.amp.GradScaler(AMP_DEVICE, enabled=AMP_ENABLED)
+from sklearn.metrics import cohen_kappa_score
+
+history = {
+    'train_loss': [], 'val_loss': [],
+    'train_acc': [], 'val_acc': [],
+    'train_f1': [], 'val_f1': [],
+    'train_f1_weighted': [], 'val_f1_weighted': [],
+    'train_qwk': [], 'val_qwk': [],
+    'train_auc': [], 'val_auc': [],
+    'loss_gap': [], 'generalization_score': [],
+    'lr': []
+}
+
+def apply_training_regularization(x_batch):
+    if not GENERALIZATION_REGULARIZATION_ENABLED:
+        return x_batch
+    x_aug = x_batch
+    if TRAIN_INPUT_NOISE_STD > 0:
+        x_aug = x_aug + torch.randn_like(x_aug) * float(TRAIN_INPUT_NOISE_STD)
+    if TRAIN_CHANNEL_DROPOUT_PROB > 0:
+        channel_mask = torch.rand((x_aug.shape[0], 1, x_aug.shape[2]), device=x_aug.device) < float(TRAIN_CHANNEL_DROPOUT_PROB)
+        x_aug = x_aug.masked_fill(channel_mask, 0.0)
+    if TRAIN_TIMESTEP_DROPOUT_PROB > 0 and x_aug.shape[1] > 1:
+        time_mask = torch.rand((x_aug.shape[0], x_aug.shape[1], 1), device=x_aug.device) < float(TRAIN_TIMESTEP_DROPOUT_PROB)
+        time_mask[:, -1, :] = False
+        x_aug = x_aug.masked_fill(time_mask, 0.0)
+    return x_aug
+
+def compute_generalization_score(val_f1w, val_macro, val_qwk, train_loss, val_loss):
+    gap = max(0.0, float(val_loss) - float(train_loss)) if np.isfinite(val_loss) and np.isfinite(train_loss) else 0.0
+    excess_gap = max(0.0, gap - float(MAX_ACCEPTABLE_LOSS_GAP))
+    score = (
+        0.80 * float(val_f1w)
+        + 0.10 * float(val_macro)
+        + 0.10 * float(val_qwk)
+        - float(GAP_EXCESS_PENALTY_WEIGHT) * excess_gap
+    )
+    return float(score), float(gap)
+
+def compute_cls_metrics(y_true, y_pred_logits, n_cls):
+    probs = torch.softmax(y_pred_logits, dim=1).cpu().numpy()
+    y_pred = probs.argmax(axis=1)
+    y_t = y_true.cpu().numpy()
+    acc = accuracy_score(y_t, y_pred)
+    f1_macro = f1_score(y_t, y_pred, average='macro', zero_division=0)
+    f1_weighted = f1_score(y_t, y_pred, average='weighted', zero_division=0)
+    try:
+        qwk = cohen_kappa_score(y_t, y_pred, weights='quadratic')
+        if not np.isfinite(qwk):
+            qwk = 0.0
+    except Exception:
+        qwk = 0.0
+    try:
+        y_true_bin = label_binarize(y_t, classes=list(range(n_cls)))
+        auc = roc_auc_score(y_true_bin, probs, average='weighted', multi_class='ovr')
+    except Exception:
+        auc = 0.5
+    return acc, f1_macro, f1_weighted, qwk, auc
+
+best_metric_value = -np.inf
+best_epoch = -1
+patience_counter = 0
+best_state = None
+
+print(f'Training for max {MAX_EPOCHS} epochs (patience={PATIENCE})...')
+for epoch in range(MAX_EPOCHS):
+    model.train()
+    epoch_loss = []
+    all_yt, all_logits = [], []
+
+    for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in train_loader:
+        X_batch = X_batch.to(device, non_blocking=PIN_MEMORY)
+        last_y_batch = last_y_batch.to(device, non_blocking=PIN_MEMORY)
+        sector_batch = sector_batch.to(device, non_blocking=PIN_MEMORY)
+        ticker_batch = ticker_batch.to(device, non_blocking=PIN_MEMORY)
+        company_batch = company_batch.to(device, non_blocking=PIN_MEMORY)
+        y_batch = y_batch.to(device, non_blocking=PIN_MEMORY)
+
+        if CONTEXT_DROPOUT_PROB > 0:
+            drop_mask = torch.rand(last_y_batch.shape, device=device) < CONTEXT_DROPOUT_PROB
+            last_y_batch = last_y_batch.clone()
+            last_y_batch[drop_mask] = torch.randint(0, n_classes, (int(drop_mask.sum().item()),), device=device)
+
+        X_batch = apply_training_regularization(X_batch)
+
+        optimizer.zero_grad(set_to_none=True)
+        with torch.amp.autocast(device_type=AMP_DEVICE, enabled=AMP_ENABLED):
+            logits = model(X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, return_aux=False)
+            if isinstance(logits, tuple):
+                logits = logits[0]
+            loss = criterion(logits, y_batch)
+
+        if not torch.isfinite(loss):
+            optimizer.zero_grad(set_to_none=True)
+            continue
+
+        scaler_amp.scale(loss).backward()
+        scaler_amp.unscale_(optimizer)
+        torch.nn.utils.clip_grad_norm_(model.parameters(), 1.0)
+        scaler_amp.step(optimizer)
+        scaler_amp.update()
+        if SCHEDULER_IS_PER_BATCH:
+            try:
+                scheduler.step()
+            except ValueError:
+                pass  # Guard against stepping beyond total_steps
+
+        epoch_loss.append(loss.item())
+        all_yt.append(y_batch.detach())
+        all_logits.append(logits.detach())
+
+    if len(all_yt) == 0:
+        print(f'Epoch {epoch+1}: no valid train batches.')
+        break
+
+    train_loss = float(np.mean(epoch_loss)) if len(epoch_loss) > 0 else float('nan')
+    all_yt = torch.cat(all_yt)
+    all_logits = torch.cat(all_logits)
+    tr_acc, tr_f1, tr_f1w, tr_qwk, tr_auc = compute_cls_metrics(all_yt, all_logits, n_classes)
+
+    model.eval()
+    val_losses = []
+    vl_yt, vl_logits = [], []
+    with torch.no_grad():
+        for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in val_loader:
+            X_batch = X_batch.to(device, non_blocking=PIN_MEMORY)
+            last_y_batch = last_y_batch.to(device, non_blocking=PIN_MEMORY)
+            sector_batch = sector_batch.to(device, non_blocking=PIN_MEMORY)
+            ticker_batch = ticker_batch.to(device, non_blocking=PIN_MEMORY)
+            company_batch = company_batch.to(device, non_blocking=PIN_MEMORY)
+            y_batch = y_batch.to(device, non_blocking=PIN_MEMORY)
+            with torch.amp.autocast(device_type=AMP_DEVICE, enabled=AMP_ENABLED):
+                logits = model(X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, return_aux=False)
+                if isinstance(logits, tuple):
+                    logits = logits[0]
+                loss = criterion(logits, y_batch)
+            val_losses.append(loss.item())
+            vl_yt.append(y_batch)
+            vl_logits.append(logits)
+
+    val_loss = float(np.mean(val_losses)) if len(val_losses) > 0 else float('nan')
+    if len(vl_yt) == 0:
+        vl_acc, vl_f1, vl_f1w, vl_qwk, vl_auc = 0.0, 0.0, 0.0, 0.0, 0.0
+    else:
+        vl_yt = torch.cat(vl_yt)
+        vl_logits = torch.cat(vl_logits)
+        vl_acc, vl_f1, vl_f1w, vl_qwk, vl_auc = compute_cls_metrics(vl_yt, vl_logits, n_classes)
+
+    if not SCHEDULER_IS_PER_BATCH:
+        scheduler.step()  # Only for per-epoch schedulers
+    current_lr = optimizer.param_groups[0]['lr']
+    history['train_loss'].append(train_loss); history['val_loss'].append(val_loss)
+    history['train_acc'].append(tr_acc); history['val_acc'].append(vl_acc)
+    history['train_f1'].append(tr_f1); history['val_f1'].append(vl_f1)
+    history['train_f1_weighted'].append(tr_f1w); history['val_f1_weighted'].append(vl_f1w)
+    history['train_qwk'].append(tr_qwk); history['val_qwk'].append(vl_qwk)
+    generalization_score, loss_gap = compute_generalization_score(vl_f1w, vl_f1, vl_qwk, train_loss, val_loss)
+    history['train_auc'].append(tr_auc); history['val_auc'].append(vl_auc)
+    history['loss_gap'].append(loss_gap); history['generalization_score'].append(generalization_score)
+    history['lr'].append(current_lr)
+
+    current_metric = float(generalization_score)
+    if current_metric > best_metric_value + EARLY_STOP_MIN_DELTA:
+        best_metric_value = current_metric
+        best_epoch = epoch + 1
+        best_state = {k: v.cpu().clone() for k, v in model.state_dict().items()}
+        torch.save(best_state, BEST_MODEL_PATH)
+        patience_counter = 0
+    else:
+        patience_counter += 1
+
+    print(
+        f'Epoch {epoch+1:3d}/{MAX_EPOCHS} | '
+        f'TrLoss: {train_loss:.4f} | VlLoss: {val_loss:.4f} | '
+        f'TrAcc: {tr_acc:.3f} | VlAcc: {vl_acc:.3f} | '
+        f'TrF1w: {tr_f1w:.3f} | VlF1w: {vl_f1w:.3f} | '
+        f'TrQWK: {tr_qwk:.3f} | VlQWK: {vl_qwk:.3f} | '
+        f'Gap: {loss_gap:.4f} | GenScore: {generalization_score:.4f} | '
+        f'VlAUC: {vl_auc:.3f} | LR: {current_lr:.6f}'
+    )
+
+    if patience_counter >= PATIENCE:
+        print(f'Early stopping at epoch {epoch+1}')
+        break
+
+if best_state is not None:
+    model.load_state_dict(best_state)
+    model.to(device)
+
+print(f'Training completed! Best {EARLY_STOP_METRIC}: {best_metric_value:.4f} at epoch {best_epoch}')
+torch.save({
+    'best_epoch': best_epoch,
+    'best_metric_name': EARLY_STOP_METRIC,
+    'best_metric_value': float(best_metric_value),
+    'n_classes': n_classes,
+    'n_channels': n_channels,
+    'n_sectors': n_sectors,
+    'n_tickers': n_tickers,
+    'n_companies': n_companies,
+    'input_size': INPUT_SIZE,
+    'model_type': 'TLSTMFuzzyClassifier',
+    'architecture_variant': 'simplified_transformer_lstm_no_fuzzy' if not USE_FUZZY_LAYER and not BIDIRECTIONAL_LSTM else 'configurable_transformer_lstm_ablation',
+    'use_fuzzy': USE_FUZZY_LAYER,
+    'bidirectional_lstm': BIDIRECTIONAL_LSTM,
+    'use_class_weights': USE_CLASS_WEIGHTS,
+    'fuzzy_mfs': FUZZY_MFS,
+    'd_model': MODEL_D_MODEL,
+    'transformer_heads': TRANSFORMER_HEADS,
+    'transformer_layers': TRANSFORMER_LAYERS,
+    'lstm_hidden': LSTM_HIDDEN,
+    'sector_emb_dim': SECTOR_EMB_DIM,
+    'ticker_emb_dim': TICKER_EMB_DIM,
+    'company_emb_dim': COMPANY_EMB_DIM,
+    'dropout': TLSTM_DROPOUT,
+    'learning_rate': LR,
+    'weight_decay': WEIGHT_DECAY,
+    'loss_gap_penalty_weight': LOSS_GAP_PENALTY_WEIGHT,
+    'max_acceptable_loss_gap': MAX_ACCEPTABLE_LOSS_GAP,
+    'gap_excess_penalty_weight': GAP_EXCESS_PENALTY_WEIGHT,
+    'train_input_noise_std': TRAIN_INPUT_NOISE_STD,
+    'train_channel_dropout_prob': TRAIN_CHANNEL_DROPOUT_PROB,
+    'train_timestep_dropout_prob': TRAIN_TIMESTEP_DROPOUT_PROB,
+    'label_encoder_classes': list(le.classes_),
+    'sector_classes': list(SECTOR_CLASSES),
+    'ticker_classes_count': int(len(TICKER_CLASSES)),
+    'company_classes_count': int(len(COMPANY_CLASSES)),
+    'model_features': MODEL_FEATURES,
+}, BEST_META_PATH)
+
+
+
+
+================================================================================
+CELL 30 (code)
+================================================================================
+# ============================================================
+# Seed Ensemble Training
+# ============================================================
+SEED_ENSEMBLE_ENABLED = True
+SEED_ENSEMBLE_TOTAL_RUNS = 3  # Set to 5 on Kaggle if runtime budget allows.
+SEED_ENSEMBLE_EPOCHS = int(globals().get('MAX_EPOCHS', 100))
+SEED_ENSEMBLE_MIN_RUNS = 3
+SEED_ENSEMBLE_MAX_RUNS = 5
+SEED_ENSEMBLE_AGGREGATION = 'auto_validation_objective'
+SEED_ENSEMBLE_TOP_K = 2
+SEED_ENSEMBLE_SOFTMAX_TEMPERATURE = 0.003
+ENSEMBLE_MIN_IMPROVEMENT_OVER_BEST_SINGLE = 0.003
+ENSEMBLE_TARGET_CLASS = 0
+ENSEMBLE_MAX_TARGET_PRECISION_DROP = 0.04
+
+SEED_ENSEMBLE_TOTAL_RUNS = int(np.clip(SEED_ENSEMBLE_TOTAL_RUNS, SEED_ENSEMBLE_MIN_RUNS, SEED_ENSEMBLE_MAX_RUNS))
+SEED_ENSEMBLE_SEEDS = [int(SEED) + i for i in range(SEED_ENSEMBLE_TOTAL_RUNS)]
+
+
+def set_reproducible_seed(seed):
+    random.seed(int(seed))
+    np.random.seed(int(seed))
+    torch.manual_seed(int(seed))
+    if torch.cuda.is_available():
+        torch.cuda.manual_seed_all(int(seed))
+
+
+def predict_proba_with_row_ids(model_obj, loader_obj):
+    model_obj.eval()
+    probs_all, y_all, row_ids_all = [], [], []
+    with torch.no_grad():
+        for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in loader_obj:
+            X_batch = X_batch.to(device, non_blocking=PIN_MEMORY)
+            last_y_batch = last_y_batch.to(device, non_blocking=PIN_MEMORY)
+            sector_batch = sector_batch.to(device, non_blocking=PIN_MEMORY)
+            ticker_batch = ticker_batch.to(device, non_blocking=PIN_MEMORY)
+            company_batch = company_batch.to(device, non_blocking=PIN_MEMORY)
+            logits = model_obj(X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, return_aux=False)
+            if isinstance(logits, tuple):
+                logits = logits[0]
+            probs_all.append(torch.softmax(logits.float(), dim=1).cpu().numpy())
+            y_all.append(y_batch.cpu().numpy())
+            row_ids_all.append(row_id_batch.cpu().numpy())
+    return (
+        np.concatenate(probs_all, axis=0),
+        np.concatenate(y_all, axis=0).astype(int),
+        np.concatenate(row_ids_all, axis=0).astype(int),
+    )
+
+
+def seed_ensemble_objective(metrics):
+    return float(0.45 * metrics['accuracy'] + 0.25 * metrics['f1_weighted'] + 0.20 * metrics['f1_macro'] + 0.10 * metrics['qwk'])
+
+
+def compute_numpy_metrics(y_true_np, proba_np):
+    y_true_np = np.asarray(y_true_np, dtype=int)
+    pred_np = np.asarray(proba_np).argmax(axis=1)
+    qwk_value = float(cohen_kappa_score(y_true_np, pred_np, weights='quadratic'))
+    if not np.isfinite(qwk_value):
+        qwk_value = 0.0
+    target_class = int(globals().get('ENSEMBLE_TARGET_CLASS', 0))
+    target_pred = pred_np == target_class
+    target_true = y_true_np == target_class
+    target_precision = float(np.mean(y_true_np[target_pred] == target_class)) if np.any(target_pred) else 0.0
+    target_recall = float(np.mean(pred_np[target_true] == target_class)) if np.any(target_true) else float('nan')
+    return {
+        'accuracy': float(accuracy_score(y_true_np, pred_np)),
+        'f1_macro': float(f1_score(y_true_np, pred_np, average='macro', zero_division=0)),
+        'f1_weighted': float(f1_score(y_true_np, pred_np, average='weighted', zero_division=0)),
+        'qwk': qwk_value,
+        'target_precision': target_precision,
+        'target_recall': target_recall,
+    }
+
+
+def build_model_from_active_config():
+    return TLSTMFuzzyClassifier(
+        n_channels=n_channels,
+        n_classes=n_classes,
+        n_sectors=n_sectors,
+        n_tickers=n_tickers,
+        n_companies=n_companies,
+        hidden_size=LSTM_HIDDEN,
+        dropout=TLSTM_DROPOUT,
+        n_mfs=FUZZY_MFS,
+        d_model=MODEL_D_MODEL,
+        n_heads=TRANSFORMER_HEADS,
+        n_layers=TRANSFORMER_LAYERS,
+        sector_emb_dim=SECTOR_EMB_DIM,
+        ticker_emb_dim=TICKER_EMB_DIM,
+        company_emb_dim=COMPANY_EMB_DIM,
+        max_relative_position=MAX_RELATIVE_POSITION,
+        use_fuzzy=USE_FUZZY_LAYER,
+        bidirectional_lstm=BIDIRECTIONAL_LSTM,
+    ).to(device)
+
+
+def train_seed_member(seed, member_idx):
+    set_reproducible_seed(seed)
+    member_model = build_model_from_active_config()
+    member_criterion = build_training_criterion(train_config, n_classes=n_classes).to(device)
+    member_optimizer = torch.optim.AdamW(member_model.parameters(), lr=LR, weight_decay=WEIGHT_DECAY)
+    member_scheduler = torch.optim.lr_scheduler.OneCycleLR(
+        member_optimizer,
+        max_lr=MAX_LR,
+        steps_per_epoch=max(1, len(train_loader)),
+        epochs=SEED_ENSEMBLE_EPOCHS,
+        pct_start=float(globals().get('WARMUP_EPOCHS', 5)) / max(SEED_ENSEMBLE_EPOCHS, 1),
+        anneal_strategy='cos',
+        div_factor=max(MAX_LR / max(LR, 1e-9), 1.0),
+        final_div_factor=100.0,
+    )
+    member_scaler = torch.amp.GradScaler(AMP_DEVICE, enabled=AMP_ENABLED)
+    best_member_score = -np.inf
+    best_member_epoch = -1
+    best_member_state = None
+
+    print(f'[SeedEnsemble] Training member {member_idx}/{SEED_ENSEMBLE_TOTAL_RUNS} with seed={seed}')
+    for epoch in range(SEED_ENSEMBLE_EPOCHS):
+        member_model.train()
+        train_losses = []
+        for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in train_loader:
+            X_batch = X_batch.to(device, non_blocking=PIN_MEMORY)
+            last_y_batch = last_y_batch.to(device, non_blocking=PIN_MEMORY)
+            sector_batch = sector_batch.to(device, non_blocking=PIN_MEMORY)
+            ticker_batch = ticker_batch.to(device, non_blocking=PIN_MEMORY)
+            company_batch = company_batch.to(device, non_blocking=PIN_MEMORY)
+            y_batch = y_batch.to(device, non_blocking=PIN_MEMORY)
+
+            if CONTEXT_DROPOUT_PROB > 0:
+                drop_mask = torch.rand(last_y_batch.shape, device=device) < CONTEXT_DROPOUT_PROB
+                if bool(drop_mask.any()):
+                    last_y_batch = last_y_batch.clone()
+                    last_y_batch[drop_mask] = torch.randint(0, n_classes, (int(drop_mask.sum().item()),), device=device)
+
+            if 'apply_training_regularization' in globals():
+                X_batch = apply_training_regularization(X_batch)
+
+            member_optimizer.zero_grad(set_to_none=True)
+            with torch.amp.autocast(device_type=AMP_DEVICE, enabled=AMP_ENABLED):
+                logits = member_model(X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, return_aux=False)
+                if isinstance(logits, tuple):
+                    logits = logits[0]
+                loss = member_criterion(logits, y_batch)
+            if not torch.isfinite(loss):
+                member_optimizer.zero_grad(set_to_none=True)
+                continue
+            member_scaler.scale(loss).backward()
+            member_scaler.unscale_(member_optimizer)
+            torch.nn.utils.clip_grad_norm_(member_model.parameters(), 1.0)
+            member_scaler.step(member_optimizer)
+            member_scaler.update()
+            try:
+                member_scheduler.step()
+            except ValueError:
+                pass
+            train_losses.append(float(loss.item()))
+
+        member_model.eval()
+        val_logits_epoch, val_y_epoch = [], []
+        with torch.no_grad():
+            for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in val_loader:
+                X_batch = X_batch.to(device, non_blocking=PIN_MEMORY)
+                last_y_batch = last_y_batch.to(device, non_blocking=PIN_MEMORY)
+                sector_batch = sector_batch.to(device, non_blocking=PIN_MEMORY)
+                ticker_batch = ticker_batch.to(device, non_blocking=PIN_MEMORY)
+                company_batch = company_batch.to(device, non_blocking=PIN_MEMORY)
+                with torch.amp.autocast(device_type=AMP_DEVICE, enabled=AMP_ENABLED):
+                    logits = member_model(X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, return_aux=False)
+                    if isinstance(logits, tuple):
+                        logits = logits[0]
+                val_logits_epoch.append(logits.detach().cpu())
+                val_y_epoch.append(y_batch.detach().cpu())
+
+        if val_logits_epoch:
+            val_logits_epoch = torch.cat(val_logits_epoch)
+            val_y_epoch = torch.cat(val_y_epoch)
+            _, val_macro_epoch, val_f1w_epoch, val_qwk_epoch, _ = compute_cls_metrics(val_y_epoch, val_logits_epoch, n_classes)
+            val_acc_epoch = accuracy_score(val_y_epoch.numpy(), torch.softmax(val_logits_epoch, dim=1).numpy().argmax(axis=1))
+        else:
+            val_acc_epoch, val_macro_epoch, val_f1w_epoch, val_qwk_epoch = 0.0, 0.0, 0.0, 0.0
+
+        member_score = seed_ensemble_objective({'accuracy': val_acc_epoch, 'f1_weighted': val_f1w_epoch, 'f1_macro': val_macro_epoch, 'qwk': val_qwk_epoch})
+        if member_score > best_member_score + EARLY_STOP_MIN_DELTA:
+            best_member_score = float(member_score)
+            best_member_epoch = int(epoch + 1)
+            best_member_state = {k: v.detach().cpu().clone() for k, v in member_model.state_dict().items()}
+
+        if (epoch + 1) == 1 or (epoch + 1) % 10 == 0 or (epoch + 1) == SEED_ENSEMBLE_EPOCHS:
+            print(
+                f'[SeedEnsemble] member={member_idx} epoch={epoch + 1:3d}/{SEED_ENSEMBLE_EPOCHS} '
+                f'train_loss={np.mean(train_losses) if train_losses else float("nan"):.4f} '
+                f'val_acc={val_acc_epoch:.4f} val_f1w={val_f1w_epoch:.4f} '
+                f'val_macro={val_macro_epoch:.4f} val_qwk={val_qwk_epoch:.4f} best_epoch={best_member_epoch}'
+            )
+
+    if best_member_state is not None:
+        member_model.load_state_dict(best_member_state)
+    member_model.to(device)
+    member_path = ARTIFACT_DIR / f'transformer_seed_member_{member_idx}_seed{seed}.pt'
+    torch.save(best_member_state if best_member_state is not None else member_model.state_dict(), member_path)
+    return member_model, member_path, best_member_epoch, best_member_score
+
+
+ENSEMBLE_VAL_PROBA = None
+ENSEMBLE_TEST_PROBA = None
+ENSEMBLE_ENABLED_FOR_INFERENCE = False
+seed_ensemble_summary_rows = []
+
+if SEED_ENSEMBLE_ENABLED:
+    member_val_probas = []
+    member_test_probas = []
+    ensemble_member_paths = []
+
+    current_val_proba, current_y_val, current_val_row_ids = predict_proba_with_row_ids(model, val_loader)
+    current_test_proba, current_y_test, current_test_row_ids = predict_proba_with_row_ids(model, test_loader)
+    member_val_probas.append(current_val_proba)
+    member_test_probas.append(current_test_proba)
+    ensemble_member_paths.append(str(BEST_MODEL_PATH))
+    current_metrics = compute_numpy_metrics(current_y_val, current_val_proba)
+    seed_ensemble_summary_rows.append({
+        'member': 1,
+        'seed': int(SEED_ENSEMBLE_SEEDS[0]),
+        'source': 'current_best_checkpoint',
+        'best_epoch': int(best_epoch),
+        'selection_score': seed_ensemble_objective(current_metrics),
+        **{f'val_{k}': v for k, v in current_metrics.items()},
+    })
+
+    for member_idx, seed in enumerate(SEED_ENSEMBLE_SEEDS[1:], start=2):
+        member_model, member_path, member_best_epoch, member_score = train_seed_member(seed, member_idx)
+        member_val_proba, member_y_val, member_val_row_ids = predict_proba_with_row_ids(member_model, val_loader)
+        member_test_proba, member_y_test, member_test_row_ids = predict_proba_with_row_ids(member_model, test_loader)
+
+        if not np.array_equal(member_y_val, current_y_val) or not np.array_equal(member_y_test, current_y_test):
+            raise ValueError('Seed ensemble loader order mismatch. Check val/test DataLoader shuffle settings.')
+        if not np.array_equal(member_val_row_ids, current_val_row_ids) or not np.array_equal(member_test_row_ids, current_test_row_ids):
+            raise ValueError('Seed ensemble row_id order mismatch. Check val/test DataLoader shuffle settings.')
+
+        member_val_probas.append(member_val_proba)
+        member_test_probas.append(member_test_proba)
+        ensemble_member_paths.append(str(member_path))
+        member_metrics = compute_numpy_metrics(member_y_val, member_val_proba)
+        seed_ensemble_summary_rows.append({
+            'member': int(member_idx),
+            'seed': int(seed),
+            'source': 'retrained_seed_member',
+            'best_epoch': int(member_best_epoch),
+            'selection_score': float(member_score),
+            **{f'val_{k}': v for k, v in member_metrics.items()},
+        })
+        del member_model
+        if torch.cuda.is_available():
+            torch.cuda.empty_cache()
+
+    member_val_stack = np.stack(member_val_probas, axis=0).astype(np.float32)
+    member_test_stack = np.stack(member_test_probas, axis=0).astype(np.float32)
+    member_scores = np.array([row['selection_score'] for row in seed_ensemble_summary_rows], dtype=np.float64)
+
+    def _softmax_weights(scores):
+        temp = max(float(SEED_ENSEMBLE_SOFTMAX_TEMPERATURE), 1e-6)
+        z = (np.asarray(scores, dtype=np.float64) - float(np.max(scores))) / temp
+        z = np.clip(z, -60.0, 60.0)
+        w = np.exp(z)
+        return w / max(float(w.sum()), 1e-12)
+
+    top_k = int(min(max(1, SEED_ENSEMBLE_TOP_K), len(member_scores)))
+    top_idx = np.argsort(-member_scores)[:top_k]
+    all_idx = np.arange(len(member_scores), dtype=int)
+    candidates = []
+    for i in range(len(member_scores)):
+        candidates.append((f'member_{i + 1}', np.array([i], dtype=int), np.array([1.0], dtype=np.float64)))
+    candidates.append(('uniform_all', all_idx, np.ones(len(all_idx), dtype=np.float64) / len(all_idx)))
+    candidates.append(('weighted_all', all_idx, _softmax_weights(member_scores)))
+    candidates.append(('uniform_topk', top_idx, np.ones(len(top_idx), dtype=np.float64) / len(top_idx)))
+    candidates.append(('weighted_topk', top_idx, _softmax_weights(member_scores[top_idx])))
+
+    candidate_rows = []
+    evaluated_candidates = []
+    single_rows = []
+    for name, idx, weights in candidates:
+        val_candidate = np.average(member_val_stack[idx], axis=0, weights=weights).astype(np.float32)
+        metrics_candidate = compute_numpy_metrics(current_y_val, val_candidate)
+        score_candidate = seed_ensemble_objective(metrics_candidate)
+        row = {
+            'aggregation': name,
+            'members': ','.join(str(int(i + 1)) for i in idx),
+            'weights': ','.join(f'{float(w):.6f}' for w in weights),
+            'selection_score': score_candidate,
+            **{f'val_{k}': v for k, v in metrics_candidate.items()},
+        }
+        candidate_rows.append(row)
+        evaluated_candidates.append((name, idx, weights, val_candidate, metrics_candidate, score_candidate))
+        if len(idx) == 1:
+            single_rows.append((name, idx, weights, val_candidate, metrics_candidate, score_candidate))
+
+    best_single = max(single_rows, key=lambda item: item[-1])
+    best_single_score = float(best_single[-1])
+    best_single_precision = float(best_single[4].get('target_precision', 0.0))
+    eligible_candidates = []
+    for item in evaluated_candidates:
+        name, idx, weights, val_candidate, metrics_candidate, score_candidate = item
+        is_single = len(idx) == 1
+        improves_enough = score_candidate >= best_single_score + float(ENSEMBLE_MIN_IMPROVEMENT_OVER_BEST_SINGLE)
+        precision_ok = metrics_candidate.get('target_precision', 0.0) >= best_single_precision - float(ENSEMBLE_MAX_TARGET_PRECISION_DROP)
+        if is_single or (improves_enough and precision_ok):
+            eligible_candidates.append(item)
+
+    best_candidate = max(eligible_candidates, key=lambda item: item[-1])
+    ENSEMBLE_AGGREGATION_NAME, ENSEMBLE_MEMBER_INDICES, ENSEMBLE_MEMBER_WEIGHTS, ENSEMBLE_VAL_PROBA, ensemble_val_metrics, best_candidate_score = best_candidate
+    ENSEMBLE_TEST_PROBA = np.average(member_test_stack[ENSEMBLE_MEMBER_INDICES], axis=0, weights=ENSEMBLE_MEMBER_WEIGHTS).astype(np.float32)
+    ENSEMBLE_VAL_ROW_IDS = current_val_row_ids
+    ENSEMBLE_TEST_ROW_IDS = current_test_row_ids
+    y_val = current_y_val
+    y_test = current_y_test
+    val_proba = ENSEMBLE_VAL_PROBA
+    test_proba = ENSEMBLE_TEST_PROBA
+    ENSEMBLE_ENABLED_FOR_INFERENCE = True
+
+    seed_ensemble_candidate_df = pd.DataFrame(candidate_rows).sort_values('selection_score', ascending=False).reset_index(drop=True)
+    seed_ensemble_candidate_path = ARTIFACT_DIR / 'transformer_seed_ensemble_candidates.csv'
+    seed_ensemble_candidate_df.to_csv(seed_ensemble_candidate_path, index=False)
+    seed_ensemble_summary = pd.DataFrame(seed_ensemble_summary_rows)
+    seed_ensemble_summary_path = ARTIFACT_DIR / 'transformer_seed_ensemble_summary.csv'
+    seed_ensemble_summary.to_csv(seed_ensemble_summary_path, index=False)
+    np.save(ARTIFACT_DIR / 'transformer_seed_ensemble_val_proba.npy', ENSEMBLE_VAL_PROBA)
+    np.save(ARTIFACT_DIR / 'transformer_seed_ensemble_test_proba.npy', ENSEMBLE_TEST_PROBA)
+
+    if 'BEST_META_PATH' in globals() and Path(BEST_META_PATH).exists():
+        try:
+            meta = torch.load(BEST_META_PATH, map_location='cpu')
+            if isinstance(meta, dict):
+                meta['seed_ensemble_enabled'] = True
+                meta['seed_ensemble_total_runs'] = int(SEED_ENSEMBLE_TOTAL_RUNS)
+                meta['seed_ensemble_seeds'] = [int(s) for s in SEED_ENSEMBLE_SEEDS]
+                meta['seed_ensemble_member_paths'] = ensemble_member_paths
+                meta['seed_ensemble_aggregation'] = ENSEMBLE_AGGREGATION_NAME
+                meta['seed_ensemble_member_indices'] = [int(i) for i in ENSEMBLE_MEMBER_INDICES.tolist()]
+                meta['seed_ensemble_member_weights'] = [float(w) for w in ENSEMBLE_MEMBER_WEIGHTS.tolist()]
+                meta['seed_ensemble_val_metrics'] = ensemble_val_metrics
+                meta['seed_ensemble_min_improvement_over_best_single'] = float(ENSEMBLE_MIN_IMPROVEMENT_OVER_BEST_SINGLE)
+                meta['seed_ensemble_max_target_precision_drop'] = float(ENSEMBLE_MAX_TARGET_PRECISION_DROP)
+                torch.save(meta, BEST_META_PATH)
+        except Exception as exc:
+            print(f'[SeedEnsemble] Could not update metadata: {exc}')
+
+    print('[SeedEnsemble] Completed probability aggregation.')
+    print(f'[SeedEnsemble] Members: {SEED_ENSEMBLE_TOTAL_RUNS} | seeds={SEED_ENSEMBLE_SEEDS}')
+    print(f'[SeedEnsemble] Selected aggregation: {ENSEMBLE_AGGREGATION_NAME}')
+    print(f'[SeedEnsemble] Guardrail: ensemble must improve best single by >= {ENSEMBLE_MIN_IMPROVEMENT_OVER_BEST_SINGLE:.4f} and keep target precision drop <= {ENSEMBLE_MAX_TARGET_PRECISION_DROP:.4f}')
+    print(f'[SeedEnsemble] Selected members: {[int(i + 1) for i in ENSEMBLE_MEMBER_INDICES.tolist()]} | weights={[round(float(w), 4) for w in ENSEMBLE_MEMBER_WEIGHTS.tolist()]}')
+    print(f'[SeedEnsemble] Validation ensemble metrics: {ensemble_val_metrics}')
+    print(f'[SeedEnsemble] Saved summary: {seed_ensemble_summary_path}')
+    print(f'[SeedEnsemble] Saved aggregation candidates: {seed_ensemble_candidate_path}')
+    display(seed_ensemble_summary)
+    display(seed_ensemble_candidate_df.head(10))
+else:
+    print('[SeedEnsemble] Disabled; single best checkpoint will be used for inference.')
+
+
+
+================================================================================
+CELL 32 (code)
+================================================================================
+# ============================================================
+# Calibrate minority-class threshold on validation set
+# ============================================================
+USE_CALIBRATED_CLASS_THRESHOLD = True
+TARGET_CLASS_FOR_THRESHOLD = 0
+THRESHOLD_GRID = np.concatenate(([0.0], np.arange(0.30, 0.96, 0.05)))
+
+# Guardrails: calibration must not improve accuracy by damaging macro-F1/minority recall.
+THRESHOLD_MIN_MACRO_F1_DELTA = 0.0
+THRESHOLD_MAX_RECALL_DROP = 0.03
+THRESHOLD_OBJECTIVE_WEIGHTS = {
+    'accuracy': 1.00,
+    'f1_weighted': 0.15,
+    'f1_macro': 0.30,
+    'qwk': 0.10,
+}
+
+BEST_CLASS_THRESHOLD = 0.0
+BEST_CLASS_THRESHOLD_SCORE = float('-inf')
+BEST_CLASS_THRESHOLD_ACCEPTED = False
+CALIBRATION_PROBA_SOURCE = 'seed_ensemble' if 'ENSEMBLE_VAL_PROBA' in globals() and ENSEMBLE_VAL_PROBA is not None else 'single_model'
+
+
+def apply_class_threshold(probs, target_class, threshold):
+    pred = np.asarray(probs).argmax(axis=1)
+    if float(threshold) <= 0.0:
+        return pred
+    pred = pred.copy()
+    low_conf_target = (pred == int(target_class)) & (np.asarray(probs)[:, int(target_class)] < float(threshold))
+    if np.any(low_conf_target):
+        sorted_idx = np.argsort(np.asarray(probs)[low_conf_target], axis=1)
+        pred[low_conf_target] = sorted_idx[:, -2]
+    return pred
+
+
+def threshold_metrics(y_true_arr, pred_arr):
+    qwk_value = float(cohen_kappa_score(y_true_arr, pred_arr, weights='quadratic'))
+    if not np.isfinite(qwk_value):
+        qwk_value = 0.0
+    metrics = {
+        'accuracy': float(accuracy_score(y_true_arr, pred_arr)),
+        'f1_weighted': float(f1_score(y_true_arr, pred_arr, average='weighted', zero_division=0)),
+        'f1_macro': float(f1_score(y_true_arr, pred_arr, average='macro', zero_division=0)),
+        'qwk': qwk_value,
+    }
+    class_mask = y_true_arr == int(TARGET_CLASS_FOR_THRESHOLD)
+    metrics['target_recall'] = (
+        float((pred_arr[class_mask] == int(TARGET_CLASS_FOR_THRESHOLD)).mean())
+        if np.any(class_mask) else float('nan')
+    )
+    return metrics
+
+
+def threshold_objective(metrics):
+    return float(sum(float(THRESHOLD_OBJECTIVE_WEIGHTS[k]) * float(metrics[k]) for k in THRESHOLD_OBJECTIVE_WEIGHTS))
+
+if USE_CALIBRATED_CLASS_THRESHOLD and n_classes >= 3 and len(val_loader) > 0:
+    if CALIBRATION_PROBA_SOURCE == 'seed_ensemble':
+        val_probs_all = np.asarray(ENSEMBLE_VAL_PROBA, dtype=np.float32)
+        val_true_all = np.asarray(y_val, dtype=int)
+    else:
+        model.eval()
+        val_probs_all, val_true_all = [], []
+        with torch.no_grad():
+            for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in val_loader:
+                X_batch = X_batch.to(device)
+                last_y_batch = last_y_batch.to(device)
+                sector_batch = sector_batch.to(device)
+                ticker_batch = ticker_batch.to(device)
+                company_batch = company_batch.to(device)
+                logits = model(X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, return_aux=False)
+                if isinstance(logits, tuple):
+                    logits = logits[0]
+                probs = torch.softmax(logits.float(), dim=1).cpu().numpy()
+                val_probs_all.append(probs)
+                val_true_all.append(y_batch.cpu().numpy())
+        val_probs_all = np.concatenate(val_probs_all, axis=0)
+        val_true_all = np.concatenate(val_true_all, axis=0).astype(int)
+
+    base_pred = val_probs_all.argmax(axis=1)
+    base_metrics = threshold_metrics(val_true_all, base_pred)
+    base_score = threshold_objective(base_metrics)
+    BEST_CLASS_THRESHOLD_SCORE = base_score
+    best_metrics = dict(base_metrics)
+    threshold_rows = []
+
+    for th in THRESHOLD_GRID:
+        pred_th = apply_class_threshold(val_probs_all, TARGET_CLASS_FOR_THRESHOLD, float(th))
+        metrics_th = threshold_metrics(val_true_all, pred_th)
+        score_th = threshold_objective(metrics_th)
+        recall_ok = (
+            np.isnan(base_metrics['target_recall'])
+            or metrics_th['target_recall'] >= base_metrics['target_recall'] - float(THRESHOLD_MAX_RECALL_DROP)
+        )
+        macro_ok = metrics_th['f1_macro'] >= base_metrics['f1_macro'] + float(THRESHOLD_MIN_MACRO_F1_DELTA) - 1e-12
+        accepted = bool(macro_ok and recall_ok)
+        threshold_rows.append({
+            'threshold': float(th),
+            'score': float(score_th),
+            'accepted': accepted,
+            **metrics_th,
+        })
+        if accepted and score_th > BEST_CLASS_THRESHOLD_SCORE + 1e-12:
+            BEST_CLASS_THRESHOLD_SCORE = float(score_th)
+            BEST_CLASS_THRESHOLD = float(th)
+            BEST_CLASS_THRESHOLD_ACCEPTED = True
+            best_metrics = dict(metrics_th)
+
+    threshold_calibration_df = pd.DataFrame(threshold_rows)
+    threshold_calibration_path = ARTIFACT_DIR / 'transformer_threshold_calibration.csv'
+    threshold_calibration_df.to_csv(threshold_calibration_path, index=False)
+
+    print('Validation threshold calibration done.')
+    print(f'Probability source: {CALIBRATION_PROBA_SOURCE}')
+    print(f'Target class: {TARGET_CLASS_FOR_THRESHOLD}')
+    print(f'Base metrics: {base_metrics}')
+    print(f'Selected threshold: {BEST_CLASS_THRESHOLD:.2f}')
+    print(f'Selected metrics: {best_metrics}')
+    print(f'Threshold accepted: {BEST_CLASS_THRESHOLD_ACCEPTED}')
+    print(f'Calibration objective score: {BEST_CLASS_THRESHOLD_SCORE:.4f}')
+    print(f'Saved threshold grid: {threshold_calibration_path}')
+
+    if 'BEST_META_PATH' in globals() and Path(BEST_META_PATH).exists():
+        try:
+            meta = torch.load(BEST_META_PATH, map_location='cpu')
+            if isinstance(meta, dict):
+                meta['minority_threshold_enabled'] = bool(BEST_CLASS_THRESHOLD_ACCEPTED)
+                meta['minority_threshold_class'] = int(TARGET_CLASS_FOR_THRESHOLD)
+                meta['minority_threshold_value'] = float(BEST_CLASS_THRESHOLD)
+                meta['minority_threshold_score'] = float(BEST_CLASS_THRESHOLD_SCORE)
+                meta['minority_threshold_source'] = CALIBRATION_PROBA_SOURCE
+                meta['minority_threshold_guardrails'] = {
+                    'min_macro_f1_delta': float(THRESHOLD_MIN_MACRO_F1_DELTA),
+                    'max_recall_drop': float(THRESHOLD_MAX_RECALL_DROP),
+                }
+                torch.save(meta, BEST_META_PATH)
+                print(f'Updated metadata with calibrated threshold: {BEST_META_PATH}')
+        except Exception as e:
+            print(f'Could not update metadata threshold info: {e}')
+else:
+    USE_CALIBRATED_CLASS_THRESHOLD = False
+    print('Threshold calibration skipped (disabled or incompatible setup).')
+
+
+
+================================================================================
+CELL 34 (code)
+================================================================================
+# ============================================================
+# Prediction on Test Set + Row-Level Evaluation
+# ============================================================
+if globals().get('ENSEMBLE_ENABLED_FOR_INFERENCE', False) and 'ENSEMBLE_TEST_PROBA' in globals() and ENSEMBLE_TEST_PROBA is not None:
+    test_proba = np.asarray(ENSEMBLE_TEST_PROBA, dtype=np.float32)
+    y_true = np.asarray(y_test, dtype=int)
+    test_row_ids = np.asarray(ENSEMBLE_TEST_ROW_IDS, dtype=int)
+    inference_source = f'seed_ensemble_{SEED_ENSEMBLE_TOTAL_RUNS}'
+    if globals().get('USE_CALIBRATED_CLASS_THRESHOLD', False) and 'apply_class_threshold' in globals():
+        y_pred = apply_class_threshold(test_proba, TARGET_CLASS_FOR_THRESHOLD, BEST_CLASS_THRESHOLD)
+    else:
+        y_pred = test_proba.argmax(axis=1)
+    test_logits_all = None
+else:
+    model.eval()
+    test_preds = []
+    test_trues = []
+    test_probs_all = []
+    test_row_ids = []
+    inference_source = 'single_best_checkpoint'
+
+    with torch.no_grad():
+        for X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, y_batch, row_id_batch in test_loader:
+            X_batch = X_batch.to(device)
+            last_y_batch = last_y_batch.to(device)
+            sector_batch = sector_batch.to(device)
+            ticker_batch = ticker_batch.to(device)
+            company_batch = company_batch.to(device)
+            y_batch = y_batch.to(device)
+
+            logits = model(X_batch, last_y_batch, sector_batch, ticker_batch, company_batch, return_aux=False)
+            if isinstance(logits, tuple):
+                logits = logits[0]
+
+            probs = torch.softmax(logits.float(), dim=1).cpu().numpy()
+            if globals().get('USE_CALIBRATED_CLASS_THRESHOLD', False) and 'apply_class_threshold' in globals():
+                preds = apply_class_threshold(probs, TARGET_CLASS_FOR_THRESHOLD, BEST_CLASS_THRESHOLD)
+            else:
+                preds = probs.argmax(axis=1)
+            test_preds.extend(preds.tolist())
+            test_trues.extend(y_batch.cpu().numpy().tolist())
+            test_probs_all.append(probs)
+            test_row_ids.extend(row_id_batch.cpu().numpy().tolist())
+
+    test_proba = np.vstack(test_probs_all).astype(np.float32)
+    y_true = np.array(test_trues, dtype=int)
+    y_pred = np.array(test_preds, dtype=int)
+    test_row_ids = np.array(test_row_ids, dtype=int)
+    test_logits_all = None
+
+y_test = y_true
+y_pred = np.asarray(y_pred, dtype=int)
+
+print(f'Inference source:         {inference_source}')
+print(f'Test samples (row-level): {len(y_true)}')
+print(f'Expected test rows:       {len(test_df)}')
+print(f'Unique true classes:      {len(set(y_true))}')
+print(f'Unique pred classes:      {len(set(y_pred))}')
+if len(y_true) != len(test_df):
+    print('[P3 WARNING] Transformer test sample count does not match test.csv row count.')
+
+
+
+================================================================================
+CELL 35 (code)
+================================================================================
+
+# ============================================================
+# Evaluation Metrics (final test, row-level)
+# ============================================================
+
+acc = accuracy_score(y_true, y_pred)
+f1_macro = f1_score(y_true, y_pred, average='macro', zero_division=0)
+f1_weighted = f1_score(y_true, y_pred, average='weighted', zero_division=0)
+precision_weighted = precision_score(y_true, y_pred, average='weighted', zero_division=0)
+recall_weighted = recall_score(y_true, y_pred, average='weighted', zero_division=0)
+qwk = cohen_kappa_score(y_true, y_pred, weights='quadratic')
+
+all_classes = sorted(set(y_true) | set(y_pred))
+probs = np.asarray(test_proba, dtype=np.float32)
+try:
+    if len(all_classes) > 2:
+        y_true_bin = label_binarize(y_true, classes=list(range(n_classes)))
+        auc_score = roc_auc_score(y_true_bin, probs, average='weighted', multi_class='ovr')
+    else:
+        auc_score = roc_auc_score(y_true, y_pred)
+except ValueError:
+    auc_score = float('nan')
+
+print('--- TEST SET EVALUATION (ROW-LEVEL TRANSFORMER) ---')
+print(f'Accuracy: {acc:.4f}')
+print(f'Precision (Weighted): {precision_weighted:.4f}')
+print(f'Recall (Weighted):    {recall_weighted:.4f}')
+print(f'F1-macro:             {f1_macro:.4f}')
+print(f'F1-weighted:          {f1_weighted:.4f}')
+print(f'QWK (Quadratic Weighted Kappa): {qwk:.4f}')
+print(f'AUC: {auc_score:.4f}')
+print('--------------------------------------------------')
+print('\nClassification Report:')
+report_labels = sorted(set(y_true) | set(y_pred))
+report_target_names = [str(i) for i in report_labels]
+print(classification_report(y_true, y_pred, labels=report_labels, target_names=report_target_names, zero_division=0))
+
+import matplotlib.pyplot as plt
+
+plt.figure(figsize=(10, 8))
+n_classes_test = probs.shape[1]
+y_true_bin_plot = label_binarize(y_true, classes=list(range(n_classes_test)))
+for i in range(n_classes_test):
+    fpr, tpr, _ = roc_curve(y_true_bin_plot[:, i], probs[:, i])
+    roc_auc_val = auc(fpr, tpr)
+    class_label = EXPECTED_CLASSES[i] if 'EXPECTED_CLASSES' in globals() and i < len(EXPECTED_CLASSES) else f'Class {i}'
+    plt.plot(fpr, tpr, lw=2, label=f'ROC curve of class {class_label} (area = {roc_auc_val:0.2f})')
+
+plt.plot([0, 1], [0, 1], 'k--', lw=2)
+plt.xlim([0.0, 1.0]); plt.ylim([0.0, 1.05])
+plt.xlabel('False Positive Rate'); plt.ylabel('True Positive Rate')
+plt.title('Receiver Operating Characteristic (ROC) - Multiclass')
+plt.legend(loc='lower right'); plt.grid(alpha=0.3); plt.show()
+
+metrics_dict = {
+    'protocol': 'row_level_sequence_context',
+    'architecture_variant': 'simplified_transformer_lstm_no_fuzzy' if not globals().get('USE_FUZZY_LAYER', False) and not globals().get('BIDIRECTIONAL_LSTM', False) else 'configurable_transformer_lstm_ablation',
+    'use_fuzzy': bool(globals().get('USE_FUZZY_LAYER', False)),
+    'bidirectional_lstm': bool(globals().get('BIDIRECTIONAL_LSTM', False)),
+    'class0_threshold': float(globals().get('BEST_CLASS_THRESHOLD', 0.0)),
+    'threshold_accepted': bool(globals().get('BEST_CLASS_THRESHOLD_ACCEPTED', False)),
+    'inference_source': globals().get('inference_source', 'single_best_checkpoint'),
+    'seed_ensemble_enabled': bool(globals().get('ENSEMBLE_ENABLED_FOR_INFERENCE', False)),
+    'seed_ensemble_total_runs': int(globals().get('SEED_ENSEMBLE_TOTAL_RUNS', 1)),
+    'accuracy': acc,
+    'precision_weighted': precision_weighted,
+    'recall_weighted': recall_weighted,
+    'f1_macro': f1_macro,
+    'f1_weighted': f1_weighted,
+    'qwk': qwk,
+    'auc': auc_score,
+    'n_samples': len(y_true),
+    'expected_test_rows': len(test_df),
+    'n_classes': n_classes,
+}
+
+metrics_df = pd.DataFrame([metrics_dict])
+metrics_latest_path = ARTIFACT_DIR / 'transformer_metrics.csv'
+metrics_versioned_path = ARTIFACT_DIR / f'transformer_metrics_n{n_classes}.csv'
+metrics_row_level_path = ARTIFACT_DIR / 'transformer_row_level_metrics.csv'
+metrics_df.to_csv(metrics_latest_path, index=False)
+metrics_df.to_csv(metrics_versioned_path, index=False)
+metrics_df.to_csv(metrics_row_level_path, index=False)
+print(f'\nMetrics saved to: {metrics_latest_path}')
+
+

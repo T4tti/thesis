@@ -1,0 +1,23 @@
+{
+  "input_size": 8,
+  "hidden_size": 96,
+  "dropout": 0.18,
+  "fuzzy_mfs": 1,
+  "use_fuzzy": false,
+  "bidirectional_lstm": false,
+  "d_model": 96,
+  "n_heads": 8,
+  "n_layers": 0,
+  "sector_emb_dim": 16,
+  "ticker_emb_dim": 16,
+  "company_emb_dim": 2,
+  "max_relative_position": 8,
+  "lr": 0.00034474744473550836,
+  "max_lr": 0.0005515959115768134,
+  "weight_decay": 0.01,
+  "focal_gamma": 1.1225331774367704,
+  "ordinal_alpha": 0.04176060053658056,
+  "label_smoothing": 0.018347416060636584,
+  "class_balance_beta": 0.995,
+  "use_class_weights": false
+}

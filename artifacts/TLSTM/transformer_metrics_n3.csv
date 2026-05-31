@@ -1,0 +1,2 @@
+protocol,architecture_variant,use_fuzzy,bidirectional_lstm,class0_threshold,threshold_accepted,inference_source,seed_ensemble_enabled,seed_ensemble_total_runs,accuracy,precision_weighted,recall_weighted,f1_macro,f1_weighted,qwk,auc,n_samples,expected_test_rows,n_classes
+row_level_sequence_context,simplified_transformer_lstm_no_fuzzy,False,False,0.0,False,seed_ensemble_3,True,3,0.9251305861868834,0.9294386923273236,0.9251305861868834,0.8363214016123884,0.9267141416007785,0.8780075910583479,0.9803353706554868,1723,1723,3

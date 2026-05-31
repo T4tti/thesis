@@ -1,0 +1,15 @@
+﻿Kịch bản,Tên kịch bản,Phương pháp,Source,Accuracy,Precision,Recall,F1-Score,AUC
+KB1,T-BiLSTM,,artifacts/TLSTM/transformer_metrics.csv; notebook classification report is rounded,0.9251305861868834,0.9294386923273236,0.9251305861868834,0.9267141416007784,0.9803353706554868
+KB2,TCN,,artifacts/TCN_Baseline/tcn_test_classification_report.csv,0.9239698200812536,0.9244634057572086,0.9239698200812536,0.9242007139355536,0.958443027777124
+KB3,LSTM,,artifacts/LSTM/lstm_test_classification_report.csv + lstm_metrics.csv AUC,0.9251305861868834,0.9257928678184248,0.9251305861868834,0.9254392236408068,0.947930578940096
+KB4,PatchTST,,artifacts/Patchtst/patchtst_test_classification_report.csv + patchtst_metrics.csv AUC,0.9239698200812536,0.9244181521169244,0.9239698200812536,0.9241654197927832,0.952838588053554
+KB5,XGBoost,,artifacts/XGBoost/xgboost_test_classification_report.csv,0.9199071387115496,0.9184111867906072,0.9199071387115496,0.9185275533977512,0.964094215513572
+KB6,LightGBM,,artifacts/LightGBM/lightgbm_test_classification_report.csv,0.91874637260592,0.9178029276156654,0.91874637260592,0.9180203288186412,0.9654027336187068
+KB7,FI-TTX,Fuzzy Choquet Integral,notebooks/kb7-fi-ttx.ipynb output: Classification Report + completion table,0.92397,0.924904,0.92397,0.924399,0.981999
+KB8,FI-PLL,Fuzzy Choquet Integral,notebooks/kb8-fi-pll.ipynb output: Classification Report + completion table,0.92397,0.923573,0.92397,0.92366,0.965804
+KB9,FI-TTLPXL,Fuzzy Choquet Integral,notebooks/kb9-fi-ttlpxl.ipynb output: Classification Report fallback,0.9257,0.9266,0.9257,0.9261,0.982
+KB10,FR-TTX,Gompertz Fuzzy Ranking Ensemble,notebooks/kb10-fr-ttx.ipynb output: Classification Report + completion table,0.925711,0.926427,0.925711,0.926043,0.981501
+KB11,FR-PLL,Gompertz Fuzzy Ranking Ensemble,notebooks/kb11-fr-pll.ipynb output: Classification Report + completion table,0.92397,0.923573,0.92397,0.92366,0.965804
+KB12,FR-TTLPXL,Gompertz Fuzzy Ranking Ensemble,notebooks/kb12-fr-ttlpxl.ipynb output: Classification Report + completion table,0.923389,0.923924,0.923389,0.923645,0.981301
+KB13,GAT,,notebooks/gat-baseline.ipynb output: Test_Class0Calibrated + classification report,0.905398,0.904745,0.905398,0.903659,0.950667
+KB14,DMF,Dynamic Model Fusion (DMF),notebooks/dynamic-model-fusion.ipynb output: DMF/DCS proposed + classification report,0.919327,0.919466,0.919327,0.915169,0.954297

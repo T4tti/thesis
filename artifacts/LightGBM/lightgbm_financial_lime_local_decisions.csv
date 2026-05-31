@@ -1,0 +1,31 @@
+test_index,predicted_class,predicted_class_id,predicted_probability,lime_rule,lime_weight_for_predicted_class,direction
+1127,2,2,0.9535803792257284,debt_equity_ratio > 0.46,-0.07806093131708416,opposes_predicted_class
+1127,2,2,0.9535803792257284,-0.01 < roe <= 0.53,0.04003932974590422,supports_predicted_class
+1127,2,2,0.9535803792257284,-0.42 < current_ratio <= -0.00,0.031233821475431512,supports_predicted_class
+1127,2,2,0.9535803792257284,-0.46 < pretax_profit_margin <= 0.00,-0.0302054379904265,opposes_predicted_class
+1127,2,2,0.9535803792257284,debt_equity_ratio_delta > 0.01,-0.019370105711359244,opposes_predicted_class
+1127,2,2,0.9535803792257284,-0.45 < gross_profit_margin <= 0.00,-0.015631717692725127,opposes_predicted_class
+1127,2,2,0.9535803792257284,-0.43 < net_profit_margin <= -0.00,-0.014473363320084816,opposes_predicted_class
+1127,2,2,0.9535803792257284,net_profit_margin_delta <= -0.00,-0.012713907891000248,opposes_predicted_class
+1127,2,2,0.9535803792257284,-0.45 < ebit_margin <= -0.00,0.011608384894036879,supports_predicted_class
+1127,2,2,0.9535803792257284,0.00 < current_ratio_delta <= 0.01,0.009321328049772065,supports_predicted_class
+153,2,2,0.9818764792434104,pretax_profit_margin > 0.51,0.12065762228178727,supports_predicted_class
+153,2,2,0.9818764792434104,roe > 0.53,0.04759984073926893,supports_predicted_class
+153,2,2,0.9818764792434104,net_profit_margin > 0.53,0.0338986354041748,supports_predicted_class
+153,2,2,0.9818764792434104,-0.00 < current_ratio <= 0.55,-0.03126188430412968,opposes_predicted_class
+153,2,2,0.9818764792434104,ebit_margin > 0.53,-0.026583055266920275,opposes_predicted_class
+153,2,2,0.9818764792434104,-0.00 < debt_equity_ratio_delta <= 0.00,0.01937924981533132,supports_predicted_class
+153,2,2,0.9818764792434104,operating_profit_margin > 0.53,-0.017627258373517626,opposes_predicted_class
+153,2,2,0.9818764792434104,roa > 0.57,0.013519783510790811,supports_predicted_class
+153,2,2,0.9818764792434104,-0.03 < debt_equity_ratio <= 0.46,0.00958437533067615,supports_predicted_class
+153,2,2,0.9818764792434104,-0.45 < asset_turnover <= 0.02,0.008820811231090561,supports_predicted_class
+1332,1,1,0.875776591757277,pretax_profit_margin <= -0.46,0.1454712918946096,supports_predicted_class
+1332,1,1,0.875776591757277,-0.00 < current_ratio <= 0.55,0.0315500046191924,supports_predicted_class
+1332,1,1,0.875776591757277,roe > 0.53,-0.022991194824320927,opposes_predicted_class
+1332,1,1,0.875776591757277,debt_equity_ratio <= -0.51,-0.02075726629693274,opposes_predicted_class
+1332,1,1,0.875776591757277,operating_profit_margin <= -0.45,-0.018129271160740253,opposes_predicted_class
+1332,1,1,0.875776591757277,roa > 0.57,-0.01799461262825254,opposes_predicted_class
+1332,1,1,0.875776591757277,-0.43 < net_profit_margin <= -0.00,0.01614759528199418,supports_predicted_class
+1332,1,1,0.875776591757277,free_cashflow_ps <= -0.37,0.01321094101115232,supports_predicted_class
+1332,1,1,0.875776591757277,gross_profit_margin <= -0.45,0.011348863835170505,supports_predicted_class
+1332,1,1,0.875776591757277,ebit_margin <= -0.45,-0.010542930941207824,opposes_predicted_class

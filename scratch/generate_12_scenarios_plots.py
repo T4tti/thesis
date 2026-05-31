@@ -65,6 +65,8 @@ def determine_group(row: pd.Series) -> str:
         return "FI Ensemble"
     elif "gompertz" in method.lower() or "ranking" in method.lower():
         return "FR Ensemble"
+    elif "dynamic" in method.lower() or "dmf" in method.lower():
+        return "DMF Ensemble"
     return "Baseline"
 
 def generate_plot(df: pd.DataFrame, metric_col: str, file_name: str, title_vn: str, y_min: float, y_max: float) -> None:
@@ -79,7 +81,8 @@ def generate_plot(df: pd.DataFrame, metric_col: str, file_name: str, title_vn: s
     colors_map: Dict[str, str] = {
         "Baseline": "#4a90e2",      # Xanh lam dịu cho mô hình cơ sở
         "FI Ensemble": "#1abc9c",   # Xanh ngọc cho tích phân fuzzy Choquet
-        "FR Ensemble": "#e67e22"    # Cam ấm cho Gompertz Fuzzy Ranking
+        "FR Ensemble": "#e67e22",   # Cam ấm cho Gompertz Fuzzy Ranking
+        "DMF Ensemble": "#e74c3c"   # Đỏ san hô cho Dynamic Model Fusion (DMF)
     }
     bar_colors: List[str] = [colors_map[g] for g in groups]
     
@@ -89,7 +92,7 @@ def generate_plot(df: pd.DataFrame, metric_col: str, file_name: str, title_vn: s
     bars = ax.bar(labels, values, color=bar_colors, edgecolor='none', width=0.6, zorder=3)
     
     # Đặt tiêu đề và nhãn các trục
-    ax.set_title(f"So sánh chỉ số {title_vn} của 12 kịch bản (Test set)", fontsize=13, fontweight='bold', pad=15)
+    ax.set_title(f"So sánh chỉ số {title_vn} của các kịch bản (Test set)", fontsize=13, fontweight='bold', pad=15)
     ax.set_ylabel(metric_col, fontsize=11, labelpad=10)
     ax.set_xlabel("Models", fontsize=11, labelpad=10)
     
@@ -113,7 +116,8 @@ def generate_plot(df: pd.DataFrame, metric_col: str, file_name: str, title_vn: s
     legend_elements = [
         Patch(facecolor=colors_map["Baseline"], label='Mô hình cơ sở (Baselines)'),
         Patch(facecolor=colors_map["FI Ensemble"], label='Tổng hợp Fuzzy Choquet (FI)'),
-        Patch(facecolor=colors_map["FR Ensemble"], label='Tổng hợp Gompertz Fuzzy Ranking (FR)')
+        Patch(facecolor=colors_map["FR Ensemble"], label='Tổng hợp Gompertz Fuzzy Ranking (FR)'),
+        Patch(facecolor=colors_map["DMF Ensemble"], label='Tổng hợp Dynamic Model Fusion (DMF)')
     ]
     ax.legend(handles=legend_elements, loc='upper left', frameon=True, facecolor='white', edgecolor='#dddddd')
     

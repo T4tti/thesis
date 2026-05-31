@@ -8,10 +8,10 @@ ROOT_DIR = Path(__file__).resolve().parents[2]
 OUTPUT_DIR = ROOT_DIR / "data" / "reports" / "model_metric_comparison"
 
 MODEL_FILES = {
-    "LSTM": ROOT_DIR / "artifacts" / "LSTM" / "LSTM" / "lstm_metrics.csv",
-    "PatchTST": ROOT_DIR / "artifacts" / "Patchtst" / "Patchtst" / "patchtst_metrics.csv",
-    "TCN": ROOT_DIR / "artifacts" / "TCN_Baseline" / "TCN" / "tcn_metrics.csv",
-    "TLSTM": ROOT_DIR / "artifacts" / "TLSTM" / "TLSTM" / "transformer_metrics.csv",
+    "LSTM": ROOT_DIR / "artifacts" / "LSTM" / "lstm_metrics.csv",
+    "PatchTST": ROOT_DIR / "artifacts" / "Patchtst" / "patchtst_metrics.csv",
+    "TCN": ROOT_DIR / "artifacts" / "TCN_Baseline" / "tcn_metrics.csv",
+    "TLSTM": ROOT_DIR / "artifacts" / "TLSTM" / "transformer_metrics.csv",
 }
 
 METRIC_ALIASES = {

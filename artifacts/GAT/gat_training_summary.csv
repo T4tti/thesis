@@ -1,0 +1,2 @@
+﻿epoch,train_loss,val_loss,train_acc,val_acc,val_class0_recall,val_class0_f2,val_metric_score,val_checkpoint_score,min_val_loss_epoch,min_val_loss,learning_rate,selected_class0_threshold
+36,0.27848777174949646,0.31178632378578186,0.9210482667108973,0.9222737819025522,0.7333333333333333,0.7096774193548386,0.8349061451563148,0.8089642826923636,41,0.31051552295684814,0.00066,0.26
