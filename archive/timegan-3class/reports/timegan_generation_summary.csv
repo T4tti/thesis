@@ -1,4 +1,4 @@
 rating_detail,real_train_count,synthetic_count,augmented_count,synthetic_share_in_augmented
-0,182,1706,1888,0.9036
-1,1653,1181,2834,0.4167
-2,3415,0,3415,0.0
+0.0,207,1604,1811,0.8857
+1.0,1957,1109,3066,0.3617
+2.0,3865,0,3865,0.0

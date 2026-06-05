@@ -1,55 +1,55 @@
 # TimeGAN Augmentation Report (Standalone Pipeline)
 
-**Generated:** 2026-04-09 15:46:24
+**Generated:** 2026-06-04 15:56:36
 
 ## Configuration
 - **Random seed:** 42
 - **Target column:** rating_detail
-- **Split strategy:** Walk-forward expanding window | active_fold=3 / 3 | train_years=[2005, 2009, 2010, 2011, 2012, 2013, 2014] | val_years=[2015] | test_years=[2016]
+- **Split strategy:** Random stratified split | train=0.7 | val=0.1 | test=0.2
 - **Sequence length (`seq_len`):** 8
 - **Sequence stride:** 1
-- **TimeGAN train steps:** 140
+- **TimeGAN train steps:** 60
 - **Batch size:** 24
 - **Learning rate:** 0.0005
-- **Use GPU (requested):** False
+- **Use GPU (requested):** True
 
 ## Pipeline Mode
  Standalone mode: loaded source dataset and split inside notebook
  Sequence-aware mode: TimeGAN windows grouped by entity and ordered by time
 
 ## Data Summary
-- **Original train size:** 5250
-- **Val size:** 2250
-- **Test size:** 1180
-- **Synthetic rows generated (raw):** 2887
-- **Synthetic rows after filtering:** 2887
-- **Final augmented train size:** 8137
-- **Synthetic rows in final augmented set:** 2887
-- **Synthetic ratio:** 35.5%
+- **Original train size:** 6029
+- **Val size:** 862
+- **Test size:** 1723
+- **Synthetic rows generated (raw):** 2713
+- **Synthetic rows after filtering:** 2713
+- **Final augmented train size:** 8742
+- **Synthetic rows in final augmented set:** 2713
+- **Synthetic ratio:** 31.0%
 
 ## TimeGAN Training Summary
 - **Global model status:** trained
-- **Global windows used:** 473
+- **Global windows used:** 552
 - **Per-class trained models:** ['0', '1']
 
 ## Generation Log
 
-- Class 0: requested 214 windows, generated 0 windows, model source = class_0, JS rejected = 384, RF rejected = 0
-- Class 1: requested 148 windows, generated 0 windows, model source = class_1, JS rejected = 256, RF rejected = 0
+- Class 0: requested 201 windows, generated 0 windows, model source = class_0, JS rejected = 384, RF rejected = 0
+- Class 1: requested 139 windows, generated 0 windows, model source = class_1, JS rejected = 128, RF rejected = 0
 
 ## Class Distribution
 
 ### Before Augmentation
 
-- Class 0: 182
-- Class 1: 1653
-- Class 2: 3415
+- Class 0: 207
+- Class 1: 1957
+- Class 2: 3865
 
 ### After Augmentation
 
-- Class 0: 1888 (+1706, 937.4%)
-- Class 1: 2834 (+1181, 71.4%)
-- Class 2: 3415 (+0, 0.0%)
+- Class 0: 1811 (+1604, 774.9%)
+- Class 1: 3066 (+1109, 56.7%)
+- Class 2: 3865 (+0, 0.0%)
 
 ## Preprocessing Applied
  Full preprocessing pipeline executed (imputation, log transform, scaling, encoding) with fit-on-train only.
@@ -81,7 +81,6 @@
 - `config_timegan.json` - Configuration file
 - `reports/class_distribution_timegan_comparison.png` - Visualization
 - `reports/timegan_generation_summary.csv` - Per-class generation summary
-- `reports/walk_forward_folds_summary.csv` - Walk-forward fold summary
 - `reports/split_metadata.json` - Split metadata
 
 ## Next Steps

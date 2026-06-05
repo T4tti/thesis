@@ -1,0 +1,13 @@
+﻿feature,mean_abs_shap_value,mean_signed_shap_value,rank,model_key,model_label,feature_source,probability_source,xai_probability_source
+pretax_profit_margin,0.23886827565729618,-0.014154094581802687,1,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+operating_profit_margin,0.19995403476059437,0.005679237345854442,2,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+current_ratio,0.07258395889463524,0.000557116569931774,3,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+ebit_margin,0.051244652519623436,-0.006174750160425901,4,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+debt_equity_ratio,0.04544900908755759,-0.0020544734919288508,5,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+asset_turnover,0.024682417201499145,0.00011708602930108707,6,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+operating_cashflow_ps,0.02402115100994706,0.001027970730016629,7,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+roa,0.01879270172988375,0.0008861718621725837,8,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+gross_profit_margin,0.015576738864183426,-0.002427702536806464,9,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+net_profit_margin,0.015100321732461452,0.000211932851622502,10,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+free_cashflow_ps,0.014754945412278175,0.0003307843580842018,11,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+roe,0.01353039670114716,-9.119282670629521e-05,12,dmf_dcs,DMF/DCS Fusion,aligned_original_financial_features,dmf_probs,dmf_probs

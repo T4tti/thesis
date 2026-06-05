@@ -1,0 +1,4 @@
+rating_detail,real_train_count,synthetic_count,augmented_count,synthetic_share_in_augmented
+0.0,207,71,278,0.2554
+1.0,1957,49,2006,0.0244
+2.0,3865,0,3865,0.0

@@ -1,13 +1,24 @@
-# How to Run: python scratch/patch_transformer_curves.py
-# Expected Output: Modifies cell 36 of notebooks/transformer-lstm.ipynb to map standard metrics (Loss, Accuracy, Macro_F1, ChgAcc, AUC, QWK) to the lowercase/train_eval keys of the Transformer-LSTM notebook, preventing KeyErrors / RuntimeErrors.
-
 import json
 from pathlib import Path
 
 def main():
-    nb_path = Path('notebooks/transformer-lstm.ipynb')
+    nb_path = Path('notebooks/Transformer-LSTM.ipynb')
     with open(nb_path, 'r', encoding='utf-8') as f:
         nb = json.load(f)
+
+    # Find the target cell dynamically
+    target_idx = None
+    for idx, cell in enumerate(nb['cells']):
+        if 'source' in cell and cell['source']:
+            source_str = "".join(cell['source'])
+            if 'Visualization: Training Curves' in source_str:
+                target_idx = idx
+                break
+
+    if target_idx is None:
+        raise RuntimeError("Could not find the training curves cell in the notebook.")
+
+    print(f"Found training curves cell at index: {target_idx}")
 
     new_source = [
         "if 'history_df' not in globals():\n",
@@ -20,16 +31,16 @@ def main():
         "# Map display metric names to the actual column names in history_df of this notebook\n",
         "metric_map = {\n",
         "    'Loss': {\n",
-        "        'train': 'train_eval_loss' if 'train_eval_loss' in history_df.columns else 'train_loss',\n",
-        "        'val': 'val_loss'\n",
+        "        'train': 'train_monitor_loss' if 'train_monitor_loss' in history_df.columns else ('train_eval_loss' if 'train_eval_loss' in history_df.columns else 'train_loss'),\n",
+        "        'val': 'val_monitor_loss' if 'val_monitor_loss' in history_df.columns else 'val_loss'\n",
         "    },\n",
         "    'Accuracy': {\n",
         "        'train': 'train_eval_acc' if 'train_eval_acc' in history_df.columns else 'train_acc',\n",
         "        'val': 'val_acc'\n",
         "    },\n",
         "    'Macro_F1': {\n",
-        "        'train': 'train_eval_f1_weighted' if 'train_eval_f1_weighted' in history_df.columns else 'train_f1_weighted',\n",
-        "        'val': 'val_f1_weighted'\n",
+        "        'train': 'train_eval_f1' if 'train_eval_f1' in history_df.columns else 'train_f1',\n",
+        "        'val': 'val_f1'\n",
         "    },\n",
         "    'ChgAcc': {\n",
         "        'train': 'train_eval_chgacc' if 'train_eval_chgacc' in history_df.columns else 'train_chgacc',\n",
@@ -83,19 +94,20 @@ def main():
         "fig.suptitle('Transformer-LSTM Training Curves', fontsize=13, fontweight='bold')\n",
         "curve_path = ARTIFACT_DIR / 'transformer_lstm_training_curves.png' if 'ARTIFACT_DIR' in globals() else Path('transformer_lstm_training_curves.png')\n",
         "fig.savefig(curve_path, dpi=300, bbox_inches='tight')\n",
+        "fig.savefig(ARTIFACT_DIR / 'training_history_simplified.png' if 'ARTIFACT_DIR' in globals() else Path('training_history_simplified.png'), dpi=150, bbox_inches='tight')\n",
         "plt.show()\n",
         "\n",
         "print('Saved:', curve_path)\n"
     ]
 
-    nb['cells'][36]['source'] = new_source
-    nb['cells'][36]['outputs'] = []
-    nb['cells'][36]['execution_count'] = None
+    nb['cells'][target_idx]['source'] = new_source
+    nb['cells'][target_idx]['outputs'] = []
+    nb['cells'][target_idx]['execution_count'] = None
 
     with open(nb_path, 'w', encoding='utf-8') as f:
         json.dump(nb, f, ensure_ascii=False, indent=1)
 
-    print("Successfully patched cell 36 with metric mappings!")
+    print("Successfully patched training curves cell in notebooks/Transformer-LSTM.ipynb!")
 
 if __name__ == '__main__':
     main()

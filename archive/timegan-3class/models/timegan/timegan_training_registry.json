@@ -1,28 +1,28 @@
 {
   "global": {
     "status": "trained",
-    "n": 473,
+    "n": 552,
     "selected_seed": 42,
-    "stability_score": 0.12429738591657807
+    "stability_score": 0.1820312248259564
   },
   "per_class": {
     "0": {
-      "n": 45,
+      "n": 63,
       "status": "trained",
       "save": "Invalid filepath extension for saving. Please add either a `.keras` extension for the native Keras format (recommended) or a `.h5` extension. Use `model.export(filepath)` if you want to export a SavedModel for use with TFLite/TFServing/etc. Received: filepath=/kaggle/working/models/timegan/timegan_class_0.pkl.",
       "selected_seed": 42,
-      "stability_score": 0.1598223711661338
+      "stability_score": 0.27321174182547
     },
     "1": {
-      "n": 428,
+      "n": 489,
       "status": "trained",
       "save": "Invalid filepath extension for saving. Please add either a `.keras` extension for the native Keras format (recommended) or a `.h5` extension. Use `model.export(filepath)` if you want to export a SavedModel for use with TFLite/TFServing/etc. Received: filepath=/kaggle/working/models/timegan/timegan_class_1.pkl.",
       "selected_seed": 42,
-      "stability_score": 0.1985860012169166
+      "stability_score": 0.1981229812103489
     }
   },
   "per_sector": {},
-  "train_steps": 140,
+  "train_steps": 60,
   "seq_len": 8,
   "feature_columns": [
     "current_ratio",
@@ -37,11 +37,12 @@
     "roa",
     "operating_cashflow_ps",
     "free_cashflow_ps",
+    "delta_days",
     "rating_agency",
     "sector",
     "source"
   ],
-  "window_count": 1813,
+  "window_count": 2187,
   "stability_multi_seed": false,
   "candidate_seeds": [
     42

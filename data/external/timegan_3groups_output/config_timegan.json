@@ -1,8 +1,9 @@
 {
   "random_seed": 42,
-  "train_ratio": 0.8,
+  "train_ratio": 0.7,
   "val_ratio": 0.1,
-  "test_ratio": 0.1,
+  "test_ratio": 0.2,
+  "split_ratio_tolerance": 0.02,
   "stratify": true,
   "data_file": "merged_credit_rating_common_3groups.csv",
   "target_column": "rating_detail",
@@ -11,16 +12,16 @@
   "target_max_label": 2,
   "date_column": "rating_date",
   "entity_column": "ticker",
-  "split_method": "walk_forward_expanding",
-  "walk_forward_min_train_years": 5,
-  "walk_forward_val_years": 1,
-  "walk_forward_test_years": 1,
-  "walk_forward_min_train_samples": 300,
-  "walk_forward_active_fold": "latest",
+  "split_method": "random",
+  "deduplicate_same_day_observations": true,
+  "dedup_target_resolution": "worst",
+  "add_delta_days_feature": true,
+  "delta_days_clip_upper": 365,
   "seq_len": 8,
   "sequence_stride": 1,
   "min_history_for_company": 4,
   "allow_padded_windows": false,
+  "window_label_mode": "last",
   "timegan_use_gpu": false,
   "downstream_min_history_for_window": 9,
   "synthetic_min_points_per_ticker": 9,
@@ -29,19 +30,21 @@
   "mixup_sequence_block_len": 9,
   "date_generation_mode": "empirical_cadence",
   "max_date_step_days": 365,
-  "budget_optimization_enabled": false,
+  "budget_optimization_enabled": true,
   "budget_optimization_mode": "val_proxy",
   "budget_ratio_candidates": [
     0.25,
     0.35,
-    0.45
+    0.45,
+    0.55
   ],
   "budget_objective": {
     "macro_f1_weight": 0.7,
     "balanced_accuracy_weight": 0.3
   },
   "priority_class_labels": [
-    0
+    0,
+    1
   ],
   "priority_boost_multiplier": 3.0,
   "priority_min_count": 500,
@@ -67,7 +70,7 @@
   "rf_quality_estimators": 120,
   "rf_proxy_estimators": 120,
   "balance_strategy": "median_flat",
-  "timegan_train_steps": 140,
+  "timegan_train_steps": 60,
   "timegan_batch_size": 24,
   "timegan_learning_rate": 0.0005,
   "timegan_noise_dim": 32,
@@ -80,9 +83,9 @@
   "timegan_candidate_seeds": [
     42
   ],
-  "timegan_eval_windows": 16,
-  "timegan_max_windows_per_model": 900,
-  "timegan_generation_max_windows_per_class": 256,
+  "timegan_eval_windows": 32,
+  "timegan_max_windows_per_model": 400,
+  "timegan_generation_max_windows_per_class": 128,
   "min_windows_per_class_for_timegan": 6,
   "sector_column": "sector",
   "enable_sector_conditional": false,
@@ -96,5 +99,5 @@
   "enable_hybrid_rebalancing": true,
   "majority_cap_percentile": 80,
   "minority_floor": 150,
-  "timestamp": "2026-04-07T09:40:33.699487"
+  "timestamp": "2026-06-04T22:42:17.149794"
 }
