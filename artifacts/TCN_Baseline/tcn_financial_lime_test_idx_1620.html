@@ -37097,23 +37097,23 @@
             var pp_div = top_div.append('div')
                                 .classed('lime predict_proba', true);
             var pp_svg = pp_div.append('svg').style('width', '100%');
-            var pp = new lime.PredictProba(pp_svg, ["0", "1", "2"], [0.0007161326606853087, 0.992964063933205, 0.0063198034061096985]);
+            var pp = new lime.PredictProba(pp_svg, ["Distressed", "HY", "IG"], [3.191647568104833e-05, 0.9888947046375821, 0.011073378886736873]);
             
         
         var exp_div;
-            var exp = new lime.Explanation(["0", "1", "2"]);
+            var exp = new lime.Explanation(["Distressed", "HY", "IG"]);
         
                 exp_div = top_div.append('div').classed('lime explanation', true);
-                exp.show([["-0.12 < pretax_profit_margin <= 0.30", 0.03036982691389188], ["roe <= 0.05", -0.025960706998682685], ["debt_equity_ratio <= -0.81", 0.017443297004395914], ["0.32 < ebit_margin <= 0.85", -0.015189870569515419], ["-0.55 < free_cashflow_ps <= -0.14", -0.014215380316413806], ["0.23 < operating_profit_margin <= 0.70", -0.013293900065867238], ["-0.92 < operating_cashflow_ps <= -0.08", 0.01322792126163171], ["0.12 < asset_turnover <= 1.13", -0.009332229014007064], ["-0.74 < gross_profit_margin <= -0.13", -0.008634754187490757], ["0.01 < roa <= 0.39", -0.004497982249955336]], 0, exp_div);
+                exp.show([["debt_equity_ratio <= -0.81", -0.0015020073001682569], ["0.32 < ebit_margin <= 0.85", 0.0009459896051496987], ["-0.55 < free_cashflow_ps <= -0.14", 0.0009126083803200712], ["-0.12 < pretax_profit_margin <= 0.30", 0.0008098930410436967], ["roe <= 0.05", -0.0008070293321771999], ["-0.92 < operating_cashflow_ps <= -0.08", 0.000722260541076843], ["0.23 < operating_profit_margin <= 0.70", -0.0007048689419907286], ["current_ratio > 0.18", -0.000677416325548461], ["-0.05 < net_profit_margin <= 0.41", 0.0006084802475265264], ["-0.74 < gross_profit_margin <= -0.13", 0.00036192626790011864]], 0, exp_div);
                 
                 exp_div = top_div.append('div').classed('lime explanation', true);
-                exp.show([["-0.55 < free_cashflow_ps <= -0.14", 0.08523949718930604], ["-0.12 < pretax_profit_margin <= 0.30", 0.07744566164174564], ["debt_equity_ratio <= -0.81", -0.06400992168467906], ["roe <= 0.05", 0.05335363564737781], ["0.23 < operating_profit_margin <= 0.70", 0.050746638424941655], ["0.32 < ebit_margin <= 0.85", 0.048240223893009505], ["0.12 < asset_turnover <= 1.13", 0.04124542335605789], ["-0.74 < gross_profit_margin <= -0.13", 0.037010127134479445], ["-0.92 < operating_cashflow_ps <= -0.08", -0.020700554762147175], ["0.01 < roa <= 0.39", 0.005155406124026766]], 1, exp_div);
+                exp.show([["-0.12 < pretax_profit_margin <= 0.30", 0.08836507001138633], ["-0.55 < free_cashflow_ps <= -0.14", 0.07888816981833027], ["debt_equity_ratio <= -0.81", -0.06871476299748967], ["0.23 < operating_profit_margin <= 0.70", 0.06181540585413884], ["0.32 < ebit_margin <= 0.85", 0.04507737739753863], ["0.12 < asset_turnover <= 1.13", 0.03241517245718432], ["current_ratio > 0.18", 0.02837445371967488], ["roe <= 0.05", 0.01940119208773771], ["-0.92 < operating_cashflow_ps <= -0.08", -0.016028257495460656], ["0.01 < roa <= 0.39", 0.011881394215904442]], 1, exp_div);
                 
                 exp_div = top_div.append('div').classed('lime explanation', true);
-                exp.show([["-0.12 < pretax_profit_margin <= 0.30", -0.10752029540458292], ["-0.55 < free_cashflow_ps <= -0.14", -0.07073264541891612], ["debt_equity_ratio <= -0.81", 0.04654845363516175], ["0.23 < operating_profit_margin <= 0.70", -0.0374252402611226], ["0.32 < ebit_margin <= 0.85", -0.03300962186333016], ["0.12 < asset_turnover <= 1.13", -0.03217618644128731], ["-0.74 < gross_profit_margin <= -0.13", -0.02831987185553498], ["roe <= 0.05", -0.027292433609487365], ["-0.92 < operating_cashflow_ps <= -0.08", 0.007486364791748061], ["current_ratio > 0.18", -0.004372311351404836]], 2, exp_div);
+                exp.show([["-0.12 < pretax_profit_margin <= 0.30", -0.08921124468292303], ["-0.55 < free_cashflow_ps <= -0.14", -0.07986749021527076], ["debt_equity_ratio <= -0.81", 0.07023234121452289], ["0.23 < operating_profit_margin <= 0.70", -0.06113844838666728], ["0.32 < ebit_margin <= 0.85", -0.04599040415459787], ["0.12 < asset_turnover <= 1.13", -0.03239520391410813], ["current_ratio > 0.18", -0.0277086321039777], ["roe <= 0.05", -0.018632064214172576], ["-0.92 < operating_cashflow_ps <= -0.08", 0.015255339934836786], ["0.01 < roa <= 0.39", -0.01164761354540815]], 2, exp_div);
                 
         var raw_div = top_div.append('div');
-            exp.show_raw_tabular([["pretax_profit_margin", "0.02", 0.03036982691389188], ["roe", "-4.51", -0.025960706998682685], ["debt_equity_ratio", "-9.85", 0.017443297004395914], ["ebit_margin", "0.42", -0.015189870569515419], ["free_cashflow_ps", "-0.21", -0.014215380316413806], ["operating_profit_margin", "0.31", -0.013293900065867238], ["operating_cashflow_ps", "-0.48", 0.01322792126163171], ["asset_turnover", "0.74", -0.009332229014007064], ["gross_profit_margin", "-0.56", -0.008634754187490757], ["roa", "0.02", -0.004497982249955336]], 0, raw_div);
+            exp.show_raw_tabular([["debt_equity_ratio", "-9.85", -0.0015020073001682569], ["ebit_margin", "0.42", 0.0009459896051496987], ["free_cashflow_ps", "-0.21", 0.0009126083803200712], ["pretax_profit_margin", "0.02", 0.0008098930410436967], ["roe", "-4.51", -0.0008070293321771999], ["operating_cashflow_ps", "-0.48", 0.000722260541076843], ["operating_profit_margin", "0.31", -0.0007048689419907286], ["current_ratio", "0.47", -0.000677416325548461], ["net_profit_margin", "-0.04", 0.0006084802475265264], ["gross_profit_margin", "-0.56", 0.00036192626790011864]], 0, raw_div);
         
         </script>
         </body></html>

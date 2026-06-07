@@ -45,6 +45,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+from src.models.losses import (
+    BENCHMARK_PROTOCOL,
+    DEFAULT_ORDINAL_LAMBDA,
+    build_loss,
+)
+
+LOSS_PROTOCOL = str(os.environ.get('LOSS_PROTOCOL', BENCHMARK_PROTOCOL)).strip().lower()
+ORDINAL_LAMBDA = float(os.environ.get('ORDINAL_LAMBDA', DEFAULT_ORDINAL_LAMBDA))
 
 SEED = 42
 random.seed(SEED)
@@ -95,25 +103,25 @@ def resolve_split_path(default_path, local_fallbacks=None):
     )
 
 TRAIN_PATH = resolve_split_path(
-    '/kaggle/input/datasets/tailength/corporate-credit-rating/train_augmented_timegan.csv',
+    '/kaggle/input/datasets/tailength/corporate-credit-rating/test/train.csv',
     local_fallbacks=[
-        'data/processed/train_augmented_timegan.csv',
-        'archive/ctgan/splits/train_augmented_timegan.csv',
-        'archive/ctgan/splits/train_augmented_ctgan.csv',
+        'data/processed/test/train.csv',
+        'data/processed/test/train.csv',
+        'data/processed/test/train.csv',
     ]
 )
 VAL_PATH = resolve_split_path(
-    '/kaggle/input/datasets/tailength/corporate-credit-rating/val.csv',
+    '/kaggle/input/datasets/tailength/corporate-credit-rating/test/val.csv',
     local_fallbacks=[
-        'data/processed/val.csv',
+        'data/processed/test/val.csv',
         'archive/ctgan/splits/val.csv',
         'data/processed/ctgan/splits/val.csv',
     ]
 )
 TEST_PATH = resolve_split_path(
-    '/kaggle/input/datasets/tailength/corporate-credit-rating/test.csv',
+    '/kaggle/input/datasets/tailength/corporate-credit-rating/test/test.csv',
     local_fallbacks=[
-        'data/processed/test.csv',
+        'data/processed/test/test.csv',
         'archive/ctgan/splits/test.csv',
         'data/processed/ctgan/splits/test.csv',
     ]
@@ -368,7 +376,7 @@ INPUT_SIZE_MAX = 24
 SINGLETON_TICKER_POLICY = 'self_target_padded'
 ENABLE_BOOTSTRAP_T0_WINDOW = True
 ENABLE_SYNTH_QC = False
-ENABLE_WEIGHTED_SAMPLER = True
+ENABLE_WEIGHTED_SAMPLER = False
 SAMPLER_WEIGHT_POWER = 0.75
 
 
@@ -743,17 +751,7 @@ imbalance_ratio = (
 )
 synthetic_ratio_train = float(train_seq_is_synth.mean()) if len(train_seq_is_synth) > 0 else 0.0
 transition_ratio_train = float(train_seq_is_change.mean()) if len(train_seq_is_change) > 0 else 0.0
-weighted_sampler = None
-if ENABLE_WEIGHTED_SAMPLER and len(train_labels) > 0:
-    class_weights = np.zeros_like(class_freq_raw, dtype=np.float64)
-    non_zero_mask = class_freq_raw > 0
-    class_weights[non_zero_mask] = class_freq_raw[non_zero_mask].sum() / class_freq_raw[non_zero_mask]
-    sample_weights = np.power(class_weights[train_labels], SAMPLER_WEIGHT_POWER)
-    weighted_sampler = torch.utils.data.WeightedRandomSampler(
-        weights=torch.as_tensor(sample_weights, dtype=torch.double),
-        num_samples=len(sample_weights),
-        replacement=True,
-    )
+weighted_sampler = None  # Sampler disabled by the shared benchmark protocol.
 
 BATCH_SIZE = 64  # Increased from 32 for more stable gradients
 NUM_WORKERS = 4 if IN_KAGGLE else 0
@@ -762,8 +760,7 @@ PIN_MEMORY = torch.cuda.is_available()
 train_loader = DataLoader(
     train_ds,
     batch_size=BATCH_SIZE,
-    shuffle=(weighted_sampler is None),
-    sampler=weighted_sampler,
+    shuffle=True,
     drop_last=False,
     num_workers=NUM_WORKERS,
     pin_memory=PIN_MEMORY,
@@ -823,30 +820,18 @@ def seed_worker(worker_id):
 loader_generator = torch.Generator()
 loader_generator.manual_seed(SEED)
 
-weighted_sampler = None
-if ENABLE_WEIGHTED_SAMPLER and len(train_labels) > 0:
-    class_weights = np.zeros_like(class_freq_raw, dtype=np.float64)
-    non_zero_mask = class_freq_raw > 0
-    class_weights[non_zero_mask] = class_freq_raw[non_zero_mask].sum() / class_freq_raw[non_zero_mask]
-    sample_weights = np.power(class_weights[train_labels], SAMPLER_WEIGHT_POWER)
-    weighted_sampler = torch.utils.data.WeightedRandomSampler(
-        weights=torch.as_tensor(sample_weights, dtype=torch.double),
-        num_samples=len(sample_weights),
-        replacement=True,
-        generator=loader_generator,
-    )
+weighted_sampler = None  # Sampler disabled by the shared benchmark protocol.
 
 train_loader = DataLoader(
     train_ds,
     batch_size=BATCH_SIZE,
-    shuffle=(weighted_sampler is None),
-    sampler=weighted_sampler,
+    shuffle=True,
     drop_last=False,
     num_workers=NUM_WORKERS,
     pin_memory=PIN_MEMORY,
     worker_init_fn=seed_worker if NUM_WORKERS > 0 else None,
     persistent_workers=bool(NUM_WORKERS > 0),
-    generator=loader_generator if weighted_sampler is None else None,
+    generator=loader_generator,
  )
 
 val_loader = DataLoader(
@@ -875,93 +860,15 @@ print('Rebuilt DataLoaders with deterministic generator and worker seeding.')
 print(f'Weighted sampler enabled: {weighted_sampler is not None}')
 print(f'Persistent workers: {bool(NUM_WORKERS > 0)}')
 
-def build_effective_num_class_weights(class_counts, beta=0.995):
-    """Effective-number reweighting (Cui et al.) with mean=1 normalization."""
-    counts = np.asarray(class_counts, dtype=np.float64)
-    counts = np.maximum(counts, 0.0)
-    weights = np.zeros_like(counts, dtype=np.float64)
-
-    valid = counts > 0
-    if valid.any():
-        effective_num = 1.0 - np.power(float(beta), counts[valid])
-        weights[valid] = (1.0 - float(beta)) / np.maximum(effective_num, 1e-12)
-        weights[valid] = weights[valid] / np.mean(weights[valid])
-    else:
-        weights[:] = 1.0
-    return weights
-
-
-class FocalOrdinalLoss(nn.Module):
-    """Focal loss + ordinal distance regularization with optional class-balance weights."""
-    def __init__(self, n_classes, gamma=1.5, ordinal_alpha=0.04, label_smoothing=0.0, class_weights=None):
-        super().__init__()
-        self.n_classes = int(n_classes)
-        self.gamma = float(gamma)
-        self.ordinal_alpha = float(ordinal_alpha)
-        self.label_smoothing = float(label_smoothing)
-        if class_weights is None:
-            self.class_weights = None
-        else:
-            cw = torch.tensor(class_weights, dtype=torch.float32)
-            self.register_buffer('class_weights', cw)
-
-    def forward(self, logits, targets):
-        # Keep CE computation in FP32 and move class weights to the same device as logits.
-        logits_for_loss = logits.float()
-        weight = None
-        if self.class_weights is not None:
-            weight = self.class_weights.to(device=logits.device, dtype=torch.float32)
-
-        ce_loss = F.cross_entropy(
-            logits_for_loss,
-            targets,
-            reduction='none',
-            weight=weight,
-            label_smoothing=self.label_smoothing,
-        )
-        pt = torch.exp(-ce_loss)
-        focal_ce = ((1.0 - pt) ** self.gamma) * ce_loss
-        focal_ce = focal_ce.mean()
-
-        probs = F.softmax(logits_for_loss, dim=-1)
-        classes = torch.arange(self.n_classes, device=logits.device, dtype=probs.dtype)
-        expected_class = torch.sum(probs * classes.unsqueeze(0), dim=-1)
-        dist_loss = F.mse_loss(expected_class, targets.float())
-
-        return focal_ce + self.ordinal_alpha * dist_loss
-
-
-CLASS_BALANCE_BETA = 0.995
-class_weights_effective = build_effective_num_class_weights(
-    class_freq_raw if 'class_freq_raw' in globals() else np.ones(n_classes),
-    beta=CLASS_BALANCE_BETA,
- )
-
 criterion_settings = {
-    'loss_name': 'focal_ordinal_class_balanced',
-    'focal_gamma': 1.5,
-    'label_smoothing': 0.00,
-    'ordinal_alpha': 0.04,
-    'class_balance_beta': CLASS_BALANCE_BETA,
+    'protocol': LOSS_PROTOCOL,
+    'ordinal_lambda': ORDINAL_LAMBDA,
 }
-
-criterion = FocalOrdinalLoss(
-    n_classes=n_classes,
-    gamma=criterion_settings['focal_gamma'],
-    ordinal_alpha=criterion_settings['ordinal_alpha'],
-    label_smoothing=criterion_settings['label_smoothing'],
-    class_weights=class_weights_effective,
+criterion = build_loss(
+    protocol=LOSS_PROTOCOL,
+    ordinal_lambda=ORDINAL_LAMBDA,
 ).to(device)
-
-FOCAL_GAMMA = criterion_settings['focal_gamma']
-print(
-    f"Loss: {criterion_settings['loss_name']} | "
-    f"gamma={criterion_settings['focal_gamma']} | "
-    f"smoothing={criterion_settings['label_smoothing']} | "
-    f"ordinal_alpha={criterion_settings['ordinal_alpha']} | "
-    f"beta={criterion_settings['class_balance_beta']}"
- )
-print('Effective class weights:', np.round(class_weights_effective, 4).tolist())
+print('Two-tier loss:', criterion_settings)
 
 class FuzzyLayer(nn.Module):
     """Gaussian fuzzy membership expansion with configurable MFs per feature."""

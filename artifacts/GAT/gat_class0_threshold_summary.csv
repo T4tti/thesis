@@ -1,0 +1,2 @@
+﻿selected_threshold,selection_metric,accuracy_floor_drop,min_accuracy_gain,selected_checkpoint,selected_checkpoint_epoch,final_train_ce_loss,final_val_ce_loss,final_loss_gap
+,Class0_F2,0.0,0.001,balanced_loss,10,0.3902457356452942,0.42988839745521545,0.039642661809921265

@@ -96,7 +96,7 @@ AI agents must use the following commands for development, testing, and validati
 ### 2. Modeling Invariants
 - **Sequence Embeddings:** Prefer Rotary Positional Embeddings (RoPE) for temporal sequence modeling.
 - **Persistence Bias Control:** Use `ContextScheduler` to force the model to learn financial features before relying on the last known rating.
-- **Ordinal Rating Classification:** Use CORN (Conditional Ordinal Regression) loss instead of standard cross-entropy.
+- **Loss Protocol:** Use plain multiclass CE/NLL for the primary benchmark and `CE + 0.10 * CDF-EMD²` only for the ordinal ablation. Do not use CORAL/CORN, focal loss, class weights, or weighted samplers in benchmark comparisons.
 
 ### 3. Code Quality & Standards
 - Always check for class imbalance and feature scaling requirements.

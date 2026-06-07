@@ -1,4 +1,4 @@
-﻿import os
+import os
 import platform
 import sys
 from pathlib import Path
@@ -50,6 +50,14 @@ import torch
 import torch.nn as nn
 import torch.nn.functional as F
 from torch.utils.data import Dataset, DataLoader
+from src.models.losses import (
+    BENCHMARK_PROTOCOL,
+    DEFAULT_ORDINAL_LAMBDA,
+    build_loss,
+)
+
+LOSS_PROTOCOL = str(os.environ.get('LOSS_PROTOCOL', BENCHMARK_PROTOCOL)).strip().lower()
+ORDINAL_LAMBDA = float(os.environ.get('ORDINAL_LAMBDA', DEFAULT_ORDINAL_LAMBDA))
 
 SEED = 42
 random.seed(SEED)
@@ -100,25 +108,25 @@ def resolve_split_path(default_path, local_fallbacks=None):
     )
 
 TRAIN_PATH = resolve_split_path(
-    '/kaggle/input/datasets/tailength/corporate-credit-rating/train_augmented_timegan.csv',
+    '/kaggle/input/datasets/tailength/corporate-credit-rating/test/train.csv',
     local_fallbacks=[
-        'data/processed/train_augmented_timegan.csv',
-        'archive/ctgan/splits/train_augmented_timegan.csv',
-        'archive/ctgan/splits/train_augmented_ctgan.csv',
+        'data/processed/test/train.csv',
+        'data/processed/test/train.csv',
+        'data/processed/test/train.csv',
     ]
 )
 VAL_PATH = resolve_split_path(
-    '/kaggle/input/datasets/tailength/corporate-credit-rating/val.csv',
+    '/kaggle/input/datasets/tailength/corporate-credit-rating/test/val.csv',
     local_fallbacks=[
-        'data/processed/val.csv',
+        'data/processed/test/val.csv',
         'archive/ctgan/splits/val.csv',
         'data/processed/ctgan/splits/val.csv',
     ]
 )
 TEST_PATH = resolve_split_path(
-    '/kaggle/input/datasets/tailength/corporate-credit-rating/test.csv',
+    '/kaggle/input/datasets/tailength/corporate-credit-rating/test/test.csv',
     local_fallbacks=[
-        'data/processed/test.csv',
+        'data/processed/test/test.csv',
         'archive/ctgan/splits/test.csv',
         'data/processed/ctgan/splits/test.csv',
     ]
@@ -373,7 +381,7 @@ INPUT_SIZE_MAX = 24
 SINGLETON_TICKER_POLICY = 'self_target_padded'
 ENABLE_BOOTSTRAP_T0_WINDOW = True
 ENABLE_SYNTH_QC = False
-ENABLE_WEIGHTED_SAMPLER = True
+ENABLE_WEIGHTED_SAMPLER = False
 SAMPLER_WEIGHT_POWER = 0.75
 
 
@@ -748,17 +756,7 @@ imbalance_ratio = (
 )
 synthetic_ratio_train = float(train_seq_is_synth.mean()) if len(train_seq_is_synth) > 0 else 0.0
 transition_ratio_train = float(train_seq_is_change.mean()) if len(train_seq_is_change) > 0 else 0.0
-weighted_sampler = None
-if ENABLE_WEIGHTED_SAMPLER and len(train_labels) > 0:
-    class_weights = np.zeros_like(class_freq_raw, dtype=np.float64)
-    non_zero_mask = class_freq_raw > 0
-    class_weights[non_zero_mask] = class_freq_raw[non_zero_mask].sum() / class_freq_raw[non_zero_mask]
-    sample_weights = np.power(class_weights[train_labels], SAMPLER_WEIGHT_POWER)
-    weighted_sampler = torch.utils.data.WeightedRandomSampler(
-        weights=torch.as_tensor(sample_weights, dtype=torch.double),
-        num_samples=len(sample_weights),
-        replacement=True,
-    )
+weighted_sampler = None  # Sampler disabled by the shared benchmark protocol.
 
 BATCH_SIZE = 64  # Increased from 32 for more stable gradients
 NUM_WORKERS = 4 if IN_KAGGLE else 0
@@ -767,8 +765,7 @@ PIN_MEMORY = torch.cuda.is_available()
 train_loader = DataLoader(
     train_ds,
     batch_size=BATCH_SIZE,
-    shuffle=(weighted_sampler is None),
-    sampler=weighted_sampler,
+    shuffle=True,
     drop_last=False,
     num_workers=NUM_WORKERS,
     pin_memory=PIN_MEMORY,
@@ -828,30 +825,18 @@ def seed_worker(worker_id):
 loader_generator = torch.Generator()
 loader_generator.manual_seed(SEED)
 
-weighted_sampler = None
-if ENABLE_WEIGHTED_SAMPLER and len(train_labels) > 0:
-    class_weights = np.zeros_like(class_freq_raw, dtype=np.float64)
-    non_zero_mask = class_freq_raw > 0
-    class_weights[non_zero_mask] = class_freq_raw[non_zero_mask].sum() / class_freq_raw[non_zero_mask]
-    sample_weights = np.power(class_weights[train_labels], SAMPLER_WEIGHT_POWER)
-    weighted_sampler = torch.utils.data.WeightedRandomSampler(
-        weights=torch.as_tensor(sample_weights, dtype=torch.double),
-        num_samples=len(sample_weights),
-        replacement=True,
-        generator=loader_generator,
-    )
+weighted_sampler = None  # Sampler disabled by the shared benchmark protocol.
 
 train_loader = DataLoader(
     train_ds,
     batch_size=BATCH_SIZE,
-    shuffle=(weighted_sampler is None),
-    sampler=weighted_sampler,
+    shuffle=True,
     drop_last=False,
     num_workers=NUM_WORKERS,
     pin_memory=PIN_MEMORY,
     worker_init_fn=seed_worker if NUM_WORKERS > 0 else None,
     persistent_workers=bool(NUM_WORKERS > 0),
-    generator=loader_generator if weighted_sampler is None else None,
+    generator=loader_generator,
  )
 
 val_loader = DataLoader(
@@ -880,93 +865,15 @@ print('Rebuilt DataLoaders with deterministic generator and worker seeding.')
 print(f'Weighted sampler enabled: {weighted_sampler is not None}')
 print(f'Persistent workers: {bool(NUM_WORKERS > 0)}')
 
-def build_effective_num_class_weights(class_counts, beta=0.995):
-    """Effective-number reweighting (Cui et al.) with mean=1 normalization."""
-    counts = np.asarray(class_counts, dtype=np.float64)
-    counts = np.maximum(counts, 0.0)
-    weights = np.zeros_like(counts, dtype=np.float64)
-
-    valid = counts > 0
-    if valid.any():
-        effective_num = 1.0 - np.power(float(beta), counts[valid])
-        weights[valid] = (1.0 - float(beta)) / np.maximum(effective_num, 1e-12)
-        weights[valid] = weights[valid] / np.mean(weights[valid])
-    else:
-        weights[:] = 1.0
-    return weights
-
-
-class FocalOrdinalLoss(nn.Module):
-    """Focal loss + ordinal distance regularization with optional class-balance weights."""
-    def __init__(self, n_classes, gamma=1.5, ordinal_alpha=0.04, label_smoothing=0.0, class_weights=None):
-        super().__init__()
-        self.n_classes = int(n_classes)
-        self.gamma = float(gamma)
-        self.ordinal_alpha = float(ordinal_alpha)
-        self.label_smoothing = float(label_smoothing)
-        if class_weights is None:
-            self.class_weights = None
-        else:
-            cw = torch.tensor(class_weights, dtype=torch.float32)
-            self.register_buffer('class_weights', cw)
-
-    def forward(self, logits, targets):
-        # Keep CE computation in FP32 and move class weights to the same device as logits.
-        logits_for_loss = logits.float()
-        weight = None
-        if self.class_weights is not None:
-            weight = self.class_weights.to(device=logits.device, dtype=torch.float32)
-
-        ce_loss = F.cross_entropy(
-            logits_for_loss,
-            targets,
-            reduction='none',
-            weight=weight,
-            label_smoothing=self.label_smoothing,
-        )
-        pt = torch.exp(-ce_loss)
-        focal_ce = ((1.0 - pt) ** self.gamma) * ce_loss
-        focal_ce = focal_ce.mean()
-
-        probs = F.softmax(logits_for_loss, dim=-1)
-        classes = torch.arange(self.n_classes, device=logits.device, dtype=probs.dtype)
-        expected_class = torch.sum(probs * classes.unsqueeze(0), dim=-1)
-        dist_loss = F.mse_loss(expected_class, targets.float())
-
-        return focal_ce + self.ordinal_alpha * dist_loss
-
-
-CLASS_BALANCE_BETA = 0.995
-class_weights_effective = build_effective_num_class_weights(
-    class_freq_raw if 'class_freq_raw' in globals() else np.ones(n_classes),
-    beta=CLASS_BALANCE_BETA,
- )
-
 criterion_settings = {
-    'loss_name': 'focal_ordinal_class_balanced',
-    'focal_gamma': 1.5,
-    'label_smoothing': 0.00,
-    'ordinal_alpha': 0.04,
-    'class_balance_beta': CLASS_BALANCE_BETA,
+    'protocol': LOSS_PROTOCOL,
+    'ordinal_lambda': ORDINAL_LAMBDA,
 }
-
-criterion = FocalOrdinalLoss(
-    n_classes=n_classes,
-    gamma=criterion_settings['focal_gamma'],
-    ordinal_alpha=criterion_settings['ordinal_alpha'],
-    label_smoothing=criterion_settings['label_smoothing'],
-    class_weights=class_weights_effective,
+criterion = build_loss(
+    protocol=LOSS_PROTOCOL,
+    ordinal_lambda=ORDINAL_LAMBDA,
 ).to(device)
-
-FOCAL_GAMMA = criterion_settings['focal_gamma']
-print(
-    f"Loss: {criterion_settings['loss_name']} | "
-    f"gamma={criterion_settings['focal_gamma']} | "
-    f"smoothing={criterion_settings['label_smoothing']} | "
-    f"ordinal_alpha={criterion_settings['ordinal_alpha']} | "
-    f"beta={criterion_settings['class_balance_beta']}"
- )
-print('Effective class weights:', np.round(class_weights_effective, 4).tolist())
+print('Two-tier loss:', criterion_settings)
 
 class FuzzyLayer(nn.Module):
     """Gaussian fuzzy membership expansion with configurable MFs per feature."""
@@ -1188,16 +1095,8 @@ from torch.utils.data import Subset
 
 
 def build_training_criterion(config, n_classes):
-    beta = float(config.get('class_balance_beta', globals().get('CLASS_BALANCE_BETA', 0.995)))
-    counts = globals().get('class_freq_raw', np.ones(n_classes, dtype=float))
-    class_weights = build_effective_num_class_weights(counts, beta=beta)
-    return FocalOrdinalLoss(
-        n_classes=n_classes,
-        gamma=float(config.get('focal_gamma', 1.5)),
-        ordinal_alpha=float(config.get('ordinal_alpha', 0.02)),
-        label_smoothing=float(config.get('label_smoothing', 0.0)),
-        class_weights=class_weights,
-    )
+    del config, n_classes
+    return build_loss(protocol=LOSS_PROTOCOL, ordinal_lambda=ORDINAL_LAMBDA)
 
 
 def run_quick_trial(config, train_subset_loader, val_subset_loader, n_epochs=8, patience=3):
@@ -1288,7 +1187,7 @@ def run_quick_trial(config, train_subset_loader, val_subset_loader, n_epochs=8, 
 RUN_HYPERPARAM_SEARCH = False
 TUNE_MAX_TRIALS = 12
 TUNE_EPOCHS = 6
-TUNE_PATIENCE = 2
+TUNE_PATIENCE = 100
 TUNE_BATCH_SIZE = 64
 TUNE_TRAIN_FRACTION = 0.5
 TUNE_VAL_FRACTION = 1.0
@@ -1305,10 +1204,6 @@ base_config = {
     'lr': 3e-4,
     'max_lr': 1.0e-3,
     'weight_decay': 8e-4,
-    'focal_gamma': 1.5,
-    'ordinal_alpha': 0.02,
-    'label_smoothing': 0.01,
-    'class_balance_beta': 0.995,
     'aux_transition_weight': 0.10,
     'aux_transition_weight_min': 0.03,
     'aux_transition_start_frac': 0.10,
@@ -1326,9 +1221,6 @@ search_space = {
     'lr': [2e-4, 3e-4, 5e-4],
     'max_lr': [8.0e-4, 1.0e-3, 1.2e-3],
     'weight_decay': [5e-4, 8e-4, 1e-3],
-    'focal_gamma': [1.0, 1.5, 2.0],
-    'ordinal_alpha': [0.01, 0.02, 0.04],
-    'label_smoothing': [0.0, 0.01],
 }
 
 if RUN_HYPERPARAM_SEARCH:
@@ -1375,26 +1267,19 @@ if RUN_HYPERPARAM_SEARCH:
                                             if max_lr <= lr:
                                                 continue
                                             for wd in search_space['weight_decay']:
-                                                for gamma in search_space['focal_gamma']:
-                                                    for ord_alpha in search_space['ordinal_alpha']:
-                                                        for smooth in search_space['label_smoothing']:
-                                                            all_candidates.append({
-                                                                'hidden_size': hs,
-                                                                'dropout': dr,
-                                                                'fuzzy_mfs': mfs,
-                                                                'd_model': dm,
-                                                                'n_heads': nh,
-                                                                'n_layers': nl,
-                                                                'sector_emb_dim': se,
-                                                                'max_relative_position': mrp,
-                                                                'lr': lr,
-                                                                'max_lr': max_lr,
-                                                                'weight_decay': wd,
-                                                                'focal_gamma': gamma,
-                                                                'ordinal_alpha': ord_alpha,
-                                                                'label_smoothing': smooth,
-                                                                'class_balance_beta': 0.995,
-                                                            })
+                                                all_candidates.append({
+                                                    'hidden_size': hs,
+                                                    'dropout': dr,
+                                                    'fuzzy_mfs': mfs,
+                                                    'd_model': dm,
+                                                    'n_heads': nh,
+                                                    'n_layers': nl,
+                                                    'sector_emb_dim': se,
+                                                    'max_relative_position': mrp,
+                                                    'lr': lr,
+                                                    'max_lr': max_lr,
+                                                    'weight_decay': wd,
+                                                })
 
     perm = rng.permutation(len(all_candidates))
     selected = [all_candidates[i] for i in perm[:min(TUNE_MAX_TRIALS, len(all_candidates))]]
@@ -1439,30 +1324,19 @@ else:
     print('Hyperparameter search skipped. Using base config.')
     print(BEST_TUNED_CONFIG)
 
-# Ensure training uses class-balanced focal criterion even when config is overridden later.
+# Shared loss is fixed and excluded from hyperparameter search.
 def build_training_criterion(config, n_classes):
-    beta = float(config.get('class_balance_beta', globals().get('CLASS_BALANCE_BETA', 0.995)))
-    counts = globals().get('class_freq_raw', np.ones(n_classes, dtype=float))
-    class_weights = build_effective_num_class_weights(counts, beta=beta)
-    return FocalOrdinalLoss(
-        n_classes=n_classes,
-        gamma=float(config.get('focal_gamma', 1.5)),
-        ordinal_alpha=float(config.get('ordinal_alpha', 0.02)),
-        label_smoothing=float(config.get('label_smoothing', 0.0)),
-        class_weights=class_weights,
-    )
-
-if 'BEST_TUNED_CONFIG' in globals() and isinstance(BEST_TUNED_CONFIG, dict):
-    BEST_TUNED_CONFIG.setdefault('class_balance_beta', float(globals().get('CLASS_BALANCE_BETA', 0.995)))
-print('build_training_criterion overridden with class-balanced focal settings.')
+    del config, n_classes
+    return build_loss(protocol=LOSS_PROTOCOL, ordinal_lambda=ORDINAL_LAMBDA)
+print('build_training_criterion uses the fixed two-tier protocol.')
 
 # ============================================================
 # Training Loop with Full Metric Tracking (TLSTM-Fuzzy + AMP)
 # ============================================================
 
 FAST_DEV_RUN = False
-MAX_EPOCHS = 80 if not FAST_DEV_RUN else 5
-PATIENCE = 24
+MAX_EPOCHS = 100 if not FAST_DEV_RUN else 5
+PATIENCE = 100
 EARLY_STOP_MIN_DELTA = 3e-4
 MAX_GENERALIZATION_GAP = 0.18
 EARLY_STOP_METRIC = 'val_f1_weighted'
@@ -1485,9 +1359,6 @@ default_train_config = {
     'lr': 3e-4,              # Increased slightly from 2e-4 (base LR for cosine)
     'max_lr': 5.0e-4,        # Reduced from 8e-4 to prevent LR spikes
     'weight_decay': 1e-3,    # Reduced from 2e-3
-    'focal_gamma': 1.5,
-    'ordinal_alpha': 0.02,
-    'label_smoothing': 0.01,
     'aux_transition_weight': 0.00,
     'aux_transition_weight_min': 0.00,
     'aux_transition_start_frac': 0.00,
@@ -1535,8 +1406,8 @@ TRANSITION_PENALTY_WEIGHT_MAX = 0.00
 TRANSITION_WARMUP_FRACTION = 0.30
 
 # Auxiliary transition objective with delayed curriculum start.
-AUX_TRANSITION_WEIGHT_MAX = float(train_config.get('aux_transition_weight', 0.00))
-AUX_TRANSITION_WEIGHT_MIN = float(train_config.get('aux_transition_weight_min', 0.00))
+AUX_TRANSITION_WEIGHT_MAX = 0.0
+AUX_TRANSITION_WEIGHT_MIN = 0.0
 AUX_TRANSITION_START_FRACTION = float(train_config.get('aux_transition_start_frac', 0.00))
 
 model = TLSTMFuzzyClassifier(
@@ -1553,8 +1424,6 @@ model = TLSTMFuzzyClassifier(
     max_relative_position=MAX_RELATIVE_POSITION,
 ).to(device)
 criterion = build_training_criterion(train_config, n_classes=n_classes).to(device)
-FOCAL_GAMMA = float(train_config.get('focal_gamma', 1.5))
-ORDINAL_ALPHA = float(train_config.get('ordinal_alpha', 0.02))
 
 if len(train_seq_is_change) > 0:
     pos_rate = float(np.mean(train_seq_is_change))
@@ -1747,7 +1616,7 @@ best_epoch_any = -1
 best_state_any = None
 MIN_UPLIFT_TO_SAVE = -0.020
 ENABLE_UPLIFT_GATE = False
-NO_UPLIFT_PATIENCE = 24
+NO_UPLIFT_PATIENCE = 100
 MIN_EPOCHS_BEFORE_UPLIFT_STOP = 8
 no_uplift_counter = 0
 METRIC_EMA_ALPHA = 0.25
@@ -1758,7 +1627,7 @@ print(f'Training for max {MAX_EPOCHS} epochs (patience={PATIENCE})...')
 print(f'Train batches: {len(train_loader)}, Val batches: {len(val_loader)}')
 print(f'LR init: {LR} | Max LR: {MAX_LR} | Weight decay: {WEIGHT_DECAY} | EarlyStop metric: {EARLY_STOP_METRIC}')
 print(f'Simple training mode: {SIMPLE_TRAINING_MODE}')
-print(f'Loss mode: focal_ordinal | gamma={FOCAL_GAMMA} | ordinal_alpha={ORDINAL_ALPHA}')
+print(f'Loss mode: {LOSS_PROTOCOL} | ordinal_lambda={ORDINAL_LAMBDA:.2f}')
 print(f'Mixup: alpha={MIXUP_ALPHA}, prob={MIXUP_PROB}')
 print(f'Aux transition pos_weight: {transition_pos_weight_value:.3f}')
 print(
@@ -2022,10 +1891,8 @@ for epoch in range(MAX_EPOCHS):
             'lstm_hidden': LSTM_HIDDEN,
             'sector_emb_dim': SECTOR_EMB_DIM,
             'dropout': TLSTM_DROPOUT,
-            'loss_name': 'focal_ordinal',
-            'focal_gamma': FOCAL_GAMMA,
-            'ordinal_alpha': ORDINAL_ALPHA,
-            'label_smoothing': float(train_config.get('label_smoothing', 0.0)),
+            'loss_name': LOSS_PROTOCOL,
+            'ordinal_lambda': ORDINAL_LAMBDA,
             'composite_target_class': int(COMPOSITE_TARGET_CLASS),
             'composite_f2_beta': float(COMPOSITE_F2_BETA),
             'composite_w_f1w': float(COMPOSITE_W_F1W),
@@ -2636,22 +2503,6 @@ else:
     SHAP_NSAMPLES = 240
 
 
-if 'corn_logits_to_proba' not in globals():
-    def corn_logits_to_proba(logits, n_classes, enforce_monotonic=True):
-        q = torch.sigmoid(logits.float())
-        if enforce_monotonic and q.shape[1] > 1:
-            q = torch.cummin(q, dim=1)[0]
-        eps = 1e-6
-        q = q.clamp(eps, 1.0 - eps)
-        probs = torch.zeros((q.shape[0], n_classes), device=q.device, dtype=q.dtype)
-        probs[:, 0] = 1.0 - q[:, 0]
-        if n_classes > 2:
-            probs[:, 1:-1] = q[:, :-1] - q[:, 1:]
-        probs[:, -1] = q[:, -1]
-        probs = probs.clamp_min(eps)
-        probs = probs / probs.sum(dim=1, keepdim=True)
-        return probs
-
 
 def _normalize_shap_output(shap_values, n_classes_expected):
     """
@@ -2769,10 +2620,7 @@ if SHAP_ENABLED:
 
         with torch.no_grad():
             logits = model(x_batch, ly_batch, sec_batch)
-            if logits.shape[1] == n_classes - 1:
-                probs = corn_logits_to_proba(logits, n_classes=n_classes)
-            else:
-                probs = torch.softmax(logits, dim=1)
+            probs = torch.softmax(logits.float(), dim=1)
         return probs.detach().cpu().numpy()
 
     # Predict explained samples once using their real contexts.
@@ -2781,10 +2629,7 @@ if SHAP_ENABLED:
         ly_tensor = torch.tensor(explain_last_y, dtype=torch.long, device=device)
         sec_tensor = torch.tensor(explain_sector, dtype=torch.long, device=device)
         logits_explain = model(x_tensor, ly_tensor, sec_tensor)
-        if logits_explain.shape[1] == n_classes - 1:
-            probs_explain = corn_logits_to_proba(logits_explain, n_classes=n_classes).cpu().numpy()
-        else:
-            probs_explain = torch.softmax(logits_explain, dim=1).cpu().numpy()
+        probs_explain = torch.softmax(logits_explain.float(), dim=1).cpu().numpy()
 
     y_pred_explain = probs_explain.argmax(axis=1)
     pred_prob_explain = probs_explain[np.arange(explain_size), y_pred_explain]

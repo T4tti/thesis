@@ -1,6 +1,7 @@
 """PriMO/NePS HPO utilities for the Transformer-LSTM notebook.
 
-The notebook owns the dataset, model class, and loss class. This module owns
+The notebook owns the dataset and model class. The loss protocol is fixed outside HPO.
+This module owns
 the search-space definition, trial orchestration, fallback optimizer, and
 artifact extraction so Cell 24 can stay reproducible on Kaggle.
 """
@@ -37,10 +38,6 @@ PRIMO_EXPERT_PRIOR: dict[str, Any] = {
     "lr": 2.5e-4,
     "max_lr": 4.0e-4,
     "weight_decay": 4e-3,
-    "focal_gamma": 1.2,
-    "focal_weight": 0.05,
-    "ordinal_alpha": 0.04,
-    "label_smoothing": 0.015,
     "context_dropout_prob": 0.08,
     "train_input_noise_std": 0.005,
     "train_channel_dropout_prob": 0.02,
@@ -115,16 +112,6 @@ def build_pipeline_space() -> dict[str, Any]:
         "max_lr": _make_neps_dimension("Float", lower=5e-5, upper=2e-3, default=PRIMO_EXPERT_PRIOR["max_lr"], log=True),
         "weight_decay": _make_neps_dimension(
             "Float", lower=1e-4, upper=1.2e-2, default=PRIMO_EXPERT_PRIOR["weight_decay"], log=True
-        ),
-        "focal_gamma": _make_neps_dimension("Float", lower=0.8, upper=1.6, default=PRIMO_EXPERT_PRIOR["focal_gamma"]),
-        "focal_weight": _make_neps_dimension(
-            "Float", lower=0.0, upper=0.12, default=PRIMO_EXPERT_PRIOR["focal_weight"]
-        ),
-        "ordinal_alpha": _make_neps_dimension(
-            "Float", lower=0.0, upper=0.10, default=PRIMO_EXPERT_PRIOR["ordinal_alpha"]
-        ),
-        "label_smoothing": _make_neps_dimension(
-            "Float", lower=0.0, upper=0.035, default=PRIMO_EXPERT_PRIOR["label_smoothing"]
         ),
         "context_dropout_prob": _make_neps_dimension(
             "Float", lower=0.0, upper=0.18, default=PRIMO_EXPERT_PRIOR["context_dropout_prob"]
@@ -229,7 +216,6 @@ def _append_trial_row(row: dict[str, Any]) -> None:
         "lr",
         "max_lr",
         "weight_decay",
-        "focal_weight",
         "context_dropout_prob",
         "train_input_noise_std",
         "train_channel_dropout_prob",
@@ -401,10 +387,6 @@ def evaluate_pipeline(
     lr: float,
     max_lr: float,
     weight_decay: float,
-    focal_gamma: float,
-    focal_weight: float,
-    ordinal_alpha: float,
-    label_smoothing: float,
     context_dropout_prob: float,
     train_input_noise_std: float,
     train_channel_dropout_prob: float,
@@ -448,10 +430,6 @@ def evaluate_pipeline(
             "lr": float(lr),
             "max_lr": max(float(max_lr), float(lr) * 1.05),
             "weight_decay": float(weight_decay),
-            "focal_gamma": float(focal_gamma),
-            "focal_weight": float(focal_weight),
-            "ordinal_alpha": float(ordinal_alpha),
-            "label_smoothing": float(label_smoothing),
             "context_dropout_prob": float(context_dropout_prob),
             "train_input_noise_std": float(train_input_noise_std),
             "train_channel_dropout_prob": float(train_channel_dropout_prob),
@@ -466,10 +444,6 @@ def evaluate_pipeline(
         # reported loss through excessive auxiliary regularization.
         config["dropout"] = float(np.clip(float(config["dropout"]), 0.10, 0.40))
         config["weight_decay"] = float(np.clip(float(config["weight_decay"]), 1e-4, 1.2e-2))
-        config["focal_gamma"] = float(np.clip(float(config["focal_gamma"]), 0.8, 1.6))
-        config["focal_weight"] = float(np.clip(float(config["focal_weight"]), 0.0, 0.12))
-        config["ordinal_alpha"] = float(np.clip(float(config["ordinal_alpha"]), 0.0, 0.10))
-        config["label_smoothing"] = float(np.clip(float(config["label_smoothing"]), 0.0, 0.035))
 
         train_frac_eff = min(train_fraction, 0.50) if int(epochs) <= 10 else train_fraction
         train_subset = _subsample_dataset(_PRIMO_CONTEXT["train_ds"], train_frac_eff, seed=random_state)
@@ -761,10 +735,6 @@ def _run_fallback_primo(
         "lr": (-5, -2),
         "max_lr": (-4.3, -2.7),
         "weight_decay": (-4, -1.92),
-        "focal_gamma": (0.8, 1.6),
-        "focal_weight": (0.0, 0.12),
-        "ordinal_alpha": (0.0, 0.10),
-        "label_smoothing": (0.0, 0.035),
         "context_dropout_prob": (0.0, 0.18),
         "train_input_noise_std": (0.0, 0.020),
         "train_channel_dropout_prob": (0.0, 0.060),
