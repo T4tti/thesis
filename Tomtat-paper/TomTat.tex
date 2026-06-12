@@ -187,13 +187,15 @@ skip=6pt,
 belowskip=6pt
 }
 
-\captionsetup[subfigure]{
-labelformat=simple,
-labelsep=period,
-font=it,
-justification=centering
+\newcommand{\setupfairsubfigures}{%
+  \captionsetup[subfigure]{%
+    labelformat=simple,
+    labelsep=period,
+    font=it,
+    justification=centering
+  }%
+  \renewcommand{\thesubfigure}{\alph{subfigure}}%
 }
-\renewcommand{\thesubfigure}{\alph{subfigure}}
 
 % ------------------ Lists ------------------
 \setlist[itemize]{
@@ -499,6 +501,7 @@ Accuracy trên tập kiểm thử nằm trong khoảng 91,35\%--92,98\%. Trong n
 
 \begin{figure}[H]
 \centering
+\setupfairsubfigures
 \begin{subfigure}{\fairfigurewidth}
     \centering
     \includegraphics[width=\textwidth]{acc-loss/distressed_precision_test_comparison.png}
@@ -537,6 +540,7 @@ Precision thay đổi theo từng lớp xếp hạng. Với lớp Distressed, DM
 \subsubsection{Recall của các kịch bản}
 \begin{figure}[H]
 \centering
+\setupfairsubfigures
 \begin{subfigure}{\fairfigurewidth}
     \centering
     \includegraphics[width=\textwidth]{acc-loss/distressed_recall_test_comparison.png}
@@ -575,6 +579,7 @@ Recall thể hiện khác biệt lớn nhất ở lớp Distressed. GraphSAGE đ
 \subsubsection{F1-score của các kịch bản}
 \begin{figure}[H]
 \centering
+\setupfairsubfigures
 \begin{subfigure}{\fairfigurewidth}
     \centering
     \includegraphics[width=\textwidth]{acc-loss/distressed_f1_score_test_comparison.png}
@@ -654,6 +659,7 @@ Ma trận nhầm lẫn cho thấy IG được nhận diện ổn định nhất,
 
 \begin{figure}[H]
 \centering
+\setupfairsubfigures
 \begin{subfigure}{\fairfigurewidth}
     \centering
     \includegraphics[width=\textwidth]{acc-loss/combined_auc_roc_distressed_14_models.png}
