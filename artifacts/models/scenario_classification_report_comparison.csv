@@ -1,0 +1,15 @@
+﻿K?ch b?n,T?n k?ch b?n,Accuracy,Precision,Recall,F1-score,Notebook,Cell
+1,LightGBM,91.99,91.88,91.99,91.90,lightgbm-baseline.ipynb,12
+2,XGBoost,92.05,91.94,92.05,91.95,xgboost-baseline.ipynb,12
+3,TCN,91.93,91.76,91.93,91.78,tcn-baseline.ipynb,7
+4,LSTM,92.22,92.05,92.22,92.04,lstm-baseline.ipynb,9
+5,PatchTST,91.35,90.79,91.35,90.73,patchtst-baseline.ipynb,14
+6,T-LSTM,92.51,92.10,92.51,92.23,transformer-lstm.ipynb,34
+7,GraphSAGE,92.34,92.35,92.34,92.34,GraphSAGE-baseline.ipynb,9
+8,FI-TTX,92.51,92.18,92.51,92.21,kb7-fi-ttx.ipynb,14
+9,FI-PLL,92.34,92.20,92.34,92.22,kb8-fi-pll.ipynb,14
+10,FI-TTLPXL,92.16,91.75,92.16,91.82,kb9-fi-ttlpxl.ipynb,14
+11,FR-TTX,92.28,92.09,92.28,92.04,kb10-fr-ttx.ipynb,13
+12,FR-PLL,92.40,92.26,92.40,92.27,kb11-fr-pll.ipynb,13
+13,FR-TTLPXL,92.46,92.33,92.46,92.31,kb12-fr-ttlpxl.ipynb,13
+14,DMF,92.98,92.67,92.98,92.60,dynamic-model-fusion.ipynb,16

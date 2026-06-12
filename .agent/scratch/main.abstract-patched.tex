@@ -1,0 +1,264 @@
+\documentclass[10pt,twoside]{article}
+
+
+\usepackage{iftex}
+
+\ifPDFTeX
+\usepackage[utf8]{inputenc}
+\usepackage[T5]{fontenc}
+\usepackage[vietnamese]{babel}
+\usepackage{mathptmx}
+\usepackage[scaled=0.92]{helvet}
+\newcommand{\arialfont}{\fontfamily{phv}\selectfont}
+\else
+\usepackage[vietnamese]{babel}
+\usepackage{fontspec}
+\defaultfontfeatures{Ligatures=TeX}
+
+\IfFontExistsTF{Times New Roman}
+{\setmainfont{Times New Roman}}
+{\setmainfont{TeX Gyre Termes}}
+
+\IfFontExistsTF{Arial}
+{\setsansfont{Arial}\newfontfamily\arialfont{Arial}}
+{\setsansfont{TeX Gyre Heros}\newfontfamily\arialfont{TeX Gyre Heros}}
+\fi
+
+% ------------------ Page layout theo template FAIR ------------------
+\usepackage[
+paperwidth=20.5cm,
+paperheight=29.5cm,
+top=2.2cm,
+bottom=1.8cm,
+left=1.8cm,
+right=1.8cm,
+headheight=23pt,
+headsep=0.55cm,
+footskip=1cm
+]{geometry}
+
+% ------------------ Packages ------------------
+\usepackage{amsmath,amssymb}
+\usepackage{graphicx}
+\usepackage{array}
+\usepackage{booktabs}
+\usepackage{caption}
+\usepackage{enumitem}
+\usepackage{fancyhdr}
+\usepackage{titlesec}
+\usepackage{indentfirst}
+\usepackage{etoolbox}
+\usepackage{url}
+
+% ------------------ Paragraph style ------------------
+\setlength{\parindent}{1cm}
+\setlength{\parskip}{6pt}
+\linespread{1.0}
+\emergencystretch=2em
+\raggedbottom
+
+% ------------------ Paper metadata ------------------
+\newcommand{\PaperTitle}{XẾP HẠNG TÍN DỤNG DOANH NGHIỆP DỰA TRÊN MÔ HÌNH MÁY HỌC}
+\newcommand{\PaperShortTitle}{XẾP HẠNG TÍN DỤNG DOANH NGHIỆP DỰA TRÊN MÔ HÌNH MÁY HỌC}
+\newcommand{\PaperAuthors}{Lê Nguyễn Thành Tài\textsuperscript{1}}
+\newcommand{\PaperShortAuthors}{Lê Nguyễn Thành Tài}
+\newcommand{\PaperAffiliations}{%
+\textsuperscript{1}Khoa Công nghệ Thông tin, Trường Đại học Sư phạm kỹ thuật Vĩnh Long
+}
+\newcommand{\PaperEmail}{22022001@st.vlute.edu.vn}
+\newcommand{\FairConference}{}
+
+% ------------------ Header/Footer ------------------
+\pagestyle{fancy}
+\fancyhf{}
+
+% Trang chẵn: số trang bên trái, tên bài bên phải.
+% Trang lẻ: tác giả bên trái, số trang bên phải.
+\fancyhead[LE]{\fontsize{9pt}{11pt}\selectfont\thepage}
+\fancyhead[RE]{\fontsize{9pt}{11pt}\selectfont\PaperShortTitle}
+\fancyhead[LO]{\fontsize{9pt}{11pt}\selectfont\PaperShortAuthors}
+\fancyhead[RO]{\fontsize{9pt}{11pt}\selectfont\thepage}
+
+% Template có đường kẻ mảnh dưới header ở các trang sau.
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}
+
+\fancypagestyle{firstpage}{%
+\fancyhf{}%
+\fancyhead[C]{\fontsize{9pt}{11pt}\selectfont\FairConference}%
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\footrulewidth}{0pt}%
+}
+
+% ------------------ Title block ------------------
+\newcommand{\makefairtitle}{%
+\thispagestyle{firstpage}%
+\begin{center}
+{\arialfont\bfseries\fontsize{14pt}{16pt}\selectfont\MakeUppercase{\PaperTitle}\par}
+\vspace{3pt}
+{\bfseries\normalsize\PaperAuthors\par}
+\vspace{3pt}
+{\fontsize{9pt}{11pt}\selectfont\PaperAffiliations\par}
+\vspace{3pt}
+{\itshape\fontsize{9pt}{11pt}\selectfont\PaperEmail\par}
+\end{center}
+\vspace{6pt}%
+}
+
+% ------------------ Abstract / Keywords ------------------
+\newcommand{\FairDash}{\unskip\textemdash\space}
+
+\newenvironment{fairabstract}{%
+\begingroup
+\fontsize{9pt}{11pt}\selectfont
+\itshape
+\setlength{\parindent}{1cm}%
+\setlength{\parskip}{6pt}%
+}{%
+\par\endgroup
+}
+
+\newcommand{\fairabstracttext}[1]{%
+\begin{fairabstract}
+\textbf{TÓM TẮT}\FairDash #1
+\end{fairabstract}
+}
+
+\newcommand{\fairkeywords}[1]{%
+\begin{fairabstract}
+\textbf{Từ khóa}\FairDash #1
+\end{fairabstract}
+}
+
+% ------------------ Section numbering ------------------
+\setcounter{secnumdepth}{4}
+
+\renewcommand{\thesection}{\Roman{section}}
+\renewcommand{\thesubsection}{\Alph{subsection}}
+\renewcommand{\thesubsubsection}{\arabic{subsubsection}}
+\renewcommand{\theparagraph}{\alph{paragraph}}
+
+\titleformat{\section}
+{\centering\normalsize\bfseries}
+{\thesection.}{0.5em}{}
+
+\titleformat{\subsection}
+{\normalsize\bfseries\itshape}
+{\thesubsection.}{0.5em}{}
+
+\titleformat{\subsubsection}
+{\normalsize}
+{\thesubsubsection.}{0.5em}{}
+
+\titleformat{\paragraph}[block]
+{\normalsize}
+{\theparagraph)}{0.5em}{}
+
+\titlespacing*{\section}{0pt}{6pt}{6pt}
+\titlespacing*{\subsection}{0pt}{6pt}{3pt}
+\titlespacing*{\subsubsection}{0pt}{6pt}{3pt}
+\titlespacing*{\paragraph}{0pt}{6pt}{3pt}
+
+% ------------------ Figure/Table captions ------------------
+\renewcommand{\figurename}{Hình}
+\renewcommand{\tablename}{Bảng}
+
+\captionsetup{
+font=small,
+labelsep=period,
+justification=centering,
+singlelinecheck=true,
+skip=3pt
+}
+
+
+% ------------------ Lists ------------------
+\setlist[itemize]{
+leftmargin=1.27cm,
+itemsep=0pt,
+topsep=0pt,
+parsep=0pt
+}
+
+\setlist[enumerate]{
+leftmargin=1.27cm,
+itemsep=0pt,
+topsep=0pt,
+parsep=0pt
+}
+
+% ------------------ Bibliography ------------------
+% Template FAIR đánh số mục TÀI LIỆU THAM KHẢO bằng số La Mã,
+% vì vậy thay vì section* mặc định, ta cho bibliography tạo \section.
+\makeatletter
+\renewenvironment{thebibliography}[1]{%
+\section{TÀI LIỆU THAM KHẢO}%
+\fontsize{9pt}{11pt}\selectfont
+\hbadness=10000
+\setlength{\parskip}{0pt}%
+\list{[\arabic{enumiv}]}{%
+\settowidth\labelwidth{[#1]}%
+\leftmargin\labelwidth
+\advance\leftmargin\labelsep
+\usecounter{enumiv}%
+\let\p@enumiv\@empty
+\renewcommand{\theenumiv}{\arabic{enumiv}}%
+}%
+\sloppy
+\clubpenalty4000
+\widowpenalty4000
+}{%
+\endlist
+}
+\makeatother
+
+\urlstyle{same}
+
+% =========================================================
+% DOCUMENT
+% =========================================================
+\begin{document}
+
+\makefairtitle
+
+\fairabstracttext{%
+Xếp hạng tín dụng doanh nghiệp có vai trò quan trọng trong đánh giá sức khỏe tài chính, khả năng thực hiện nghĩa vụ nợ và cảnh báo sớm rủi ro. Nghiên cứu này xây dựng một hệ thống xếp hạng tín dụng dựa trên dữ liệu tài chính và so sánh các mô hình LightGBM, XGBoost, LSTM, TCN, PatchTST, Transformer-LSTM và GraphSAGE. Tập dữ liệu thực nghiệm gồm 8.680 quan sát của 1.623 doanh nghiệp trong giai đoạn 2005--2016; mỗi quan sát được biểu diễn bằng 12 chỉ số thuộc các nhóm thanh khoản, đòn bẩy, sinh lời, hiệu quả hoạt động và dòng tiền, đồng thời được phân loại thành ba nhóm Distressed, High Yield và Investment Grade. Bên cạnh các mô hình riêng lẻ, nghiên cứu triển khai Fuzzy Choquet Integral, Gompertz Fuzzy Ranking và đề xuất Dynamic Model Fusion kết hợp Transformer-LSTM với GraphSAGE. Khi hai mô hình thành phần bất đồng, cơ chế Dynamic Classifier Selection lựa chọn mô hình phù hợp theo năng lực trên tập xác thực và độ tin cậy đối với từng mẫu. Kết quả cho thấy Dynamic Model Fusion đạt hiệu suất tổng thể cao nhất, với Accuracy 92,98\%, Precision 92,67\%, Recall 92,98\% và F1-score 92,60\%. GradientSHAP và LIME được tích hợp để giải thích ảnh hưởng của các đặc trưng tài chính; kết quả nhấn mạnh vai trò của biên lợi nhuận, tỷ lệ nợ trên vốn chủ sở hữu và khả năng thanh khoản. Hệ thống nhờ đó vừa duy trì hiệu quả phân loại, vừa tăng tính minh bạch và khả năng hỗ trợ ra quyết định trong đánh giá rủi ro tín dụng doanh nghiệp.
+}
+
+\fairkeywords{%
+Rủi ro tín dụng, Học sâu, Dynamic Model Fusion, Dynamic Classifier Selection, Trí tuệ nhân tạo có thể giải thích.
+}
+
+\section{GIỚI THIỆU}
+\subsection{Giới thiệu bài toán}
+Xếp hạng tín dụng doanh nghiệp là một trong những bài toán quan trọng trong lĩnh vực tài chính, phản ánh khả năng thanh toán, mức độ rủi ro và sức khỏe tài chính của doanh nghiệp. Trong bối cảnh kinh tế toàn cầu tiếp tục chịu tác động từ biến động lãi suất và thị trường vốn, rủi ro vỡ nợ doanh nghiệp đang trở thành thách thức lớn đối với hệ thống tài chính. Theo S\&P Global Ratings, năm 2025 toàn cầu ghi nhận 117 vụ vỡ nợ, tuy số lượng giảm nhưng tổng giá trị nợ mất khả năng thanh toán vẫn vượt 140 tỷ USD \cite{spglobal_2026_global_defaults}. Tại khu vực Đông Á mới nổi, quy mô thị trường trái phiếu bằng đồng nội tệ đạt khoảng 29,5 nghìn tỷ USD vào cuối năm 2025, cho thấy nhu cầu đánh giá chất lượng tín dụng ngày càng cao \cite{asian_development_bank_asia_2017}. Riêng tại Việt Nam, thị trường trái phiếu doanh nghiệp phục hồi đạt khoảng 1,42 triệu tỷ đồng, tương đương gần 11\% GDP, trong đó lượng phát hành mới năm 2025 tăng 32\% và đạt hơn 624 nghìn tỷ đồng \cite{visrating_2026_corporate_bond_q1}. Những số liệu này cho thấy việc xây dựng một hệ thống xếp hạng tín dụng minh bạch và đáng tin cậy là yêu cầu cấp thiết. Tuy nhiên, việc đánh giá rủi ro tín dụng doanh nghiệp trong thực tế vẫn gặp nhiều khó khăn do dữ liệu tài chính có tính biến động cao, quan hệ giữa các chỉ số tài chính thường phức tạp và phi tuyến. Các phương pháp đánh giá truyền thống phụ thuộc nhiều vào kinh nghiệm chuyên gia, trong khi các mô hình học máy hiện đại dù có khả năng dự báo tốt nhưng thường bị xem là “hộp đen”, khó giải thích nguyên nhân dẫn đến kết quả xếp hạng. Điều này làm giảm mức độ tin cậy khi áp dụng trong các quyết định tài chính có yêu cầu cao về tính minh bạch. Do đó, bài toán đặt ra là xây dựng một hệ thống xếp hạng tín dụng doanh nghiệp dựa trên các mô hình máy học và học sâu, có khả năng phân loại mức độ rủi ro chính xác, đồng thời giải thích được vai trò của từng chỉ số tài chính đối với kết quả dự báo.
+\subsection{Những nghiên cứu liên quan}
+Trương Thị Thùy Dương và Lê Hải Trung \cite{thuy_ung_2023} đã ứng dụng các mô hình Logistic Regression, Decision Tree, Random Forest, K-Nearest Neighbor, Naïve Bayes và XGBoost để dự báo rủi ro phá sản của doanh nghiệp Việt Nam. Nghiên cứu được thực hiện trên dữ liệu 300 doanh nghiệp Việt Nam giai đoạn 2017–2019; kết quả cho thấy XGBoost đạt hiệu quả cao nhất với độ chính xác 87,73\% tiếp theo là Random Forest với độ chính xác 83,49\%.
+Kofune và cộng sự \cite{kofune_enhancing_2026} đã đề xuất mô hình Transformer-LSTM cho bài toán phân loại xếp hạng tín dụng doanh nghiệp. Mô hình kết hợp khả năng khai thác quan hệ phụ thuộc dài hạn của Transformer và khả năng xử lý dữ liệu chuỗi thời gian của LSTM đạt độ chính xác 89,96\%. Feng và cộng sự \cite{feng_corporate_2024} đã đề xuất mô hình mạng nơ-ron đồ thị không đồng nhất phân cấp HHGNN cho xếp hạng tín dụng doanh nghiệp. Mô hình khai thác cấu trúc phân cấp, tính không đồng nhất và dữ liệu chưa gán nhãn trong mạng lưới doanh nghiệp. Kết quả cho thấy HHGNN đạt độ chính xác 97,557\% vượt trội so với các mô hình LR, SVM, MLP, XGBoost, HGT, CCR-CNN, CCR-GNN và ASSL4CCR. Chen và Long \cite{chen_novel_2020} đã xây dựng mô hình xếp hạng tín dụng doanh nghiệp end-to-end dựa trên cơ chế Self-Attention, gọi là SMAGRU và đạt độc chính xác 93,33\%. 
+\section{NỘI DUNG}
+
+\subsection{Mục cấp hai}
+
+Nội dung mục cấp hai được trình bày tại đây.
+
+\subsubsection{Mục cấp ba}
+
+Nội dung mục cấp ba được trình bày tại đây.
+
+\paragraph{Mục cấp bốn}
+
+Nội dung mục cấp bốn được trình bày tại đây.
+
+
+\section{KẾT LUẬN}
+
+Nội dung kết luận được trình bày tại đây.
+
+\section{LỜI CẢM ƠN}
+
+Nội dung lời cảm ơn được trình bày tại đây nếu bài báo có phần này. Nếu không có lời cảm ơn, có thể xóa toàn bộ mục này.
+
+\bibliographystyle{ieeetr}
+\bibliography{thesis}
+
+\end{document}

@@ -1,0 +1,13 @@
+﻿feature,mean_abs_shap_value,mean_signed_shap_value,rank,model_key,model_label,feature_source,probability_source,xai_probability_source
+operating_profit_margin,0.12580022991945347,0.001875581491428117,1,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+net_profit_margin,0.09047917501690488,0.005268397905941431,2,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+ebit_margin,0.08904300730985899,-0.006040043702038626,3,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+pretax_profit_margin,0.06376762517417471,0.0001446214155294001,4,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+operating_cashflow_ps,0.06364837389749785,0.000556564851043125,5,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+debt_equity_ratio,0.04703686820964018,0.0027660839647675553,6,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+free_cashflow_ps,0.04688345501199365,-0.0012227944874515135,7,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+gross_profit_margin,0.04660286630193392,0.005184723491159578,8,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+roa,0.03488737119672199,0.0004628684837371111,9,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+asset_turnover,0.03294906935965022,0.0026949771757548056,10,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+current_ratio,0.026107961389546592,-0.002765680391651889,11,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp
+roe,0.02312993141822517,-0.0006869915475059921,12,fr_ttx,FR-TTX Fuzzy Rank Ensemble,aligned_financial_features,fp,fp

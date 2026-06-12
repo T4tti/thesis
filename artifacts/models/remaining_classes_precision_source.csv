@@ -1,0 +1,15 @@
+﻿scenario,notebook,classification_report_cell,hy_precision,ig_precision
+LightGBM,lightgbm-baseline.ipynb,12,0.8638,0.9617
+XGBoost,xgboost-baseline.ipynb,12,0.8628,0.9634
+TCN,tcn-baseline.ipynb,7,0.8598,0.9635
+LSTM,lstm-baseline.ipynb,9,0.8647,0.9609
+PatchTST,patchtst-baseline.ipynb,14,0.8441,0.9581
+T-LSTM,transformer-lstm.ipynb,34,0.8767,0.9630
+GraphSAGE,GraphSAGE-baseline.ipynb,9,0.8796,0.9609
+FI-TTX,kb7-fi-ttx.ipynb,14,0.8694,0.9630
+FI-PLL,kb8-fi-pll.ipynb,14,0.8677,0.9635
+FI-TTLPXL,kb9-fi-ttlpxl.ipynb,14,0.8655,0.9604
+FR-TTX,kb10-fr-ttx.ipynb,13,0.8598,0.9644
+FR-PLL,kb11-fr-pll.ipynb,13,0.8679,0.9635
+FR-TTLPXL,kb12-fr-ttlpxl.ipynb,13,0.8667,0.9635
+DMF,dynamic-model-fusion.ipynb,16,0.8778,0.9623

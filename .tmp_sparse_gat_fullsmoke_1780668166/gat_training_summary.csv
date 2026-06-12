@@ -1,2 +1,0 @@
-﻿epoch,train_loss,val_loss,train_ce_loss,val_ce_loss,val_aux_loss,train_acc,val_acc,val_class0_recall,val_class0_f2,val_metric_score,val_checkpoint_score,checkpoint_mode,min_val_loss_epoch,min_val_loss,min_val_loss_source,best_val_acc_epoch,best_val_acc,learning_rate,selected_class0_threshold
-2,0.684543788433075,0.6863228678703308,0.6845408082008362,0.686319887638092,2.9736636406596517e-06,0.8122408359595289,0.8039443155452436,0.0,0.0,0.6176429309206911,0.5854691206650532,accuracy_loss,2,0.686319887638092,val_CE_Loss,2,0.8039443155452436,0.001,0.26

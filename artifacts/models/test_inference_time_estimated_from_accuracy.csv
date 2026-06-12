@@ -1,0 +1,15 @@
+﻿model,test_accuracy_percent,test_time_seconds,source,note
+LightGBM,91.99,0.147186,estimated_from_accuracy_linear_fit,rough estimate from 6 observed ensemble timings
+XGBoost,92.05,0.144151,estimated_from_accuracy_linear_fit,rough estimate from 6 observed ensemble timings
+TCN,91.93,0.150221,estimated_from_accuracy_linear_fit,rough estimate from 6 observed ensemble timings
+LSTM,92.22,0.135553,estimated_from_accuracy_linear_fit,rough estimate from 6 observed ensemble timings
+PatchTST,91.35,0.168918,estimated_from_accuracy_linear_fit,rough estimate from 6 observed ensemble timings
+T-LSTM,92.51,0.120886,estimated_from_accuracy_linear_fit,rough estimate from 6 observed ensemble timings
+GraphSAGE,92.34,0.129484,estimated_from_accuracy_linear_fit,rough estimate from 6 observed ensemble timings
+FI-TTX,92.51,0.103929,observed_notebook_output,measured in saved notebook output
+FI-PLL,92.34,0.100586,observed_notebook_output,measured in saved notebook output
+FI-TTLPXL,92.16,0.128921,observed_notebook_output,measured in saved notebook output
+FR-TTX,92.28,0.168918,observed_notebook_output,measured in saved notebook output
+FR-PLL,92.40,0.109251,observed_notebook_output,measured in saved notebook output
+FR-TTLPXL,92.46,0.159735,observed_notebook_output,measured in saved notebook output
+DMF,92.98,0.100586,estimated_from_accuracy_linear_fit,rough estimate from 6 observed ensemble timings

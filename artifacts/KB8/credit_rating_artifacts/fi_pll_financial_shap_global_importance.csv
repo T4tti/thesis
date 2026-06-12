@@ -1,0 +1,13 @@
+﻿feature,mean_abs_shap_value,mean_signed_shap_value,rank,model_key,model_label,feature_source,probability_source,xai_probability_source
+roa,0.06926173390820622,0.0013660229742527008,1,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+operating_cashflow_ps,0.06551906171565254,-0.0018592288251966238,2,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+operating_profit_margin,0.05920778401196003,0.007651378206598262,3,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+pretax_profit_margin,0.05587061711897453,-0.0008051492332015187,4,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+roe,0.05441840142399693,-0.005248657776974142,5,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+asset_turnover,0.04864232249868413,0.004587964368208001,6,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+gross_profit_margin,0.042392277934898935,0.0016920981045889978,7,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+ebit_margin,0.039209701819345355,0.0006648974570756158,8,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+free_cashflow_ps,0.03806860356902083,-0.0031291407455379763,9,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+current_ratio,0.025502710447957117,-0.0008343091467395425,10,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+debt_equity_ratio,0.02393730419377486,0.002011188344719509,11,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp
+net_profit_margin,0.019245081736395758,-0.000694229849614203,12,fi_pll,FI-PLL Fuzzy Choquet Ensemble,aligned_financial_features,fp,fp

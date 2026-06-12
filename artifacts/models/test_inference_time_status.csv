@@ -1,0 +1,15 @@
+﻿model,test_inference_time_seconds,source_status
+LightGBM,,missing_in_saved_notebook_outputs
+XGBoost,,missing_in_saved_notebook_outputs
+TCN,,missing_in_saved_notebook_outputs
+LSTM,,missing_in_saved_notebook_outputs
+PatchTST,,missing_in_saved_notebook_outputs
+T-LSTM,,missing_in_saved_notebook_outputs
+GraphSAGE,,missing_in_saved_notebook_outputs
+FI-TTX,0.103929,notebook_output_cell_14
+FI-PLL,0.100586,notebook_output_cell_14
+FI-TTLPXL,0.128921,notebook_output_cell_14
+FR-TTX,0.168918,notebook_output_cell_13
+FR-PLL,0.109251,notebook_output_cell_13
+FR-TTLPXL,0.159735,notebook_output_cell_13
+DMF,,missing_in_saved_notebook_outputs
