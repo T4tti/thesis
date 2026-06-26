@@ -2,8 +2,8 @@
 routers/predict.py — Credit rating inference endpoints.
 
 Endpoints:
-    POST /api/predict         — TLSTMFuzzyClassifier (primary)
-    POST /api/predict/tlstm   — TLSTMFuzzyClassifier (compatibility alias)
+    POST /api/predict         — DMF/DCS T-LSTM + GraphSAGE (primary)
+    POST /api/predict/tlstm   — Compatibility alias using the primary runtime
 
 How to Run:
         # Primary endpoint
@@ -54,6 +54,82 @@ _EXAMPLE_FEATURES = {
 }
 
 _FIN_FEATURE_KEYS = set(_EXAMPLE_FEATURES.keys())
+_CONTEXT_KEYS = {
+    "row_id",
+    "ticker",
+    "company_name",
+    "rating_date",
+    "sector",
+    "previous_rating",
+}
+_SECTOR_ID_TO_NAME = {
+    "0": "Basic Industries",
+    "1": "Capital Goods",
+    "2": "Consumer Durables",
+    "3": "Consumer Non-Durables",
+    "4": "Consumer Services",
+    "5": "Energy",
+    "6": "Finance",
+    "7": "Health Care",
+    "8": "Miscellaneous",
+    "9": "Public Utilities",
+    "10": "Technology",
+    "11": "Transportation",
+    "12": "__MISSING__",
+}
+
+
+def _clean_text(value: Any) -> Optional[str]:
+    if value is None:
+        return None
+    text = str(value).strip()
+    return text or None
+
+
+def _sector_label(raw_sector: Any, resolved_sector: Any) -> Optional[str]:
+    raw = _clean_text(raw_sector)
+    if raw and not raw.isdigit():
+        return raw
+    resolved = _clean_text(resolved_sector)
+    if resolved and resolved in _SECTOR_ID_TO_NAME:
+        return _SECTOR_ID_TO_NAME[resolved]
+    return resolved or raw
+
+
+def _enrich_prediction_context(result: dict, body: BaseModel) -> dict:
+    payload = body.model_dump()
+    input_context = {
+        key: _clean_text(payload.get(key))
+        for key in _CONTEXT_KEYS
+        if _clean_text(payload.get(key)) is not None
+    }
+    sector_resolved = _sector_label(payload.get("sector"), result.get("sector_resolved"))
+    if sector_resolved:
+        input_context["sector_resolved"] = sector_resolved
+    if result.get("previous_rating"):
+        input_context["previous_rating_resolved"] = _clean_text(result.get("previous_rating"))
+
+    decision_context = {
+        "selected_model": result.get("selected_model"),
+        "dcs_case": result.get("dcs_case"),
+        "tlstm_score": result.get("tlstm_score"),
+        "graphsage_score": result.get("graphsage_score"),
+        "graphsage_runtime": result.get("graphsage_runtime"),
+        "graphsage_proxy_distance": result.get("graphsage_proxy_distance"),
+    }
+    decision_context = {k: v for k, v in decision_context.items() if v is not None}
+
+    enriched = dict(result)
+    if sector_resolved:
+        enriched["sector_resolved"] = sector_resolved
+    enriched["input_context"] = input_context
+    enriched["decision_context"] = decision_context
+    enriched["xai_match_hint"] = {
+        "row_id_available": bool(input_context.get("row_id")),
+        "ticker_date_available": bool(input_context.get("ticker") and input_context.get("rating_date")),
+        "preferred_match_order": ["row_id", "ticker+rating_date"],
+    }
+    return enriched
 
 
 # ---------------------------------------------------------------------------
@@ -61,7 +137,7 @@ _FIN_FEATURE_KEYS = set(_EXAMPLE_FEATURES.keys())
 # ---------------------------------------------------------------------------
 
 class PredictRequest(BaseModel):
-    """12 financial features — all optional, missing values imputed by TLSTM preprocessing medians."""
+    """12 financial features; missing values are imputed by the T-LSTM base preprocessing."""
 
     current_ratio:           Optional[float] = Field(None, description="Current Assets / Current Liabilities")
     debt_equity_ratio:       Optional[float] = Field(None, description="Total Debt / Shareholders' Equity")
@@ -76,11 +152,24 @@ class PredictRequest(BaseModel):
     operating_cashflow_ps:   Optional[float] = Field(None, description="Operating Cash Flow per Share")
     free_cashflow_ps:        Optional[float] = Field(None, description="Free Cash Flow per Share")
 
-    model_config = {"json_schema_extra": {"example": _EXAMPLE_FEATURES}}
+    sector: Optional[str] = Field(None, description="Optional industry sector context")
+    previous_rating: Optional[str] = Field(None, description="Optional previous rating context")
+    row_id: Optional[str] = Field(None, description="Optional source row id for artifact-backed xAI")
+    ticker: Optional[str] = Field(None, description="Optional ticker symbol")
+    company_name: Optional[str] = Field(None, description="Optional company name")
+    rating_date: Optional[str] = Field(None, description="Optional rating date, preferably YYYY-MM-DD")
+
+    model_config = {"json_schema_extra": {"example": {
+        **_EXAMPLE_FEATURES,
+        "sector": "Finance",
+        "previous_rating": "IG",
+        "ticker": "AAPL",
+        "rating_date": "2016-06-03",
+    }}}
 
 
 class PredictTLSTMRequest(BaseModel):
-    """12 financial features + sector + previous_rating for TLSTMFuzzy model."""
+    """12 financial features + sector + previous_rating for the rating runtime."""
 
     current_ratio:           Optional[float] = Field(None, description="Current Assets / Current Liabilities")
     debt_equity_ratio:       Optional[float] = Field(None, description="Total Debt / Shareholders' Equity")
@@ -111,6 +200,10 @@ class PredictTLSTMRequest(BaseModel):
             "Used as temporal context by the model. Defaults to 'IG' if omitted."
         ),
     )
+    row_id: Optional[str] = Field(None, description="Optional source row id for artifact-backed xAI")
+    ticker: Optional[str] = Field(None, description="Optional ticker symbol")
+    company_name: Optional[str] = Field(None, description="Optional company name")
+    rating_date: Optional[str] = Field(None, description="Optional rating date, preferably YYYY-MM-DD")
 
     model_config = {"json_schema_extra": {"example": {
         **_EXAMPLE_FEATURES,
@@ -123,7 +216,7 @@ class PredictTLSTMRequest(BaseModel):
 # Endpoints
 # ---------------------------------------------------------------------------
 
-def _predict_with_tlstm(
+def _predict_with_rating_model(
     features: dict,
     sector: Optional[str],
     previous_rating: Optional[str],
@@ -135,62 +228,67 @@ def _predict_with_tlstm(
         features=features,
         sector=sector,
         previous_rating=previous_rating,
-        model=MODEL_STATE["tlstm_model"],
-        meta=MODEL_STATE["tlstm_meta"],
+        model=MODEL_STATE["rating_model"],
+        meta=MODEL_STATE["rating_meta"],
         lang=lang,
     )
 
 
-def _require_tlstm_runtime(lang: Lang) -> Dict[str, Any]:
+def _require_rating_runtime(lang: Lang) -> Dict[str, Any]:
     if not MODEL_STATE.get("ready"):
         raise HTTPException(
             status_code=503,
             detail=msg("model_not_ready", lang),
         )
-    if MODEL_STATE.get("tlstm_model") is None:
+    if MODEL_STATE.get("rating_model") is None:
         raise HTTPException(
             status_code=503,
             detail=msg("model_not_ready", lang),
         )
     return {
-        "model": MODEL_STATE["tlstm_model"],
-        "meta": MODEL_STATE["tlstm_meta"],
+        "model": MODEL_STATE["rating_model"],
+        "meta": MODEL_STATE["rating_meta"],
     }
 
 
-@router.post("/predict", summary="TLSTMFuzzy Credit Rating (Primary)")
+@router.post("/predict", summary="DMF/DCS T-LSTM + GraphSAGE Credit Rating (Primary)")
 async def predict_rating(
     body: PredictRequest,
     lang: Lang = Depends(resolve_lang),
 ) -> dict:
     """
     Predict credit rating (IG / HY / Distressed) using the pre-trained
-    **TLSTMFuzzy** deep learning model.
+    **DMF/DCS T-LSTM + GraphSAGE** decision-combination runtime.
 
     This endpoint keeps backward compatibility for existing frontend clients.
     - Uses the same 12 financial fields as before
     - Sector defaults to "Miscellaneous"
     - previous_rating defaults to "IG"
     """
-    _require_tlstm_runtime(lang)
+    _require_rating_runtime(lang)
 
     try:
         features = {k: v for k, v in body.model_dump().items() if k in _FIN_FEATURE_KEYS}
-        result = _predict_with_tlstm(features=features, sector=None, previous_rating=None, lang=lang)
-        return result
+        result = _predict_with_rating_model(
+            features=features,
+            sector=body.sector,
+            previous_rating=body.previous_rating,
+            lang=lang,
+        )
+        return _enrich_prediction_context(result, body)
     except Exception as exc:
-        log.exception("TLSTMFuzzy prediction failed: %s", exc)
+        log.exception("DMF/DCS prediction failed: %s", exc)
         raise HTTPException(status_code=500, detail=msg("prediction_error", lang)) from exc
 
 
-@router.post("/predict/tlstm", summary="TLSTMFuzzy Credit Rating (Compatibility Alias)")
+@router.post("/predict/tlstm", summary="Credit Rating Compatibility Alias")
 async def predict_rating_tlstm(
     body: PredictTLSTMRequest,
     lang: Lang = Depends(resolve_lang),
 ) -> dict:
     """
-    Predict credit rating (IG / HY / Distressed) using the pre-trained
-    **Transformer-BiLSTM + Fuzzy** deep learning model.
+    Predict credit rating (IG / HY / Distressed) using the primary
+    **DMF/DCS T-LSTM + GraphSAGE** runtime.
 
     ### Inputs
     - **12 financial ratios** (all optional, imputed by training-set statistics)
@@ -204,7 +302,7 @@ async def predict_rating_tlstm(
     - `risk_level`, `risk_score`, colored label, and Vietnamese/English interpretations
     - `sector_resolved`, `previous_rating`: inputs resolved by the model
     """
-    _require_tlstm_runtime(lang)
+    _require_rating_runtime(lang)
 
     try:
         features = {
@@ -212,13 +310,13 @@ async def predict_rating_tlstm(
             if k in _FIN_FEATURE_KEYS
         }
 
-        result = _predict_with_tlstm(
+        result = _predict_with_rating_model(
             features=features,
             sector=body.sector,
             previous_rating=body.previous_rating,
             lang=lang,
         )
-        return result
+        return _enrich_prediction_context(result, body)
     except Exception as exc:
-        log.exception("TLSTMFuzzy prediction failed: %s", exc)
+        log.exception("DMF/DCS prediction failed: %s", exc)
         raise HTTPException(status_code=500, detail=msg("prediction_error", lang)) from exc

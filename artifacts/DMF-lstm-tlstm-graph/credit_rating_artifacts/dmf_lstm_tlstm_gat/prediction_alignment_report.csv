@@ -1,0 +1,7 @@
+﻿split,model,rows,pred_label_argmax_mismatches,mismatch_rate
+val,LSTM,862,0,0.0
+val,Transformer-LSTM,862,1,0.001160092807424594
+val,GraphSAGE/GAT,862,0,0.0
+test,LSTM,1723,0,0.0
+test,Transformer-LSTM,1723,3,0.0017411491584445734
+test,GraphSAGE/GAT,1723,0,0.0

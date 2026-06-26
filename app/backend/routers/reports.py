@@ -192,6 +192,8 @@ async def save_history(
             "saved": True,
             "db_saved": db_saved,
             "csv_saved": csv_saved,
+            "history_storage_mode": "database" if db_saved else "csv_fallback",
+            "history_warning": None if db_saved else "Database unavailable; saved to CSV fallback.",
             "id": getattr(db_record, "id", None),
             "record": {k: record.get(k) for k in ("ticker", "company_name", "rating_detail", "rating_date")},
         }

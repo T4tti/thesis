@@ -135,11 +135,11 @@ def report_csv_metrics(path: Path, auc_fallback: float | None = None) -> dict[st
     }
 
 
-def test_auc_from_metrics(path: Path, split_col: str = "Split") -> float:
+def test_auc_from_metrics(path: Path, split_col: str = "Split", split_val: str = "test") -> float:
     df = read_csv_utf8(path)
-    selected = df.loc[df[split_col].astype(str).str.lower().eq("test")]
+    selected = df.loc[df[split_col].astype(str).str.lower().str.contains(split_val.lower())]
     if selected.empty:
-        raise ValueError(f"Không tìm thấy split Test trong {path}")
+        raise ValueError(f"Không tìm thấy split {split_val} trong {path}")
     return float(selected.iloc[0]["AUC"])
 
 
@@ -189,31 +189,7 @@ def parse_test_summary_from_notebook(
     source: str,
 ) -> dict[str, object]:
     text = notebook_output_text(notebook_name)
-    pattern = re.compile(
-        r"Test\s+"
-        r"(?P<accuracy>\d+\.\d+)\s+"
-        r"(?P<precision>\d+\.\d+)\s+"
-        r"(?P<recall>\d+\.\d+)\s+"
-        r"(?P<macro>\d+\.\d+)\s+"
-        r"(?P<f1>\d+\.\d+)\s+"
-        r"(?P<auc>\d+\.\d+)\s+"
-        r"(?P<qwk>\d+\.\d+)"
-    )
-    matches = list(pattern.finditer(text))
-    if matches:
-        match = matches[-1]
-        return metric_row(
-            kb,
-            name,
-            method,
-            accuracy=float(match.group("accuracy")),
-            precision=float(match.group("precision")),
-            recall=float(match.group("recall")),
-            f1=float(match.group("f1")),
-            auc=float(match.group("auc")),
-            source=source,
-        )
-
+    
     report_pattern = re.compile(
         r"Classification Report[^\n]*:\s*\n\s*precision\s+recall\s+f1-score\s+support\s+"
         r".*?accuracy\s+(?P<accuracy>\d+\.\d+)\s+\d+\s+"
@@ -225,19 +201,38 @@ def parse_test_summary_from_notebook(
     if not report_matches:
         raise ValueError(f"Không tìm thấy classification report trong {notebook_name}")
     report = report_matches[-1]
-    before = text[: report.start()]
-    auc_matches = re.findall(r"(?:\[Test\].*?AUC=|AUC:\s*)(\d+\.\d+)", before[-3000:], flags=re.S)
-    if not auc_matches:
-        raise ValueError(f"Không tìm thấy AUC gần classification report trong {notebook_name}")
+    
+    lines = [l.strip() for l in text.split("\n") if l.strip().startswith("Test")]
+    if not lines:
+        raise ValueError(f"Không tìm thấy dòng Test kết quả trong {notebook_name}")
+    
+    test_line = None
+    for line in reversed(lines):
+        parts = line.split()
+        if len(parts) >= 15:
+            try:
+                float(parts[8])  # Accuracy
+                float(parts[14]) # AUC
+                test_line = parts
+                break
+            except (ValueError, IndexError):
+                continue
+                
+    if test_line is None:
+        raise ValueError(f"Không tìm thấy dòng Test kết quả có đủ cột trong {notebook_name}")
+        
+    accuracy = float(test_line[8])
+    auc = float(test_line[14])
+    
     return metric_row(
         kb,
         name,
         method,
-        accuracy=float(report.group("accuracy")),
+        accuracy=accuracy,
         precision=float(report.group("precision")),
         recall=float(report.group("recall")),
         f1=float(report.group("f1")),
-        auc=float(auc_matches[-1]),
+        auc=auc,
         source=source,
     )
 
@@ -312,48 +307,48 @@ def build_rows() -> list[dict[str, object]]:
             "KB1",
             "T-BiLSTM",
             "",
-            ROOT_DIR / "artifacts" / "TLSTM" / "transformer_metrics.csv",
-            "artifacts/TLSTM/transformer_metrics.csv; notebook classification report is rounded",
+            ROOT_DIR / "artifacts" / "TLSTM" / "credit_rating_artifacts" / "transformer_metrics.csv",
+            "artifacts/TLSTM/credit_rating_artifacts/transformer_metrics.csv; notebook classification report is rounded",
         ),
         row_from_report_csv(
             "KB2",
             "TCN",
             "",
-            ROOT_DIR / "artifacts" / "TCN_Baseline" / "tcn_test_classification_report.csv",
+            ROOT_DIR / "artifacts" / "TCN_Baseline" / "credit_rating_artifacts" / "tcn_test_classification_report.csv",
             auc_fallback=None,
-            source="artifacts/TCN_Baseline/tcn_test_classification_report.csv",
+            source="artifacts/TCN_Baseline/credit_rating_artifacts/tcn_test_classification_report.csv",
         ),
         row_from_report_csv(
             "KB3",
             "LSTM",
             "",
-            ROOT_DIR / "artifacts" / "LSTM" / "lstm_test_classification_report.csv",
-            auc_fallback=test_auc_from_metrics(ROOT_DIR / "artifacts" / "LSTM" / "lstm_metrics.csv"),
-            source="artifacts/LSTM/lstm_test_classification_report.csv + lstm_metrics.csv AUC",
+            ROOT_DIR / "artifacts" / "LSTM" / "credit_rating_artifacts" / "lstm_test_classification_report.csv",
+            auc_fallback=test_auc_from_metrics(ROOT_DIR / "artifacts" / "LSTM" / "credit_rating_artifacts" / "lstm_metrics.csv"),
+            source="artifacts/LSTM/credit_rating_artifacts/lstm_test_classification_report.csv + lstm_metrics.csv AUC",
         ),
         row_from_report_csv(
             "KB4",
             "PatchTST",
             "",
-            ROOT_DIR / "artifacts" / "Patchtst" / "patchtst_test_classification_report.csv",
-            auc_fallback=test_auc_from_metrics(ROOT_DIR / "artifacts" / "Patchtst" / "patchtst_metrics.csv"),
-            source="artifacts/Patchtst/patchtst_test_classification_report.csv + patchtst_metrics.csv AUC",
+            ROOT_DIR / "artifacts" / "Patchtst" / "credit_rating_artifacts" / "patchtst_test_classification_report.csv",
+            auc_fallback=test_auc_from_metrics(ROOT_DIR / "artifacts" / "Patchtst" / "credit_rating_artifacts" / "patchtst_metrics.csv"),
+            source="artifacts/Patchtst/credit_rating_artifacts/patchtst_test_classification_report.csv + patchtst_metrics.csv AUC",
         ),
         row_from_report_csv(
             "KB5",
             "XGBoost",
             "",
-            ROOT_DIR / "artifacts" / "XGBoost" / "xgboost_test_classification_report.csv",
+            ROOT_DIR / "artifacts" / "XGBoost" / "credit_rating_artifacts" / "xgboost_test_classification_report.csv",
             auc_fallback=None,
-            source="artifacts/XGBoost/xgboost_test_classification_report.csv",
+            source="artifacts/XGBoost/credit_rating_artifacts/xgboost_test_classification_report.csv",
         ),
         row_from_report_csv(
             "KB6",
             "LightGBM",
             "",
-            ROOT_DIR / "artifacts" / "LightGBM" / "lightgbm_test_classification_report.csv",
+            ROOT_DIR / "artifacts" / "LightGBM" / "credit_rating_artifacts" / "lightgbm_test_classification_report.csv",
             auc_fallback=None,
-            source="artifacts/LightGBM/lightgbm_test_classification_report.csv",
+            source="artifacts/LightGBM/credit_rating_artifacts/lightgbm_test_classification_report.csv",
         ),
         parse_test_summary_from_notebook(
             "KB7",
@@ -397,7 +392,17 @@ def build_rows() -> list[dict[str, object]]:
             "kb12-fr-ttlpxl.ipynb",
             "notebooks/kb12-fr-ttlpxl.ipynb output: Classification Report + completion table",
         ),
-        parse_gat_from_notebook(),
+        row_from_report_csv(
+            "KB13",
+            "GAT",
+            "",
+            ROOT_DIR / "artifacts" / "GAT" / "credit_rating_artifacts" / "gat_test_classification_report.csv",
+            auc_fallback=test_auc_from_metrics(
+                ROOT_DIR / "artifacts" / "GAT" / "credit_rating_artifacts" / "gat_metrics.csv",
+                split_val="test_class0calibrated"
+            ),
+            source="artifacts/GAT/credit_rating_artifacts/gat_test_classification_report.csv + gat_metrics.csv AUC",
+        ),
         parse_dmf_from_notebook(),
     ]
 
@@ -423,7 +428,7 @@ def plot_metric(df: pd.DataFrame, metric: str, output_name: str, title: str) -> 
         "FR Ensemble": "#E67E22",
         "DMF Ensemble": "#E74C3C",
     }
-    labels = plot_df[NAME_COL].tolist()
+    labels = plot_df[SCENARIO_COL].tolist()
     values = plot_df[metric].astype(float).tolist()
     bar_colors = [colors[group] for group in plot_df["Group"]]
 
@@ -448,7 +453,7 @@ def plot_metric(df: pd.DataFrame, metric: str, output_name: str, title: str) -> 
     ax.spines["left"].set_color("#CCCCCC")
     ax.spines["bottom"].set_color("#CCCCCC")
     ax.set_xticks(range(len(labels)))
-    ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9.2, fontweight="semibold")
+    ax.set_xticklabels(labels, rotation=0, ha="center", fontsize=9.2, fontweight="semibold")
 
     legend_elements = [
         Patch(facecolor=colors["Baseline"], label="Mô hình cơ sở (Baseline)"),

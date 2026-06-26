@@ -1,16 +1,14 @@
 import { API_BASE_URL } from '@/lib/config'
 import HomeClient from '@/components/HomeClient'
 
-// Revalidate data periodically (e.g., every 1 hour)
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function HomePage() {
   let stats = null;
   
   try {
-    const res = await fetch(`${API_BASE_URL}/api/stats`, {
-      next: { revalidate: 3600 }
-    });
+    const res = await fetch(`${API_BASE_URL}/api/stats`, { cache: 'no-store' });
     if (res.ok) {
       stats = await res.json();
     }

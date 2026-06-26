@@ -1,0 +1,13 @@
+﻿feature,mean_abs_shap_value,mean_signed_shap_value,rank,model_key,model_label,feature_source,probability_source,xai_probability_source
+pretax_profit_margin,0.1803918955847621,-0.02002820496757825,1,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+operating_profit_margin,0.14993701875209808,0.011777101084589958,2,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+current_ratio,0.06711790307114522,-0.00340169146268939,3,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+debt_equity_ratio,0.06454124037797253,-0.002090084133669734,4,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+operating_cashflow_ps,0.04515131904433171,0.0016788289261360962,5,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+ebit_margin,0.0443349356452624,-0.0046675185052057104,6,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+roa,0.03923480686110755,0.0029798776959069073,7,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+roe,0.03745066359018286,-0.0028594075702130795,8,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+net_profit_margin,0.03611727338284254,-0.0033370425614217916,9,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+gross_profit_margin,0.027759546414017677,-0.0018243505619466305,10,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+asset_turnover,0.019520755702008803,-0.0010790889500640333,11,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs
+free_cashflow_ps,0.013078391241530577,-0.0008224203872183958,12,dmf_dcs_lstm_tlstm_gat,DMF/DCS LSTM+TLSTM+GAT Fusion,aligned_original_financial_features,dmf_probs,dmf_probs

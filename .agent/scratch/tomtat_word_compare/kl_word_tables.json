@@ -1,0 +1,1000 @@
+[
+  [
+    [
+      "TT",
+      "Ký hiệu chữ viết tắt",
+      "Tên đầy đủ"
+    ],
+    [
+      "1",
+      "ACC / Accuracy",
+      "Độ chính xác"
+    ],
+    [
+      "2",
+      "AI",
+      "Artificial Intelligence (Trí tuệ nhân tạo)"
+    ],
+    [
+      "3",
+      "AUC - ROC",
+      "Area Under the Curve - Receiver Operating Characteristic"
+    ],
+    [
+      "4",
+      "CNN",
+      "Convolutional Neural Network (Mạng nơ-ron tích chập)"
+    ],
+    [
+      "5",
+      "DCS",
+      "Dynamic Classifier Selection"
+    ],
+    [
+      "6",
+      "DL",
+      "Deep Learning (Học sâu)"
+    ],
+    [
+      "7",
+      "DMF",
+      "Dynamic Model Fusion"
+    ],
+    [
+      "8",
+      "DNN",
+      "Deep Neural Network (Mạng nơ-ron sâu)"
+    ],
+    [
+      "9",
+      "EAD",
+      "Exposure at Default (Dư nợ tại thời điểm vỡ nợ)"
+    ],
+    [
+      "10",
+      "EBIT",
+      "Earnings Before Interest and Taxes"
+    ],
+    [
+      "11",
+      "EFB",
+      "Exclusive Feature Bundling"
+    ],
+    [
+      "12",
+      "FNN",
+      "Feedforward Neural Network"
+    ],
+    [
+      "13",
+      "GBDT",
+      "Gradient Boosting Decision Tree"
+    ],
+    [
+      "14",
+      "GCNN",
+      "Graph Convolutional Neural Network"
+    ],
+    [
+      "15",
+      "GDP",
+      "Gross Domestic Product (Tổng sản phẩm quốc nội)"
+    ],
+    [
+      "16",
+      "GELU",
+      "Gaussian Error Linear Unit"
+    ],
+    [
+      "17",
+      "GOSS",
+      "Gradient-based One-Side Sampling"
+    ],
+    [
+      "18",
+      "GPU",
+      "Graphics Processing Unit (Bộ xử lý đồ họa)"
+    ],
+    [
+      "19",
+      "GraphSAGE",
+      "Graph Sample and Aggregate"
+    ],
+    [
+      "20",
+      "HY",
+      "High Yield"
+    ],
+    [
+      "21",
+      "IG",
+      "Investment Grade"
+    ],
+    [
+      "22",
+      "IRB",
+      "Internal Ratings-Based"
+    ],
+    [
+      "23",
+      "LGD",
+      "Loss Given Default (Tỷ trọng tổn thất khi vỡ nợ)"
+    ],
+    [
+      "24",
+      "LightGBM",
+      "Light Gradient Boosting Machine"
+    ],
+    [
+      "25",
+      "LIME",
+      "Local Interpretable Model-agnostic Explanations"
+    ],
+    [
+      "26",
+      "LSTM",
+      "Long Short-Term Memory"
+    ],
+    [
+      "27",
+      "ML",
+      "Machine Learning (Máy học)"
+    ],
+    [
+      "28",
+      "MLP",
+      "Multilayer Perceptron"
+    ],
+    [
+      "29",
+      "NLP",
+      "Natural Language Processing"
+    ],
+    [
+      "30",
+      "PatchTST",
+      "Patch Time Series Transformer"
+    ],
+    [
+      "31",
+      "PD",
+      "Probability of Default (Xác suất vỡ nợ)"
+    ],
+    [
+      "32",
+      "RNN",
+      "Recurrent Neural Network"
+    ],
+    [
+      "33",
+      "ROA",
+      "Return on Assets"
+    ],
+    [
+      "34",
+      "ROC",
+      "Receiver Operating Characteristic"
+    ],
+    [
+      "35",
+      "ROE",
+      "Return on Equity"
+    ],
+    [
+      "36",
+      "S&P",
+      "Standard & Poor’s"
+    ],
+    [
+      "37",
+      "SHAP",
+      "SHapley Additive exPlanations"
+    ],
+    [
+      "38",
+      "SVM",
+      "Support Vector Machine"
+    ],
+    [
+      "39",
+      "T-LSTM",
+      "Transformer - Long Short-Term Memory"
+    ],
+    [
+      "40",
+      "TCN",
+      "Temporal Convolutional Network"
+    ],
+    [
+      "41",
+      "XAI",
+      "Explainable Artificial Intelligence"
+    ],
+    [
+      "42",
+      "XGBoost",
+      "eXtreme Gradient Boosting"
+    ],
+    [
+      "43",
+      "TCN",
+      "Temporal Convolutional Network"
+    ],
+    [
+      "44",
+      "TPDN",
+      "Trái phiếu doanh nghiệp"
+    ],
+    [
+      "45",
+      "XGBoost",
+      "eXtreme Gradient Boosting"
+    ]
+  ],
+  [
+    [
+      "",
+      "Dự đoán : Lớp A",
+      "Dự đoán: Lớp B",
+      "Dự đoán: Lớp C"
+    ],
+    [
+      "Thực tế: Lớp A",
+      "True Positive (TP)",
+      "False Negative (FN)",
+      "False Negative (FN)"
+    ],
+    [
+      "Thực tế: Lớp B",
+      "False Positive (FP)",
+      "True Negative (TN)",
+      "True Negative (TN)"
+    ],
+    [
+      "Thực tế: Lớp C",
+      "False Positive (FP)",
+      "True Negative (TN)",
+      "True Negative (TN)"
+    ]
+  ],
+  [
+    [
+      "Kịch bản",
+      "Tên kịch bản",
+      "Phương phápkết hợp",
+      "Mô hình mạng sử dụng"
+    ],
+    [
+      "1",
+      "LightGBM",
+      "-",
+      "Light Gradient Boosting Machine (LightGBM)"
+    ],
+    [
+      "2",
+      "XGBoost",
+      "-",
+      "eXtreme Gradient Boosting (XGBoost)"
+    ],
+    [
+      "3",
+      "TCN",
+      "-",
+      "Temporal Convolutional Networks (TCN)"
+    ],
+    [
+      "4",
+      "LSTM",
+      "-",
+      "Long Short-Term Memory (LSTM)"
+    ],
+    [
+      "5",
+      "PatchTST",
+      "-",
+      "Patch Time Series Transformer (PatchTST)"
+    ],
+    [
+      "6",
+      "T-LSTM",
+      "-",
+      "Transformer, Long Short-Term Memory (T-LSTM)"
+    ],
+    [
+      "7",
+      "GraphSAGE",
+      "-",
+      "GraphSAGE, Multilayer Perceptron (MLP)"
+    ],
+    [
+      "8",
+      "FI-TTX",
+      "Fuzzy Choquet Integral",
+      "TCN + T-LSTM + XGBoost"
+    ],
+    [
+      "9",
+      "FI-PLL",
+      "Fuzzy Choquet Integral",
+      "PatchTST + LSTM + LightGBM"
+    ],
+    [
+      "10",
+      "FI-TTLPXL",
+      "Fuzzy Choquet Integral",
+      "TCN + T-LSTM + LightGBM + PatchTST + XGBoost +LightGBM"
+    ],
+    [
+      "11",
+      "FR-TTX",
+      "Gompertz Fuzzy Ranking",
+      "TCN + T-LSTM + XGBoost"
+    ],
+    [
+      "12",
+      "FR-PLL",
+      "Gompertz Fuzzy Ranking",
+      "PatchTST + LSTM + LightGBM"
+    ],
+    [
+      "13",
+      "FR-TTLPXL",
+      "Gompertz Fuzzy Ranking",
+      "TCN + T-LSTM + LightGBM + PatchTST + XGBoost +LightGBM"
+    ],
+    [
+      "14",
+      "DMF-LG",
+      "Dynamic Model Fusion",
+      "LSTM + GraphSAGE"
+    ],
+    [
+      "15",
+      "DMF-LT",
+      "Dynamic Model Fusion",
+      "LSTM + T-LSTM"
+    ],
+    [
+      "16",
+      "DMF-TG",
+      "Dynamic Model Fusion",
+      "T-LSTM + GraphSAGE"
+    ],
+    [
+      "17",
+      "DMF-LTG",
+      "Dynamic Model Fusion",
+      "LSTM + T-LSTM + GraphSAGE"
+    ]
+  ],
+  [
+    [
+      "Tên môi trường",
+      "Cấu hình",
+      "Môi trường"
+    ],
+    [
+      "Kaggle",
+      "+ CPU: Intel Xeon 2.20 GHz+ GPU: NVIDIA Tesla P100 với bộ nhớ 16 GB",
+      "Python3"
+    ]
+  ],
+  [
+    [
+      "",
+      "Train",
+      "Val",
+      "Test"
+    ],
+    [
+      "Invesment Grade (IG)",
+      "3898",
+      "557",
+      "1114"
+    ],
+    [
+      "High Yield (HY)",
+      "1970",
+      "281",
+      "563"
+    ],
+    [
+      "Distressed",
+      "208",
+      "30",
+      "59"
+    ]
+  ],
+  [
+    [
+      "Kịch bản",
+      "Learning rate (Tốc độ học)",
+      "Epochs (Số lần học)",
+      "Loss (Hàm mất mát)",
+      "Num classes (Số lớp)"
+    ],
+    [
+      "1",
+      "3e-2",
+      "100",
+      "Cross Entropy",
+      "3"
+    ],
+    [
+      "2",
+      "3e-2",
+      "100",
+      "Cross Entropy",
+      "3"
+    ],
+    [
+      "3",
+      "3e-4",
+      "100",
+      "Cross Entropy",
+      "3"
+    ],
+    [
+      "4",
+      "3e-4",
+      "100",
+      "Cross Entropy",
+      "3"
+    ],
+    [
+      "5",
+      "3e-4",
+      "100",
+      "Cross Entropy",
+      "3"
+    ],
+    [
+      "6",
+      "3e-4",
+      "100",
+      "Cross Entropy",
+      "3"
+    ],
+    [
+      "7",
+      "6e-4",
+      "100",
+      "Cross Entropy",
+      "3"
+    ]
+  ],
+  [
+    [
+      "Kịch bản",
+      "Mạng huấn luyện",
+      "Train Loss",
+      "Val Loss",
+      "Train Acc",
+      "Val Acc"
+    ],
+    [
+      "1",
+      "LightGBM",
+      "0.1230",
+      "0.266",
+      "94",
+      "92"
+    ],
+    [
+      "2",
+      "XGBoost",
+      "0.1770",
+      "0.267",
+      "94",
+      "92.4"
+    ],
+    [
+      "3",
+      "TCN",
+      "0.248",
+      "0.276",
+      "92.7",
+      "92.3"
+    ],
+    [
+      "4",
+      "LSTM",
+      "0.190",
+      "0.268",
+      "94",
+      "92.2"
+    ],
+    [
+      "5",
+      "PatchTST",
+      "0.217",
+      "0.279",
+      "93.2",
+      "91.7"
+    ],
+    [
+      "6",
+      "T-LSTM",
+      "0.167",
+      "0.223",
+      "94",
+      "92.4"
+    ],
+    [
+      "7",
+      "GraphSAGE",
+      "0.343",
+      "0.399",
+      "92.1",
+      "92.2"
+    ]
+  ],
+  [
+    [
+      "Kịch bản 1: LightGBM",
+      "Kịch bản 2: XGBoost"
+    ],
+    [
+      "Kịch bản 3: TCN",
+      "Kịch bản 4: LSTM"
+    ],
+    [
+      "Kịch bản 5: PatchTST",
+      "Kịch bản 6: T-LSTM"
+    ],
+    [
+      "Kịch bản 7: GraphSAGE",
+      ""
+    ]
+  ],
+  [
+    [
+      "Kịch bản 1: LightGBM",
+      "Kịch bản 2: XGBoost"
+    ],
+    [
+      "Kịch bản 3: TCN",
+      "Kịch bản 4: LSTM"
+    ],
+    [
+      "Kịch bản 5: PatchTST",
+      "Kịch bản 6: T-LSTM"
+    ],
+    [
+      "Kịch bản 7: GraphSAGE",
+      ""
+    ]
+  ],
+  [
+    [
+      "Kịch bản",
+      "Tên kịch bản",
+      "Độ chính xác (%)"
+    ],
+    [
+      "1",
+      "LightGBM",
+      "91.99"
+    ],
+    [
+      "2",
+      "XGBoost",
+      "92.05"
+    ],
+    [
+      "3",
+      "TCN",
+      "91.93"
+    ],
+    [
+      "4",
+      "LSTM",
+      "92.22"
+    ],
+    [
+      "5",
+      "PatchTST",
+      "91.35"
+    ],
+    [
+      "6",
+      "T-LSTM",
+      "92.51"
+    ],
+    [
+      "7",
+      "GraphSAGE",
+      "92.34"
+    ],
+    [
+      "8",
+      "FI-TTX",
+      "92.51"
+    ],
+    [
+      "9",
+      "FI-PLL",
+      "92.34"
+    ],
+    [
+      "10",
+      "FI-TTLPXL",
+      "92.16"
+    ],
+    [
+      "11",
+      "FR-TTX",
+      "92.28"
+    ],
+    [
+      "12",
+      "FR-PLL",
+      "92.40"
+    ],
+    [
+      "13",
+      "FR-TTLPXL",
+      "92.46"
+    ],
+    [
+      "14",
+      "DMF-LG",
+      "91.82"
+    ],
+    [
+      "15",
+      "DMF-LT",
+      "92.40"
+    ],
+    [
+      "16",
+      "DMF-TG",
+      "92.98"
+    ],
+    [
+      "17",
+      "DMF-LTG",
+      "92.40"
+    ]
+  ],
+  [
+    [
+      "a. Precision của lớp Distressed"
+    ],
+    [
+      "b. Precision của lớp HY (High Yield)"
+    ],
+    [
+      "c. Precision của lớp IG (Invesment Grade)"
+    ]
+  ],
+  [
+    [
+      "a. Recall của lớp Distressed"
+    ],
+    [
+      "b. Recall của lớp HY (High Yield)"
+    ],
+    [
+      "c. Recall của lớp IG (Invesment Grade)"
+    ]
+  ],
+  [
+    [
+      "a. F1-score của lớp Distressed"
+    ],
+    [
+      "b. F1-score của lớp HY (High Yield)"
+    ],
+    [
+      "c. F1-score của lớp IG (Invesment Grade)"
+    ]
+  ],
+  [
+    [
+      "a. Đường cong ROC trên lớp Distressed"
+    ],
+    [
+      "b. Đường cong ROC trên lớp HY (High Yield)"
+    ],
+    [
+      "c. Đường cong ROC trên lớp IG (Invesment Grade)"
+    ]
+  ],
+  [
+    [
+      "Hình 4.10: Kết quả GradientSHAP của kịch bản 1Hình 4.10 trình bày kết quả giải thích mô hình LightGBM bằng phương pháp GradientSHAP. Trục hoành thể hiện giá trị trung bình tuyệt đối của mức đóng góp , còn trục tung là các chỉ số tài chính đầu vào. Thanh càng dài cho thấy đặc trưng đó có ảnh hưởng càng lớn đến xác suất dự báo của mô hình.Kết quả cho thấy Pretax Profit Margin, Operating Profit Margin, Debt Equity Ratio và Current Ratio là các đặc trưng có mức ảnh hưởng cao nhất. Điều này cho thấy mô hình LightGBM chủ yếu dựa vào khả năng sinh lời, mức độ đòn bẩy và khả năng thanh khoản để đưa ra quyết định xếp hạng tín dụng. Các chỉ số như Ebit Margin, Operating Cashflow PS và Net Profit Margin cũng có đóng góp đáng kể, phản ánh vai trò của lợi nhuận và dòng tiền trong đánh giá sức khỏe tài chính doanh nghiệp. Ngược lại, các đặc trưng như Asset Turnover, Gross Profit Margin và ROE có mức ảnh hưởng thấp hơn trong kịch bản này. Tuy nhiên, biểu đồ chỉ thể hiện độ mạnh yếu của tác động, chưa cho biết đặc trưng làm tăng hay giảm xác suất thuộc về từng lớp cụ thể. Nhìn chung, kết quả XAI cho thấy mô hình đưa ra quyết định dựa trên các nhóm chỉ số phù hợp với logic tài chính, đặc biệt là sinh lời, đòn bẩy và thanh khoản. Đây cũng là cơ sở để so sánh tương tự với các kịch bản còn lại, nhằm xác định xem các mô hình khác có cùng tập trung vào các nhóm chỉ số tài chính quan trọng hay không."
+    ],
+    [
+      "Hình 4.11: Kết quả GradientSHAP của kịch bản 2"
+    ],
+    [
+      "Hình 4.12: Kết quả GradientSHAP của kịch bản 3"
+    ],
+    [
+      "Hình 4.13: Kết quả GradientSHAP của kịch bản 4"
+    ],
+    [
+      "Hình 4.14: Kết quả GradientSHAP của kịch bản 5"
+    ],
+    [
+      "Hình 4.15: Kết quả GradientSHAP của kịch bản 6"
+    ],
+    [
+      "Hình 4.16: Kết quả GradientSHAP của kịch bản 7"
+    ],
+    [
+      "Hình 4.17: Kết quả GradientSHAP của kịch bản 8"
+    ],
+    [
+      "Hình 4.18: Kết quả GradientSHAP của kịch bản 9"
+    ],
+    [
+      "Hình 4.19: Kết quả GradientSHAP của kịch bản 10"
+    ],
+    [
+      "Hình 4.20: Kết quả GradientSHAP của kịch bản 11"
+    ],
+    [
+      "Hình 4.21: Kết quả GradientSHAP của kịch bản 12"
+    ],
+    [
+      "Hình 4.22: Kết quả GradientSHAP của kịch bản 13"
+    ],
+    [
+      "Hình 4.23: Kết quả GradientSHAP của kịch bản 14Hình 4.24: Kết quả GradientSHAP của kịch bản 15Hình 4.25: Kết quả GradientSHAP của kịch bản 16Hình 4.26: Kết quả GradientSHAP của kịch bản 17"
+    ]
+  ],
+  [
+    [
+      "Hình 4.24: Kết quả LIME của kịch bản 1Hình trên trình bày kết quả giải thích cục bộ bằng LIME cho một mẫu kiểm thử trong kịch bản LightGBM. Mô hình dự đoán mẫu này thuộc lớp IG với xác suất cao nhất, đạt 0,9687, trong khi xác suất thuộc lớp Distressed và HY rất thấp. Điều này cho thấy mô hình có độ tin cậy cao khi xếp doanh nghiệp này vào nhóm có chất lượng tín dụng tốt. Trong biểu đồ LIME, màu cam thể hiện các đặc trưng ủng hộ lớp đang được giải thích, còn màu xanh thể hiện các đặc trưng làm giảm khả năng thuộc về lớp đó. Độ dài của thanh cho biết mức độ ảnh hưởng của từng đặc trưng đối với dự đoán cục bộ.Đối với lớp IG, các đặc trưng như Pretax Profit Margin và ROE có tác động tích cực, góp phần làm tăng xác suất dự đoán thuộc lớp IG. Ngược lại, một số biến như Asset Turnover và Free Cashflow PS có tác động ngược chiều, nhưng mức ảnh hưởng không đủ lớn để thay đổi kết quả cuối cùng.Nhìn chung, kết quả LIME giúp giải thích vì sao mô hình LightGBM dự đoán mẫu này là IG. Khác với GradientSHAP thể hiện mức độ quan trọng tổng quát của đặc trưng, LIME cho thấy vai trò của từng đặc trưng đối với một mẫu doanh nghiệp cụ thể. xAI LIME cũng áp dụng tương tự cho các kịch bản còn lại."
+    ],
+    [
+      "Hình 4.25: Kết quả LIME của kịch bản 2"
+    ],
+    [
+      "Hình 4.26: Kết quả LIME của kịch bản 3"
+    ],
+    [
+      "Hình 4.27: Kết quả LIME của kịch bản 4"
+    ],
+    [
+      "Hình 4.28: Kết quả LIME của kịch bản 5"
+    ],
+    [
+      "Hình 4.30: Kết quả LIME của kịch bản 6"
+    ],
+    [
+      "Hình 4.31: Kết quả LIME của kịch bản 7"
+    ],
+    [
+      "Hình 4.32: Kết quả LIME của kịch bản 8"
+    ],
+    [
+      "Hình 4.33: Kết quả LIME của kịch bản 9"
+    ],
+    [
+      "Hình 4.34: Kết quả LIME của kịch bản 10"
+    ],
+    [
+      "Hình 4.35: Kết quả LIME của kịch bản 11"
+    ],
+    [
+      "Hình 4.36: Kết quả LIME của kịch bản 12"
+    ],
+    [
+      "Hình 4.37: Kết quả LIME của kịch bản 13"
+    ],
+    [
+      "Hình 4.38: Kết quả LIME của kịch bản 14Hình 4.39: Kết quả LIME của kịch bản 15Hình 4.40: Kết quả LIME của kịch bản 16Hình 4.41: Kết quả LIME của kịch bản 17"
+    ]
+  ],
+  [
+    [
+      "Kịch bản",
+      "Tên kịch bản",
+      "Accuracy (%)",
+      "Precision (%)",
+      "Recall (%)",
+      "F1-score (%)"
+    ],
+    [
+      "1",
+      "LightGBM",
+      "91.99",
+      "91.88",
+      "91.99",
+      "91.90"
+    ],
+    [
+      "2",
+      "XGBoost",
+      "92.05",
+      "91.94",
+      "92.05",
+      "91.95"
+    ],
+    [
+      "3",
+      "TCN",
+      "91.93",
+      "91.76",
+      "91.93",
+      "91.78"
+    ],
+    [
+      "4",
+      "LSTM",
+      "92.22",
+      "92.05",
+      "92.22",
+      "92.04"
+    ],
+    [
+      "5",
+      "PatchTST",
+      "91.35",
+      "90.79",
+      "91.35",
+      "90.73"
+    ],
+    [
+      "6",
+      "T-LSTM",
+      "92.51",
+      "92.10",
+      "92.51",
+      "92.23"
+    ],
+    [
+      "7",
+      "GraphSAGE",
+      "92.34",
+      "92.35",
+      "92.34",
+      "92.34"
+    ],
+    [
+      "8",
+      "FI-TTX",
+      "92.51",
+      "92.18",
+      "92.51",
+      "92.21"
+    ],
+    [
+      "9",
+      "FI-PLL",
+      "92.34",
+      "92.20",
+      "92.34",
+      "92.22"
+    ],
+    [
+      "10",
+      "FI-TTLPXL",
+      "92.16",
+      "91.75",
+      "92.16",
+      "91.82"
+    ],
+    [
+      "11",
+      "FR-TTX",
+      "92.28",
+      "92.09",
+      "92.28",
+      "92.04"
+    ],
+    [
+      "12",
+      "FR-PLL",
+      "92.40",
+      "92.26",
+      "92.40",
+      "92.27"
+    ],
+    [
+      "13",
+      "FR-TTLPXL",
+      "92.46",
+      "92.33",
+      "92.46",
+      "92.31"
+    ],
+    [
+      "14",
+      "DMF-LG",
+      "91.82",
+      "91.56",
+      "91.82",
+      "91.61"
+    ],
+    [
+      "15",
+      "DMF-LT",
+      "92.40",
+      "92.02",
+      "92.40",
+      "91.87"
+    ],
+    [
+      "16",
+      "DMF-TG",
+      "92.98",
+      "92.67",
+      "92.98",
+      "92.60"
+    ],
+    [
+      "17",
+      "DMF-LTG",
+      "92.40",
+      "92.02",
+      "92.40",
+      "91.87"
+    ]
+  ],
+  [
+    [
+      "Nghiên cứu",
+      "Tập dữ liệu",
+      "Phương pháp đề xuất",
+      "Độ chính xác"
+    ],
+    [
+      "Liu và Kok [62]",
+      "Bureau van Dijk(BVD) data platform",
+      "HTGNN",
+      "70.57%"
+    ],
+    [
+      "J. Darwish [63]",
+      "National Information and Credit Evaluation, Inc. (NICE)",
+      "Advanced feature selection",
+      "72.03%"
+    ],
+    [
+      "Morthens [11]",
+      "318 doanh nghiệp huấn luyện và 112 doanh nghiệpchưa thấy trong huấn luyện",
+      "GRU; GRU-GCNGRU",
+      "75.25%; 74.44%"
+    ],
+    [
+      "Mei Yang và cộng sự [64]",
+      "Compustat and Bloomberg",
+      "HDNN",
+      "80.12%"
+    ],
+    [
+      "Sanjiv Das và cộng sự [65]",
+      "Corporate Credit Rating và Synthetic Data",
+      "GNN+Tabular",
+      "86.7%"
+    ],
+    [
+      "D. T. T. Thùy và T. L. Hải [5]",
+      "300 doanh nghiệp Việt Nam trong giai đoạn 2017–2019",
+      "XGBoost",
+      "87.73%"
+    ],
+    [
+      "Fang và cộng sự [66]",
+      "Dữ liệu đa phương thức từ văn bản tài chính, chỉ sốsố và chuỗi thời gian",
+      "CNN-BiLSTM-AM",
+      "88%"
+    ],
+    [
+      "M. Kofune, K. Monden và S. Yamanaka [7]",
+      "AstraManager database, provided by Quick Inc",
+      "T-LSTM",
+      "89.96%"
+    ],
+    [
+      "Phương pháp đề xuất",
+      "Corporate Credit Rating with Financial Ratios và Corporate Credit Rating",
+      "DMF-TG",
+      "92.98%"
+    ]
+  ]
+]

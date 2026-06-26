@@ -23,8 +23,8 @@ services:
   # FastAPI backend
   backend:
     build:
-      context: ./backend
-      dockerfile: Dockerfile
+      context: ..
+      dockerfile: app/backend/Dockerfile
       target: runtime
     container_name: vnrate-backend
     ports:
@@ -53,12 +53,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       target: runner
+      args:
+        NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
     container_name: vnrate-frontend
     ports:
       - "3000:3000"
     environment:
-      - NEXT_PUBLIC_API_URL=http://localhost:8000
-      - API_INTERNAL_URL=http://backend:8000
+      - NEXT_PUBLIC_API_URL=${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      - API_INTERNAL_URL=${API_INTERNAL_URL:-http://backend:8000}
       - NODE_ENV=production
     depends_on:
       backend:

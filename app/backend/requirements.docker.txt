@@ -1,0 +1,6 @@
+# Docker uses CPU-only PyTorch. The generic `torch>=2.0.0` spec can resolve to
+# a CUDA-enabled Linux wheel and pull several GB of NVIDIA runtime packages.
+--extra-index-url https://download.pytorch.org/whl/cpu
+
+-r requirements.txt
+torch==2.3.1+cpu

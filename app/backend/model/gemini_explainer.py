@@ -134,7 +134,12 @@ def build_explanation_prompt(
     risk_score_text = "N/A" if risk_score is None else f"{risk_score:.0f}/100"
 
     top_probs = []
-    for label, prob in sorted(probs.items(), key=lambda item: float(item[1]), reverse=True)[:3]:
+    sorted_probs = sorted(
+        probs.items(),
+        key=lambda item: _to_float_or_none(item[1]) if _to_float_or_none(item[1]) is not None else -1.0,
+        reverse=True,
+    )
+    for label, prob in sorted_probs[:3]:
         p = _to_float_or_none(prob)
         if p is None:
             continue
@@ -147,6 +152,25 @@ def build_explanation_prompt(
     tlstm_risk = _to_float_or_none(tlstm.get("risk_score"))
     tlstm_conf_text = "N/A" if tlstm_conf is None else f"{tlstm_conf * 100:.1f}%"
     tlstm_risk_text = "N/A" if tlstm_risk is None else f"{tlstm_risk:.0f}/100"
+
+    decision_context = prediction.get("decision_context") or {}
+    if not isinstance(decision_context, dict):
+        decision_context = {}
+    selected_model = prediction.get("selected_model") or decision_context.get("selected_model") or "N/A"
+    dcs_case = prediction.get("dcs_case") or decision_context.get("dcs_case") or "N/A"
+    graphsage_prediction = prediction.get("graphsage_prediction") or {}
+    if not isinstance(graphsage_prediction, dict):
+        graphsage_prediction = {}
+    graphsage_rating = graphsage_prediction.get("rating") or "N/A"
+    graphsage_runtime = (
+        prediction.get("graphsage_runtime")
+        or decision_context.get("graphsage_runtime")
+        or graphsage_prediction.get("runtime")
+        or "N/A"
+    )
+    graphsage_caveat = ""
+    if "proxy" in str(graphsage_runtime).lower():
+        graphsage_caveat = "GraphSAGE runtime is an artifact-neighbor proxy, not live graph inference."
 
     feature_pairs = []
     for key in FEATURES:
@@ -167,13 +191,28 @@ def build_explanation_prompt(
         label = str(item.get("label") or item.get("feature") or "driver")
         value = _to_float_or_none(item.get("value"))
         neutral = _to_float_or_none(item.get("neutral_reference"))
+        attribution = _to_float_or_none(item.get("attribution") or item.get("shap_proxy_score"))
         direction = str(item.get("impact_direction") or "")
-        arrow = "↑ risk" if "increase" in direction else "↓ risk"
-        if value is None or neutral is None:
-            continue
-        driver_lines.append(f"• {label}: {value:.4g} (neutral={neutral:.4g}, {arrow})")
+        if "increase" in direction:
+            arrow = "increase risk"
+        elif "reduce" in direction:
+            arrow = "reduce risk"
+        elif "support" in direction:
+            arrow = "supports explained class"
+        elif "oppose" in direction:
+            arrow = "opposes explained class"
+        else:
+            arrow = direction or "direction unknown"
+        if value is not None and neutral is not None:
+            driver_lines.append(f"- {label}: {value:.4g} (neutral={neutral:.4g}, {arrow})")
+        elif attribution is not None:
+            driver_lines.append(f"- {label}: attribution={attribution:.4g} ({arrow})")
     if not driver_lines:
-        driver_lines = ["• (no drivers available)"]
+        driver_lines = ["- (no drivers available)"]
+
+    xai_source = str((xai_context or {}).get("xai_source") or (xai_context or {}).get("source") or "unknown")
+    xai_match_status = str((xai_context or {}).get("xai_match_status") or "unknown")
+    xai_note = str((xai_context or {}).get("xai_note") or "").strip()
 
     notch = str(sp_context.get("indicative_notch") or "N/A")
     notch_range = str(sp_context.get("indicative_range") or "N/A")
@@ -194,8 +233,11 @@ def build_explanation_prompt(
             "- Nếu thông tin thiếu/không chắc chắn, nói rõ bất định.\n\n"
             f"Dự đoán chính: rating={rating}, confidence={confidence_text}, "
             f"risk_score={risk_score_text}, top_probs={probs_text}\n"
+            f"DMF/DCS context: selected_model={selected_model}, dcs_case={dcs_case}, "
+            f"graphsage_rating={graphsage_rating}, graphsage_runtime={graphsage_runtime}. {graphsage_caveat}\n"
             f"TLSTM anchor: rating={tlstm_rating}, confidence={tlstm_conf_text}, "
             f"risk_score={tlstm_risk_text}\n"
+            f"xAI source: {xai_source}, match_status={xai_match_status}. {xai_note}\n"
             f"Top-3 drivers:\n{chr(10).join(driver_lines)}\n"
             f"{sp_sentence}\n"
             f"Financial features (provided only): {feature_text}\n"
@@ -209,7 +251,10 @@ def build_explanation_prompt(
         "(3) S&P notch positioning + re-rating pressure 2 bullets; (4) Priority actions 2 bullets.\n"
         "- If inputs are missing or confidence is weak, state uncertainty explicitly.\n\n"
         f"Primary prediction: rating={rating}, confidence={confidence_text}, risk_score={risk_score_text}, top_probs={probs_text}\n"
+        f"DMF/DCS context: selected_model={selected_model}, dcs_case={dcs_case}, "
+        f"graphsage_rating={graphsage_rating}, graphsage_runtime={graphsage_runtime}. {graphsage_caveat}\n"
         f"TLSTM anchor: rating={tlstm_rating}, confidence={tlstm_conf_text}, risk_score={tlstm_risk_text}\n"
+        f"xAI source: {xai_source}, match_status={xai_match_status}. {xai_note}\n"
         f"Top-3 drivers:\n{chr(10).join(driver_lines)}\n"
         f"{sp_sentence}\n"
         f"Financial features (provided only): {feature_text}\n"
@@ -391,6 +436,10 @@ def _build_prediction_snapshot(prediction: Dict[str, Any]) -> Dict[str, Any]:
         "risk_score": _to_float_or_none(prediction.get("risk_score")),
         "sector_resolved": prediction.get("sector_resolved"),
         "previous_rating": prediction.get("previous_rating"),
+        "selected_model": prediction.get("selected_model"),
+        "dcs_case": prediction.get("dcs_case"),
+        "graphsage_runtime": prediction.get("graphsage_runtime"),
+        "decision_context": prediction.get("decision_context") or {},
         "top_probabilities": [
             {
                 "class": label,
@@ -599,6 +648,133 @@ def generate_gemini_explanation(
         )
 
     return explanation
+
+
+def _format_pct(value: Any) -> str:
+    number = _to_float_or_none(value)
+    if number is None:
+        return "N/A"
+    return f"{number * 100:.1f}%"
+
+
+def _format_risk_score(value: Any) -> str:
+    number = _to_float_or_none(value)
+    if number is None:
+        return "N/A"
+    return f"{number:.0f}/100"
+
+
+def _driver_name(item: Dict[str, Any]) -> str:
+    return str(item.get("label") or item.get("feature") or item.get("lime_rule") or "driver")
+
+
+def _driver_direction_text(item: Dict[str, Any], lang: str) -> str:
+    direction = str(item.get("impact_direction") or "").lower()
+    if "increase" in direction:
+        return "lam tang rui ro" if lang == "vi" else "increases risk"
+    if "reduce" in direction:
+        return "lam giam rui ro" if lang == "vi" else "reduces risk"
+    if "support" in direction:
+        return "ung ho lop duoc giai thich" if lang == "vi" else "supports the explained class"
+    if "oppose" in direction:
+        return "di nguoc lop duoc giai thich" if lang == "vi" else "opposes the explained class"
+    return "chieu tac dong chua ro" if lang == "vi" else "has uncertain direction"
+
+
+def _driver_lines_for_fallback(xai_context: Dict[str, Any], lang: str) -> List[str]:
+    drivers = xai_context.get("artifact_shap_drivers") or xai_context.get("shap_style_top_drivers") or []
+    if not isinstance(drivers, list):
+        drivers = []
+    lines: List[str] = []
+    for item in drivers[:4]:
+        if not isinstance(item, dict):
+            continue
+        name = _driver_name(item)
+        direction = _driver_direction_text(item, lang)
+        value = _to_float_or_none(item.get("value"))
+        attribution = _to_float_or_none(item.get("attribution") or item.get("shap_proxy_score"))
+        if value is not None and attribution is not None:
+            suffix = f"value={value:.4g}, attribution/proxy={attribution:.4g}"
+        elif value is not None:
+            suffix = f"value={value:.4g}"
+        elif attribution is not None:
+            suffix = f"attribution/proxy={attribution:.4g}"
+        else:
+            suffix = ""
+        if lang == "vi":
+            lines.append(f"- {name}: {direction}" + (f" ({suffix})." if suffix else "."))
+        else:
+            lines.append(f"- {name}: {direction}" + (f" ({suffix})." if suffix else "."))
+    return lines
+
+
+def build_fallback_explanation(
+    features: Dict[str, Optional[float]],
+    prediction: Dict[str, Any],
+    lang: str,
+    xai_context: Dict[str, Any],
+    tlstm_prediction: Optional[Dict[str, Any]],
+    sp_context: Dict[str, Any],
+) -> str:
+    """Deterministic user-facing explanation when Gemini is unavailable."""
+    safe_lang = "vi" if str(lang).lower() == "vi" else "en"
+    rating = str(prediction.get("rating") or "Unknown")
+    confidence = _format_pct(prediction.get("confidence"))
+    risk_score = _format_risk_score(prediction.get("risk_score"))
+    selected_model = prediction.get("selected_model") or (prediction.get("decision_context") or {}).get("selected_model") or "N/A"
+    dcs_case = prediction.get("dcs_case") or (prediction.get("decision_context") or {}).get("dcs_case") or "N/A"
+    graphsage_runtime = prediction.get("graphsage_runtime") or (prediction.get("decision_context") or {}).get("graphsage_runtime") or "N/A"
+    tlstm = tlstm_prediction or prediction.get("tlstm_prediction") or {}
+    tlstm_rating = tlstm.get("rating") if isinstance(tlstm, dict) else None
+    xai_source = xai_context.get("xai_source") or xai_context.get("source") or "unknown"
+    xai_match_status = xai_context.get("xai_match_status") or "unknown"
+    notch = sp_context.get("indicative_notch") or "N/A"
+    notch_range = sp_context.get("indicative_range") or "N/A"
+    coverage = xai_context.get("feature_coverage") or {}
+    provided_count = coverage.get("provided_count", 0)
+    missing_count = coverage.get("missing_count", 0)
+    driver_lines = _driver_lines_for_fallback(xai_context, safe_lang)
+    if not driver_lines:
+        driver_lines = [
+            "- Chua co driver xAI kha dung; can kiem tra them du lieu tai chinh." if safe_lang == "vi"
+            else "- No xAI driver is available; additional financial data should be reviewed."
+        ]
+
+    graph_caveat_vi = (
+        " GraphSAGE dang chay theo artifact-neighbor proxy, vi vay nen xem day la neo tham chieu thay vi suy luan graph truc tiep."
+        if "proxy" in str(graphsage_runtime).lower()
+        else ""
+    )
+    graph_caveat_en = (
+        " GraphSAGE is running as an artifact-neighbor proxy, so treat it as a reference anchor rather than live graph inference."
+        if "proxy" in str(graphsage_runtime).lower()
+        else ""
+    )
+
+    if safe_lang == "vi":
+        header = [
+            "Gemini hien khong kha dung, nen backend tra ve giai thich fallback deterministic de UI khong bi mat phan dien giai.",
+            f"- Ket qua DMF/DCS du doan {rating} voi confidence {confidence} va risk_score {risk_score}.",
+            f"- Decision context: selected_model={selected_model}, dcs_case={dcs_case}, TLSTM anchor={tlstm_rating or 'N/A'}, GraphSAGE runtime={graphsage_runtime}.{graph_caveat_vi}",
+            f"- xAI source={xai_source}, match_status={xai_match_status}; co {provided_count} feature duoc cung cap va {missing_count} feature thieu.",
+        ]
+        footer = [
+            f"- S&P indicative notch: {notch}, range {notch_range}; day la mapping tham khao tu 3 lop IG/HY/Distressed, khong phai rating chinh thuc.",
+            "- Uu tien tiep theo: kiem tra cac chi so co attribution/proxy lon nhat, doi chieu sector, va cap nhat du lieu rating lich su neu co.",
+        ]
+        return "\n".join(header + driver_lines + footer)
+
+    header = [
+        "Gemini is unavailable, so the backend returned a deterministic fallback explanation to keep the UI complete.",
+        f"- DMF/DCS predicts {rating} with confidence {confidence} and risk_score {risk_score}.",
+        f"- Decision context: selected_model={selected_model}, dcs_case={dcs_case}, TLSTM anchor={tlstm_rating or 'N/A'}, GraphSAGE runtime={graphsage_runtime}.{graph_caveat_en}",
+        f"- xAI source={xai_source}, match_status={xai_match_status}; {provided_count} features are provided and {missing_count} are missing.",
+    ]
+    footer = [
+        f"- Indicative S&P notch: {notch}, range {notch_range}; this maps the 3-class model to a reference range, not an official agency rating.",
+        "- Priority actions: review the highest attribution/proxy drivers, compare against sector norms, and update historical rating context when available.",
+    ]
+    return "\n".join(header + driver_lines + footer)
 
 
 def generate_openai_explanation(

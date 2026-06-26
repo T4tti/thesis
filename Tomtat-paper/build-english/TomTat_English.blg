@@ -1,0 +1,14 @@
+This is BibTeX, Version 0.99d
+Capacity: max_strings=35307, hash_size=35307, hash_prime=30011
+The top-level auxiliary file: TomTat_English.aux
+The style file: IEEEtran.bst
+Database file #1: thesis.bib
+-- IEEEtran.bst version 1.14 (2015/08/26) by Michael Shell.
+-- http://www.michaelshell.org/tex/ieeetran/bibtex/
+-- See the "IEEEtran_bst_HOWTO.pdf" manual for usage information.
+Warning--empty journal in andersson_machine_2023
+Warning--missing school in morthens_1989-_credit_2024
+Warning--empty journal in hung_xep_2023
+
+Done.
+(There were 3 warnings)

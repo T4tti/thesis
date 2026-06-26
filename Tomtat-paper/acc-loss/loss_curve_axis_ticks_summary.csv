@@ -1,0 +1,8 @@
+model,output,loss_tick_interval,y_min,y_max,train_min,train_max,val_min,val_max
+GraphSAGE,Tomtat-paper\acc-loss\curve_loss_graphsage.png,0.1,0.1,1.0,0.343283,0.501552,0.399871,0.528225
+LightGBM,Tomtat-paper\acc-loss\curve_loss_lightgbm.png,0.1,0.1,1.0,0.095344,1.003232,0.266115,0.881512
+LSTM,Tomtat-paper\acc-loss\curve_loss_lstm.png,0.1,0.1,1.0,0.183989,0.895937,0.268518,0.536019
+PatchTST,Tomtat-paper\acc-loss\curve_loss_patchtst.png,0.1,0.1,1.0,0.217479,0.952773,0.279558,0.809048
+TCN,Tomtat-paper\acc-loss\curve_loss_tcn.png,0.1,0.1,1.0,0.238789,1.051172,0.273267,0.835587
+T-LSTM,Tomtat-paper\acc-loss\curve_loss_tlstm.png,0.1,0.1,1.0,0.098385,0.709638,0.23318,0.758291
+XGBoost,Tomtat-paper\acc-loss\curve_loss_xgboost.png,0.1,0.1,1.0,0.146503,1.015491,0.271819,0.890142

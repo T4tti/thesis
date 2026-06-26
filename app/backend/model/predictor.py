@@ -1,7 +1,7 @@
 """
 backend/model/predictor.py — Localized prediction wrapper.
 
-This module adapts the legacy TLSTM predictor output which returns bilingual keys
+This module adapts the DMF/DCS predictor output which returns bilingual keys
 (`label_en`, `label_vi`, `interpretation_en`, `interpretation_vi`) into a smaller,
 backend-localized payload (`label`, `interpretation`) based on request language.
 """
@@ -11,7 +11,7 @@ from __future__ import annotations
 from typing import Any, Dict, Optional
 
 from i18n import Lang, pick
-from model.tlstm_predictor import predict_tlstm
+from model.dmf_predictor import predict_dmf_dcs
 
 
 def predict(
@@ -24,12 +24,9 @@ def predict(
     lang: Lang = "en",
 ) -> Dict[str, Any]:
     """
-    Run TLSTM inference and return a localized response.
-
-    Important: This function does not change any model logic; it only reshapes
-    language-specific fields to reduce response size.
+    Run DMF/DCS inference and return a localized response.
     """
-    raw = predict_tlstm(
+    raw = predict_dmf_dcs(
         features=features,
         sector=sector,
         previous_rating=previous_rating,
@@ -47,4 +44,3 @@ def predict(
     result.pop("interpretation_vi", None)
 
     return result
-

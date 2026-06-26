@@ -49,22 +49,25 @@ async def lifespan(app: FastAPI):  # noqa: D401
     MODEL_STATE["ready"] = False
     MODEL_STATE["history_csv_path"] = HISTORY_CSV
 
-    # ── 1. Load pre-trained TLSTMFuzzy model (PyTorch) ────────────────────
+    # ── 1. Load pre-trained DMF/DCS model package ─────────────────────────
     log.info("=== VN-Rating Backend Startup ===")
-    log.info("Loading TLSTMFuzzy model …")
+    log.info("Loading DMF/DCS T-LSTM+GraphSAGE model …")
     try:
-        from model.tlstm_predictor import load_tlstm
+        from model.dmf_predictor import load_dmf_tlstm_graphsage
 
-        tlstm_model, tlstm_meta = load_tlstm()
-        MODEL_STATE["tlstm_model"] = tlstm_model
-        MODEL_STATE["tlstm_meta"] = tlstm_meta
+        rating_model, rating_meta = load_dmf_tlstm_graphsage()
+        MODEL_STATE["rating_model"] = rating_model
+        MODEL_STATE["rating_meta"] = rating_meta
+        MODEL_STATE["tlstm_model"] = rating_model
+        MODEL_STATE["tlstm_meta"] = rating_meta
         log.info(
-            "TLSTMFuzzy ready — %d classes, %d sectors",
-            tlstm_meta["model_hparams"]["n_classes"],
-            tlstm_meta["model_hparams"]["n_sectors"],
+            "DMF/DCS ready — %d classes, %d sectors, GraphSAGE=%s",
+            rating_meta["model_hparams"]["n_classes"],
+            rating_meta["model_hparams"]["n_sectors"],
+            rating_meta.get("graphsage_runtime"),
         )
     except Exception as exc:
-        log.error("TLSTMFuzzy load failed: %s", exc)
+        log.error("DMF/DCS load failed: %s", exc)
 
     # ── 2. Load reports data ───────────────────────────────────────────────
     # Initialize database and migrate data if needed
@@ -102,11 +105,11 @@ async def lifespan(app: FastAPI):  # noqa: D401
     df["rating_date"] = df["rating_date"].dt.strftime("%Y-%m-%d").fillna("")
     MODEL_STATE["data_df"] = df
 
-    MODEL_STATE["ready"] = MODEL_STATE.get("tlstm_model") is not None
+    MODEL_STATE["ready"] = MODEL_STATE.get("rating_model") is not None
     log.info(
-        "=== Startup complete — %d records, TLSTM=%s, READY=%s ===",
+        "=== Startup complete — %d records, DMF_DCS=%s, READY=%s ===",
         len(df),
-        "OK" if MODEL_STATE["tlstm_model"] is not None else "FAIL",
+        "OK" if MODEL_STATE["rating_model"] is not None else "FAIL",
         "YES" if MODEL_STATE["ready"] else "NO",
     )
 

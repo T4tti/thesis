@@ -1,0 +1,38 @@
+# Keep the root Docker build context small.
+# The backend image is built from the repository root so it can copy the
+# DMF/TLSTM artifacts using the same path layout as local execution.
+
+**
+
+!app/
+!app/backend/
+!app/backend/**
+
+!artifacts/
+!artifacts/DMF/
+!artifacts/DMF/credit_rating_artifacts/
+!artifacts/DMF/credit_rating_artifacts/dmf_dcs_financial_shap_importance_by_class.csv
+!artifacts/DMF/credit_rating_artifacts/dmf_dcs_financial_shap_local_decisions.csv
+!artifacts/DMF/credit_rating_artifacts/dmf_dcs_financial_lime_local_decisions.csv
+!artifacts/DMF/credit_rating_artifacts/dmf_gat_tlstm/
+!artifacts/DMF/credit_rating_artifacts/dmf_gat_tlstm/dmf_dcs_final_model.pkl
+!artifacts/DMF/credit_rating_artifacts/dmf_gat_tlstm/dmf_dcs_test_predictions.csv
+
+**/.env
+**/.env.*
+!**/.env.example
+**/__pycache__/
+**/*.py[cod]
+**/.pytest_cache/
+**/.mypy_cache/
+**/.ruff_cache/
+**/.venv/
+**/venv/
+**/node_modules/
+**/.next/
+**/coverage/
+**/*.log
+**/.git/
+**/.gitignore
+**/.vscode/
+**/.idea/

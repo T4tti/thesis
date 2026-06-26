@@ -42,6 +42,14 @@ interface PredictResult {
   color: string
   sector_resolved?: string
   previous_rating?: string
+  tlstm_prediction?: PredictionAnchor
+  graphsage_prediction?: PredictionAnchor
+  selected_model?: string
+  dcs_case?: string
+  graphsage_runtime?: string
+  input_context?: Record<string, unknown>
+  decision_context?: Record<string, unknown>
+  xai_match_hint?: Record<string, unknown>
 }
 
 interface ExplainResult {
@@ -49,6 +57,27 @@ interface ExplainResult {
   model: string
   explanation: string
   xai_used?: boolean
+  fallback_used?: boolean
+  xai_source?: string
+  xai_match_status?: string
+  sp_context?: SpContext
+}
+
+interface PredictionAnchor {
+  model?: string
+  rating?: string
+  probabilities?: Record<string, number>
+  confidence?: number
+  risk_level?: string
+  risk_score?: number
+  label?: string
+  label_en?: string
+  label_vi?: string
+  interpretation?: string
+  interpretation_en?: string
+  interpretation_vi?: string
+  sector_resolved?: string
+  previous_rating?: string
 }
 
 interface SpContext {
@@ -91,12 +120,18 @@ type CsvRow = Partial<Record<FieldKey, string>> & {
   __ticker?: string
   __company?: string
   __sector?: string
+  __rowId?: string
+  __ratingDate?: string
+  __previousRating?: string
 }
 
 type AppliedCsvMeta = {
   ticker?: string
   companyName?: string
   sector?: string
+  rowId?: string
+  ratingDate?: string
+  previousRating?: string
 }
 
 const normalizeHeader = (header: string) =>
@@ -138,6 +173,9 @@ const HEADER_ALIAS_TO_FIELD: Record<string, FieldKey> = {
 const TICKER_HEADER_ALIASES = new Set(['ticker', 'symbol', 'stockcode', 'stockticker', 'mack'])
 const COMPANY_HEADER_ALIASES = new Set(['company', 'companyname', 'name', 'issuer'])
 const SECTOR_HEADER_ALIASES = new Set(['sector', 'industry', 'linhvuc', 'nganh'])
+const ROW_ID_HEADER_ALIASES = new Set(['rowid', 'id', 'modelrowid', 'testindex', 'xaitestindex'])
+const RATING_DATE_HEADER_ALIASES = new Set(['ratingdate', 'date', 'ratedate', 'ngayxephang'])
+const PREVIOUS_RATING_HEADER_ALIASES = new Set(['previousrating', 'prevrating', 'lastrating', 'lastknownrating', 'lastyrating', 'lastycontext'])
 
 const resolveFieldFromHeader = (header: string): FieldKey | null => {
   const normalized = normalizeHeader(header)
@@ -276,20 +314,26 @@ export default function RatingForm() {
     }
   }
 
-  const buildTlstmExplainInput = (prediction: PredictResult) => ({
-    model: prediction.model || 'TLSTMFuzzy',
-    rating: prediction.rating,
-    probabilities: prediction.probabilities,
-    confidence: prediction.confidence,
-    risk_level: prediction.risk_level,
-    risk_score: prediction.risk_score,
-    label_en: prediction.label,
-    label_vi: prediction.label,
-    interpretation_en: prediction.interpretation,
-    interpretation_vi: prediction.interpretation,
-    sector_resolved: prediction.sector_resolved,
-    previous_rating: prediction.previous_rating,
-  })
+  const buildTlstmExplainInput = (prediction: PredictResult): PredictionAnchor => {
+    if (prediction.tlstm_prediction && typeof prediction.tlstm_prediction === 'object') {
+      return prediction.tlstm_prediction
+    }
+
+    return {
+      model: 'TLSTM anchor unavailable',
+      rating: prediction.rating,
+      probabilities: prediction.probabilities,
+      confidence: prediction.confidence,
+      risk_level: prediction.risk_level,
+      risk_score: prediction.risk_score,
+      label_en: prediction.label,
+      label_vi: prediction.label,
+      interpretation_en: prediction.interpretation,
+      interpretation_vi: prediction.interpretation,
+      sector_resolved: prediction.sector_resolved,
+      previous_rating: prediction.previous_rating,
+    }
+  }
 
   const streamExplain = async (payload: Record<string, number | null>, prediction: PredictResult) => {
     setExplainLoading(true)
@@ -372,8 +416,18 @@ export default function RatingForm() {
           if (typeof event === 'object' && event !== null && 'done' in event) {
             const doneFlag = (event as { done?: unknown }).done
             const ctx = (event as { sp_context?: unknown }).sp_context
+            const provider = (event as { provider?: unknown }).provider
+            const model = (event as { model?: unknown }).model
+            const fallbackUsed = (event as { fallback_used?: unknown }).fallback_used
+            const xaiSource = (event as { xai_source?: unknown }).xai_source
             if (doneFlag === true && typeof ctx === 'object' && ctx !== null) {
               setSpContext(ctx as SpContext)
+            }
+            if (doneFlag === true) {
+              const providerText = typeof provider === 'string' ? provider : 'explain'
+              const modelText = typeof model === 'string' ? model : ''
+              const xaiText = typeof xaiSource === 'string' ? ` · ${xaiSource}` : ''
+              setExplainModel(`${providerText}${modelText ? ` · ${modelText}` : ''}${fallbackUsed === true ? ' · fallback' : ''}${xaiText}`)
             }
             setExplainLoading(false)
             continue
@@ -404,8 +458,18 @@ export default function RatingForm() {
           if (typeof event === 'object' && event !== null && 'done' in event) {
             const doneFlag = (event as { done?: unknown }).done
             const ctx = (event as { sp_context?: unknown }).sp_context
+            const provider = (event as { provider?: unknown }).provider
+            const model = (event as { model?: unknown }).model
+            const fallbackUsed = (event as { fallback_used?: unknown }).fallback_used
+            const xaiSource = (event as { xai_source?: unknown }).xai_source
             if (doneFlag === true && typeof ctx === 'object' && ctx !== null) {
               setSpContext(ctx as SpContext)
+            }
+            if (doneFlag === true) {
+              const providerText = typeof provider === 'string' ? provider : 'explain'
+              const modelText = typeof model === 'string' ? model : ''
+              const xaiText = typeof xaiSource === 'string' ? ` · ${xaiSource}` : ''
+              setExplainModel(`${providerText}${modelText ? ` · ${modelText}` : ''}${fallbackUsed === true ? ' · fallback' : ''}${xaiText}`)
             }
           }
         } catch {
@@ -512,7 +576,6 @@ export default function RatingForm() {
     setExplainError(null)
     setExplainModel(null)
     setSpContext(null)
-    setSpContext(null)
     if (csvInputRef.current) {
       csvInputRef.current.value = ''
     }
@@ -544,6 +607,9 @@ export default function RatingForm() {
       ticker: row.__ticker?.trim() || undefined,
       companyName: row.__company?.trim() || undefined,
       sector: row.__sector?.trim() || undefined,
+      rowId: row.__rowId?.trim() || undefined,
+      ratingDate: row.__ratingDate?.trim() || undefined,
+      previousRating: row.__previousRating?.trim() || undefined,
     })
     setResult(null)
     setError(null)
@@ -583,11 +649,17 @@ export default function RatingForm() {
       let tickerIndex = -1
       let companyIndex = -1
       let sectorIndex = -1
+      let rowIdIndex = -1
+      let ratingDateIndex = -1
+      let previousRatingIndex = -1
       headers.forEach((header, idx) => {
         const normalized = normalizeHeader(header)
         if (tickerIndex === -1 && TICKER_HEADER_ALIASES.has(normalized)) tickerIndex = idx
         if (companyIndex === -1 && COMPANY_HEADER_ALIASES.has(normalized)) companyIndex = idx
         if (sectorIndex === -1 && SECTOR_HEADER_ALIASES.has(normalized)) sectorIndex = idx
+        if (rowIdIndex === -1 && ROW_ID_HEADER_ALIASES.has(normalized)) rowIdIndex = idx
+        if (ratingDateIndex === -1 && RATING_DATE_HEADER_ALIASES.has(normalized)) ratingDateIndex = idx
+        if (previousRatingIndex === -1 && PREVIOUS_RATING_HEADER_ALIASES.has(normalized)) previousRatingIndex = idx
       })
 
       const parsedRows: CsvRow[] = matrix
@@ -602,6 +674,9 @@ export default function RatingForm() {
           if (tickerIndex >= 0) parsedRow.__ticker = (rawRow[tickerIndex] || '').trim()
           if (companyIndex >= 0) parsedRow.__company = (rawRow[companyIndex] || '').trim()
           if (sectorIndex >= 0) parsedRow.__sector = (rawRow[sectorIndex] || '').trim()
+          if (rowIdIndex >= 0) parsedRow.__rowId = (rawRow[rowIdIndex] || '').trim()
+          if (ratingDateIndex >= 0) parsedRow.__ratingDate = (rawRow[ratingDateIndex] || '').trim()
+          if (previousRatingIndex >= 0) parsedRow.__previousRating = (rawRow[previousRatingIndex] || '').trim()
           return parsedRow
         })
         .filter(row => ALL_FIELDS.some(field => (row[field] || '').trim() !== ''))
@@ -643,10 +718,20 @@ export default function RatingForm() {
     }
 
     try {
+      const predictionPayload = {
+        ...payload,
+        sector: appliedCsvMeta?.sector,
+        previous_rating: appliedCsvMeta?.previousRating,
+        row_id: appliedCsvMeta?.rowId,
+        ticker: appliedCsvMeta?.ticker,
+        company_name: appliedCsvMeta?.companyName,
+        rating_date: appliedCsvMeta?.ratingDate,
+      }
+
       const data = await apiFetch<PredictResult>('/api/predict', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(payload),
+        body: JSON.stringify(predictionPayload),
       }, lang)
       setResult(data)
       setLoading(false)

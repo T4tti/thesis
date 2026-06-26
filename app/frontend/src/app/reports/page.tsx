@@ -1,7 +1,8 @@
 import { API_BASE_URL } from '@/lib/config'
 import ReportsClient from '@/components/ReportsClient'
 
-export const revalidate = 3600;
+export const dynamic = 'force-dynamic'
+export const revalidate = 0
 
 export default async function ReportsPage() {
   let stats = null;
@@ -10,12 +11,12 @@ export default async function ReportsPage() {
   
   try {
     const [statsRes, sectorsRes] = await Promise.all([
-      fetch(`${API_BASE_URL}/api/stats`, { next: { revalidate: 3600 } }),
-      fetch(`${API_BASE_URL}/api/sectors`, { next: { revalidate: 3600 } })
+      fetch(`${API_BASE_URL}/api/stats`, { cache: 'no-store' }),
+      fetch(`${API_BASE_URL}/api/sectors`, { cache: 'no-store' })
     ]);
 
     if (!statsRes.ok || !sectorsRes.ok) {
-      throw new Error('Network response was not ok');
+      throw new Error(`Backend data request failed: stats=${statsRes.status}, sectors=${sectorsRes.status}`);
     }
 
     stats = await statsRes.json();
@@ -27,4 +28,3 @@ export default async function ReportsPage() {
 
   return <ReportsClient stats={stats} sectors={sectors} statsError={statsError} />
 }
-

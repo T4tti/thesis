@@ -1,0 +1,154 @@
+{
+  "artifact_type": "dmf_dcs_final_model",
+  "artifact_version": 1,
+  "created_at_utc": "2026-06-21T07:49:38.904197+00:00",
+  "model_name": "DMF/DCS TLSTM+GAT",
+  "description_vi": "Goi cau hinh model hop nhat dong DMF/DCS de tich hop demo web.",
+  "base_models": [
+    "tlstm",
+    "gat"
+  ],
+  "class_ids": [
+    0,
+    1,
+    2
+  ],
+  "class_names": [
+    "Distressed",
+    "HY",
+    "IG"
+  ],
+  "id_to_name": {
+    "0": "Distressed",
+    "1": "HY",
+    "2": "IG"
+  },
+  "probability_columns": [
+    "prob_0",
+    "prob_1",
+    "prob_2"
+  ],
+  "dcs_config": {
+    "top_k": 100,
+    "model_weight_mode": "constant",
+    "model_weights": {
+      "tlstm": 1.0,
+      "gat": 1.0
+    },
+    "validation_accuracy_weights": {
+      "tlstm": 0.9211136890951276,
+      "gat": 0.9234338747099768
+    },
+    "tie_breaker": "tlstm",
+    "agreement_probability_rule": "average_tlstm_gat_probabilities",
+    "disagreement_probability_rule": "use_selected_base_model_probability_vector"
+  },
+  "validation_competence": [
+    {
+      "model_key": "tlstm",
+      "class_id": 0,
+      "class_name": "Distressed",
+      "delta_topk_mean": 0.30849407443157756,
+      "k_eff": 30,
+      "reference_count": 30
+    },
+    {
+      "model_key": "tlstm",
+      "class_id": 1,
+      "class_name": "HY",
+      "delta_topk_mean": 0.9910520524700239,
+      "k_eff": 100,
+      "reference_count": 280
+    },
+    {
+      "model_key": "tlstm",
+      "class_id": 2,
+      "class_name": "IG",
+      "delta_topk_mean": 0.9998983590410644,
+      "k_eff": 100,
+      "reference_count": 552
+    },
+    {
+      "model_key": "gat",
+      "class_id": 0,
+      "class_name": "Distressed",
+      "delta_topk_mean": 0.5060648066876889,
+      "k_eff": 30,
+      "reference_count": 30
+    },
+    {
+      "model_key": "gat",
+      "class_id": 1,
+      "class_name": "HY",
+      "delta_topk_mean": 0.8153324221967683,
+      "k_eff": 100,
+      "reference_count": 280
+    },
+    {
+      "model_key": "gat",
+      "class_id": 2,
+      "class_name": "IG",
+      "delta_topk_mean": 0.9364627179355304,
+      "k_eff": 100,
+      "reference_count": 552
+    }
+  ],
+  "runtime_input_contract": {
+    "required_base_predictions": {
+      "tlstm": {
+        "pred_label": "int class id",
+        "probabilities": [
+          "prob_0",
+          "prob_1",
+          "prob_2"
+        ]
+      },
+      "gat": {
+        "pred_label": "int class id",
+        "probabilities": [
+          "prob_0",
+          "prob_1",
+          "prob_2"
+        ]
+      }
+    },
+    "selection_formula": "score_j = topk_validation_competence_j(predicted_class) * model_weight_j + test_probability_j(predicted_class)",
+    "output_fields": [
+      "pred_label",
+      "pred_label_name",
+      "confidence",
+      "probabilities",
+      "selected_model",
+      "dcs_case"
+    ]
+  },
+  "source_artifacts": {
+    "tlstm_input_dir": "/kaggle/input/datasets/tailength/dmf-artifacts/dmf_artifacts",
+    "gat_input_dir": "/kaggle/input/datasets/tailength/dmf-artifacts/dmf_artifacts",
+    "label_mapping_path": "/kaggle/input/datasets/tailength/dmf-artifacts/dmf_artifacts/label_mapping.csv"
+  },
+  "notebook_outputs": {
+    "dmf_artifact_dir": "/kaggle/working/credit_rating_artifacts/dmf_gat_tlstm",
+    "metrics_csv": "/kaggle/working/credit_rating_artifacts/dmf_gat_tlstm/dmf_dcs_metrics.csv",
+    "predictions_csv": "/kaggle/working/credit_rating_artifacts/dmf_gat_tlstm/dmf_dcs_test_predictions.csv",
+    "roc_plot_png": "/kaggle/working/credit_rating_artifacts/dmf_gat_tlstm/dmf_dcs_test_roc_curves.png",
+    "roc_points_csv": "/kaggle/working/credit_rating_artifacts/dmf_gat_tlstm/dmf_dcs_test_roc_curve_points.csv"
+  },
+  "test_set_summary": {
+    "n_rows": 1723,
+    "agreement_rows": 1624,
+    "disagreement_rows": 99,
+    "final_metrics": {
+      "Model": "DMF/DCS proposed (constant)",
+      "Accuracy": 0.9297736506094022,
+      "Precision_Weighted": 0.926706031852487,
+      "Recall_Weighted": 0.9297736506094022,
+      "Macro_F1": 0.7792481552269886,
+      "Weighted_F1": 0.9259744898785379,
+      "QWK": 0.8747283803671629,
+      "Ordinal_MAE": 0.07080673244341265,
+      "AUC_ROC_OVR_Macro": 0.9489855329879547,
+      "AUC": 0.9489855329879547
+    }
+  }
+}

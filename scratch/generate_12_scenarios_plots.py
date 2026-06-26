@@ -74,7 +74,7 @@ def generate_plot(df: pd.DataFrame, metric_col: str, file_name: str, title_vn: s
     Vẽ biểu đồ cột so sánh một chỉ số đánh giá cho 12 kịch bản.
     """
     values: List[float] = df[metric_col].tolist()
-    labels: List[str] = df["Tên kịch bản"].tolist()
+    labels: List[str] = df["Kịch bản"].tolist()
     groups: List[str] = df["Group"].tolist()
     
     # Định nghĩa bảng màu cao cấp
@@ -109,7 +109,7 @@ def generate_plot(df: pd.DataFrame, metric_col: str, file_name: str, title_vn: s
     
     # Xoay nhãn trục x để không bị đè lên nhau
     ax.set_xticks(range(len(labels)))
-    ax.set_xticklabels(labels, rotation=30, ha="right", fontsize=9.5, fontweight='semibold')
+    ax.set_xticklabels(labels, rotation=0, ha="center", fontsize=9.5, fontweight='semibold')
     
     # Thêm chú thích nhóm mô hình (Legend)
     from matplotlib.patches import Patch
