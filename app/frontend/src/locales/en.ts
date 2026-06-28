@@ -19,7 +19,7 @@ export const en = {
     heroTitle: 'Corporate Credit Rating',
     heroHighlight: 'Intelligence Platform',
     heroSub:
-      'VN-Rating applies machine learning to assess corporate creditworthiness using 12 core financial indicators — delivering instant IG / HY / Distressed classifications.',
+      'VN-Rating applies machine learning to assess corporate credit ratings using 12 core financial indicators — delivering instant IG / HY / Distressed classifications.',
     cta: 'Try Rating Tool',
     ctaSecondary: 'Explore Data',
     statsTitle: 'Platform at a Glance',
@@ -110,8 +110,8 @@ export const en = {
     dateRange: 'Date Range',
   },
   ratingTool: {
-    title: 'Credit Rating Tool',
-    subtitle: 'Enter financial metrics to receive an AI-powered credit rating (IG / HY / Distressed).',
+    title: 'Corporate Credit Rating Tool',
+    subtitle: 'Enter financial metrics to receive an AI-powered corporate credit rating (IG / HY / Distressed).',
     formTitle: 'Financial Data Input',
     csvTitle: 'Import CSV to Autofill',
     csvHint: 'Upload a CSV file, choose a row, then apply it to the form fields.',

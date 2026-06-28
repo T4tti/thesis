@@ -1,7 +1,7 @@
 """
 FiinRatings Credit Rating Scraper
 ==================================
-Thu thập toàn bộ kết quả xếp hạng tín nhiệm từ fiinratings.vn
+Thu thập toàn bộ kết quả xếp hạng tín dụng doanh nghiệp từ fiinratings.vn
 - Lưu danh sách vào CSV
 - Tải xuống báo cáo PDF (tiếng Việt & tiếng Anh)
 

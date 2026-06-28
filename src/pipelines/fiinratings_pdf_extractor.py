@@ -47,7 +47,7 @@ class FinancialData(BaseModel):
     company_name: Optional[str] = Field(default=None, description="Tên công ty được xếp hạng")
     ticker: Optional[str] = Field(default=None, description="Mã chứng khoán (nếu có)")
     rating_date: Optional[str] = Field(default=None, description="Ngày xếp hạng (định dạng YYYY-MM-DD)")
-    rating_detail: Optional[str] = Field(default=None, description="Bậc xếp hạng tín nhiệm (VD: AAA, AA+, A-, BBB, ...)")
+    rating_detail: Optional[str] = Field(default=None, description="Bậc xếp hạng tín dụng doanh nghiệp (VD: AAA, AA+, A-, BBB, ...)")
     sector: Optional[str] = Field(default=None, description="Ngành nghề hoạt động")
     
     # Financial Indicators (12 variables matching merged_credit_rating_common_3groups.csv)
@@ -135,7 +135,7 @@ class PDFExtractorPipeline:
         """
         prompt = f"""
         Bạn là một chuyên gia phân tích dữ liệu tài chính. 
-        Dưới đây là nội dung thô được trích xuất từ một báo cáo xếp hạng tín nhiệm doanh nghiệp (có thể chứa văn bản và bảng biểu).
+        Dưới đây là nội dung thô được trích xuất từ một báo cáo xếp hạng tín dụng doanh nghiệp (có thể chứa văn bản và bảng biểu).
         
         Nhiệm vụ của bạn là:
         1. Tìm các thông tin cơ bản: Tên công ty, Mã CK (nếu có), Ngày xếp hạng, Bậc xếp hạng (VD: AA+, BBB-, ...), Ngành nghề.

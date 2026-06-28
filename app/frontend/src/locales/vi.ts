@@ -18,10 +18,10 @@ export const vi: Translations = {
   },
   home: {
     badge: 'Nền tảng Tín dụng Hỗ trợ AI',
-    heroTitle: 'Xếp hạng Tín nhiệm',
+    heroTitle: 'Xếp hạng Tín dụng Doanh nghiệp',
     heroHighlight: 'Doanh nghiệp Thông minh',
     heroSub:
-      'VN-Rating ứng dụng học máy để đánh giá mức tín nhiệm doanh nghiệp từ 12 chỉ số tài chính cốt lõi — phân loại tức thì IG / HY / Distressed.',
+      'VN-Rating ứng dụng học máy để đánh giá xếp hạng tín dụng doanh nghiệp từ 12 chỉ số tài chính cốt lõi — phân loại tức thì IG / HY / Distressed.',
     cta: 'Xếp hạng ngay',
     ctaSecondary: 'Khám phá dữ liệu',
     statsTitle: 'Tổng quan Nền tảng',
@@ -42,7 +42,7 @@ export const vi: Translations = {
     hyName: 'Sinh lợi Cao (HY)',
     hyDesc: 'Rủi ro tín dụng cao hơn. Nhóm đầu cơ, phù hợp với nhà đầu tư chấp nhận rủi ro.',
     distName: 'Căng thẳng Tài chính',
-    distDesc: 'Căng thẳng tài chính đáng kể. Xác suất suy giảm tín nhiệm hoặc vỡ nợ cao.',
+    distDesc: 'Căng thẳng tài chính đáng kể. Xác suất suy giảm xếp hạng tín dụng hoặc vỡ nợ cao.',
   },
   methodology: {
     title: 'Phương pháp Luận',
@@ -112,8 +112,8 @@ export const vi: Translations = {
     dateRange: 'Phạm vi thời gian',
   },
   ratingTool: {
-    title: 'Công cụ Xếp hạng Tín dụng',
-    subtitle: 'Nhập chỉ số tài chính để nhận xếp hạng tín dụng hỗ trợ AI (IG / HY / Distressed).',
+    title: 'Công cụ Xếp hạng Tín dụng Doanh nghiệp',
+    subtitle: 'Nhập chỉ số tài chính để nhận xếp hạng tín dụng doanh nghiệp hỗ trợ AI (IG / HY / Distressed).',
     formTitle: 'Nhập Dữ liệu Tài chính',
     csvTitle: 'Import CSV để điền tự động',
     csvHint: 'Tải file CSV, chọn một dòng dữ liệu, sau đó áp dụng vào biểu mẫu.',
